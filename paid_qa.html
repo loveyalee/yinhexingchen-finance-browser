@@ -356,6 +356,93 @@
       gap: 10px;
     }
     
+    /* 评价功能样式 */
+    .rating-section {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      border: 1px solid #d0e8ff;
+    }
+    
+    .rating-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .star-rating {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    
+    .star {
+      font-size: 24px;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .star:hover,
+    .star.active {
+      color: #f39c12;
+    }
+    
+    .rating-textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    
+    .rating-submit {
+      margin-top: 10px;
+      padding: 8px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .rating-submit:hover {
+      background-color: #2980b9;
+    }
+    
+    .rating-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+    
+    .rating-stars-display {
+      color: #f39c12;
+      font-size: 16px;
+    }
+    
+    .rating-score {
+      font-weight: bold;
+      color: #f39c12;
+    }
+    
+    .rating-comment {
+      margin-top: 5px;
+      font-size: 13px;
+      color: #666;
+      font-style: italic;
+    }
+    
     .qa-sidebar {
       display: flex;
       flex-direction: column;
@@ -936,7 +1023,42 @@
           if (question.answers.length > 0) {
             answerSection = `
               <div class="answer-section">
-                ${question.answers.map(answer => `
+                ${question.answers.map(answer => {
+                  // 生成评价区域HTML
+                  let ratingSection = '';
+                  const hasRated = answer.rating && answer.rating.score > 0;
+                  const canRate = question.authorId === (currentUser ? currentUser.id : '') && answer.isAdopted && question.status === 'resolved';
+                  
+                  if (hasRated) {
+                    // 显示已评价内容
+                    const stars = '★'.repeat(answer.rating.score) + '☆'.repeat(5 - answer.rating.score);
+                    ratingSection = `
+                      <div class="rating-display">
+                        <div>
+                          <div class="rating-stars-display">${stars} <span class="rating-score">${answer.rating.score}分</span></div>
+                          ${answer.rating.comment ? `<div class="rating-comment">"${answer.rating.comment}"</div>` : ''}
+                        </div>
+                      </div>
+                    `;
+                  } else if (canRate) {
+                    // 显示评价输入区域
+                    ratingSection = `
+                      <div class="rating-section" id="rating-section-${answer.id}">
+                        <div class="rating-title">💬 对回答进行评价</div>
+                        <div class="star-rating" id="star-rating-${answer.id}">
+                          <span class="star" data-score="1" onclick="setRating(${answer.id}, 1)">★</span>
+                          <span class="star" data-score="2" onclick="setRating(${answer.id}, 2)">★</span>
+                          <span class="star" data-score="3" onclick="setRating(${answer.id}, 3)">★</span>
+                          <span class="star" data-score="4" onclick="setRating(${answer.id}, 4)">★</span>
+                          <span class="star" data-score="5" onclick="setRating(${answer.id}, 5)">★</span>
+                        </div>
+                        <textarea class="rating-textarea" id="rating-comment-${answer.id}" placeholder="请输入您的评价（选填）..."></textarea>
+                        <button class="rating-submit" onclick="submitRating(${question.id}, ${answer.id})">提交评价</button>
+                      </div>
+                    `;
+                  }
+                  
+                  return `
                   <div class="answer-item">
                     <div class="answer-header">${answer.author} | ${answer.time} ${answer.isAdopted ? '<span style="color: #27ae60;">✓ 已采纳</span>' : ''}</div>
                     <div class="answer-content">${answer.content}</div>
@@ -945,8 +1067,9 @@
                         <button class="btn btn-success" onclick="adoptAnswer(${question.id}, ${answer.id})">采纳答案</button>
                       </div>
                     ` : ''}
+                    ${ratingSection}
                   </div>
-                `).join('')}
+                `}).join('')}
               </div>
             `;
           }
@@ -1029,6 +1152,61 @@
         const question = questions.find(q => q.id === questionId);
         if (question) {
           alert(`问题详情：\n\n标题：${question.title}\n内容：${question.content}\n悬赏：¥${question.reward}\n状态：${question.status}`);
+        }
+      };
+      
+      // 评价功能相关变量
+      let currentRatings = {};
+      
+      // 设置评分
+      window.setRating = function(answerId, score) {
+        currentRatings[answerId] = score;
+        
+        // 更新星星显示
+        const stars = document.querySelectorAll(`#star-rating-${answerId} .star`);
+        stars.forEach((star, index) => {
+          if (index < score) {
+            star.classList.add('active');
+          } else {
+            star.classList.remove('active');
+          }
+        });
+      };
+      
+      // 提交评价
+      window.submitRating = function(questionId, answerId) {
+        if (!isLoggedIn) {
+          alert('请先登录');
+          return;
+        }
+        
+        const score = currentRatings[answerId];
+        if (!score || score < 1 || score > 5) {
+          alert('请选择评分（1-5星）');
+          return;
+        }
+        
+        const comment = document.getElementById(`rating-comment-${answerId}`).value.trim();
+        
+        const question = questions.find(q => q.id === questionId);
+        if (question) {
+          const answer = question.answers.find(a => a.id === answerId);
+          if (answer) {
+            // 保存评价
+            answer.rating = {
+              score: score,
+              comment: comment,
+              time: new Date().toLocaleString('zh-CN')
+            };
+            
+            // 清除当前评分缓存
+            delete currentRatings[answerId];
+            
+            // 重新渲染问题列表
+            renderQuestions();
+            
+            alert('评价提交成功！感谢您的反馈。');
+          }
         }
       };
       

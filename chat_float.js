@@ -306,23 +306,55 @@ window.onclick = function(event) {
 
 // 初始化聊天器
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initChatFloat);
+  document.addEventListener('DOMContentLoaded', function() {
+    initChatFloat();
+    // 蜻蜓图标状态切换
+    const dqImg = document.getElementById('dqImg');
+    const redDot = document.getElementById('redDot');
+    
+    // 来消息：飞+红点 
+    window.haveNewMsg = function(){
+      if (dqImg) {
+        dqImg.style.animation = "flap 1s ease-in-out infinite";
+      }
+      if (redDot) {
+        redDot.style.display = "block";
+      }
+    };
+    
+    // 无消息：静止+无红点 
+    window.noNewMsg = function(){
+      if (dqImg) {
+        dqImg.style.animation = "none";
+      }
+      if (redDot) {
+        redDot.style.display = "none";
+      }
+    };
+  });
 } else {
   initChatFloat();
-}
-
-// 蜻蜓图标状态切换
-const dqImg = document.getElementById('dqImg');
-const redDot = document.getElementById('redDot');
-
-// 来消息：飞+红点 
-function haveNewMsg(){
-  dqImg.style.animation = "flap 1s ease-in-out infinite";
-  redDot.style.display = "block";
-}
-
-// 无消息：静止+无红点 
-function noNewMsg(){
-  dqImg.style.animation = "none";
-  redDot.style.display = "none";
+  // 蜻蜓图标状态切换
+  const dqImg = document.getElementById('dqImg');
+  const redDot = document.getElementById('redDot');
+  
+  // 来消息：飞+红点 
+  window.haveNewMsg = function(){
+    if (dqImg) {
+      dqImg.style.animation = "flap 1s ease-in-out infinite";
+    }
+    if (redDot) {
+      redDot.style.display = "block";
+    }
+  };
+  
+  // 无消息：静止+无红点 
+  window.noNewMsg = function(){
+    if (dqImg) {
+      dqImg.style.animation = "none";
+    }
+    if (redDot) {
+      redDot.style.display = "none";
+    }
+  };
 }

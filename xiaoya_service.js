@@ -43,7 +43,7 @@ function initXiaoyaService() {
     </div>
     
     <!-- 聊天窗口 -->
-    <div id="chat-window" style="display: none; position: fixed; bottom: 120px; right: 30px; width: 350px; height: 500px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); z-index: 9999; flex-direction: column; overflow: hidden;">
+    <div id="chat-window" style="display: none; position: fixed; bottom: 120px; right: 30px; width: 350px; height: 500px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); z-index: 10001; flex-direction: column; overflow: hidden;">
       <div style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h3 style="margin: 0; font-size: 16px; font-weight: bold;">在线客服</h3>

@@ -32,6 +32,7 @@ function initChatFloat() {
         <div class="chat-panel-tabs" style="display: flex; border-bottom: 1px solid #e0e0e0;">
           <div class="chat-panel-tab active" data-tab="friends" style="flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid #3498db; color: #3498db; font-weight: bold;">好友</div>
           <div class="chat-panel-tab" data-tab="groups" style="flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent;">群组</div>
+          <div class="chat-panel-tab" data-tab="plaza" style="flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent;">广场</div>
         </div>
         <div class="chat-panel-content" style="flex: 1; padding: 15px; overflow-y: auto;">
           <!-- 好友列表 -->
@@ -87,6 +88,38 @@ function initChatFloat() {
                   <div class="chat-item-preview" style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">赵经理: 本月销售额已达到目标的80%</div>
                 </div>
                 <div class="chat-item-time" style="font-size: 12px; color: #999;">2天前</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 聊天广场 -->
+          <div id="plaza-tab" class="chat-panel-tab-content" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px;">
+              <div>
+                <span style="font-weight: bold; color: #2c3e50;">💬 公共聊天广场</span>
+                <span id="plaza-user-count" style="font-size: 12px; color: #666; margin-left: 10px;">当前在线: 0/500人</span>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button id="plaza-join-btn" onclick="togglePlazaJoin()" style="padding: 6px 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">进入广场</button>
+                <button id="plaza-mute-btn" onclick="togglePlazaMute()" style="padding: 6px 12px; background-color: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">免打扰: 关</button>
+              </div>
+            </div>
+            
+            <div id="plaza-not-joined" style="text-align: center; padding: 40px 20px; color: #666;">
+              <div style="font-size: 48px; margin-bottom: 15px;">🏛️</div>
+              <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">欢迎进入公共聊天广场</div>
+              <div style="font-size: 14px; margin-bottom: 20px;">与500位财务同行实时交流</div>
+              <button onclick="joinPlaza()" style="padding: 10px 30px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">立即进入</button>
+            </div>
+            
+            <div id="plaza-chat-area" style="display: none; height: 280px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; background-color: #f8f9fa;">
+              <!-- 广场消息将在这里显示 -->
+            </div>
+            
+            <div id="plaza-input-area" style="display: none; margin-top: 10px;">
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="plaza-message-input" placeholder="输入消息..." style="flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; outline: none;" onkeypress="if(event.key==='Enter')sendPlazaMessage()">
+                <button onclick="sendPlazaMessage()" style="padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">发送</button>
               </div>
             </div>
           </div>
@@ -357,4 +390,198 @@ if (document.readyState === 'loading') {
       redDot.style.display = "none";
     }
   };
+}
+
+// ==================== 聊天广场功能 ====================
+
+// 聊天广场状态
+let plazaState = {
+  isJoined: false,
+  isMuted: false,
+  userCount: 0,
+  maxUsers: 500,
+  messages: []
+};
+
+// 模拟广场用户数据
+const plazaUsers = [
+  { name: '张会计', avatar: '张' },
+  { name: '李财务', avatar: '李' },
+  { name: '王经理', avatar: '王' },
+  { name: '赵总监', avatar: '赵' },
+  { name: '刘专员', avatar: '刘' },
+  { name: '陈主管', avatar: '陈' },
+  { name: '杨助理', avatar: '杨' },
+  { name: '黄出纳', avatar: '黄' }
+];
+
+// 模拟广场消息
+const plazaMessages = [
+  { user: '张会计', content: '大家好，今天增值税申报有什么注意事项吗？', time: '10:30' },
+  { user: '李财务', content: '记得检查进项发票是否都认证了', time: '10:32' },
+  { user: '王经理', content: '本月的财务报表已经提交了吗？', time: '10:35' },
+  { user: '赵总监', content: '请大家注意新的税收政策变化', time: '10:38' },
+  { user: '刘专员', content: '电子发票系统今天有点慢', time: '10:40' }
+];
+
+// 进入/退出广场
+function togglePlazaJoin() {
+  if (plazaState.isJoined) {
+    leavePlaza();
+  } else {
+    joinPlaza();
+  }
+}
+
+// 进入广场
+function joinPlaza() {
+  plazaState.isJoined = true;
+  plazaState.userCount = Math.floor(Math.random() * 200) + 100; // 模拟100-300人在线
+  
+  // 更新UI
+  document.getElementById('plaza-not-joined').style.display = 'none';
+  document.getElementById('plaza-chat-area').style.display = 'block';
+  document.getElementById('plaza-input-area').style.display = 'block';
+  document.getElementById('plaza-join-btn').textContent = '退出广场';
+  document.getElementById('plaza-join-btn').style.backgroundColor = '#e74c3c';
+  
+  updatePlazaUserCount();
+  loadPlazaMessages();
+  
+  // 显示进入消息
+  addPlazaSystemMessage('您已进入公共聊天广场');
+}
+
+// 退出广场
+function leavePlaza() {
+  plazaState.isJoined = false;
+  plazaState.userCount = 0;
+  
+  // 更新UI
+  document.getElementById('plaza-not-joined').style.display = 'block';
+  document.getElementById('plaza-chat-area').style.display = 'none';
+  document.getElementById('plaza-input-area').style.display = 'none';
+  document.getElementById('plaza-join-btn').textContent = '进入广场';
+  document.getElementById('plaza-join-btn').style.backgroundColor = '#27ae60';
+  
+  updatePlazaUserCount();
+}
+
+// 切换免打扰模式
+function togglePlazaMute() {
+  plazaState.isMuted = !plazaState.isMuted;
+  const muteBtn = document.getElementById('plaza-mute-btn');
+  
+  if (plazaState.isMuted) {
+    muteBtn.textContent = '免打扰: 开';
+    muteBtn.style.backgroundColor = '#e74c3c';
+    addPlazaSystemMessage('已开启免打扰模式');
+  } else {
+    muteBtn.textContent = '免打扰: 关';
+    muteBtn.style.backgroundColor = '#95a5a6';
+    addPlazaSystemMessage('已关闭免打扰模式');
+  }
+}
+
+// 更新广场在线人数
+function updatePlazaUserCount() {
+  const countElement = document.getElementById('plaza-user-count');
+  if (countElement) {
+    countElement.textContent = `当前在线: ${plazaState.userCount}/500人`;
+  }
+}
+
+// 加载广场消息
+function loadPlazaMessages() {
+  const chatArea = document.getElementById('plaza-chat-area');
+  if (!chatArea) return;
+  
+  chatArea.innerHTML = '';
+  
+  plazaMessages.forEach(msg => {
+    addPlazaMessage(msg.user, msg.content, msg.time, false);
+  });
+  
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 添加广场消息
+function addPlazaMessage(userName, content, time, isSelf = false) {
+  const chatArea = document.getElementById('plaza-chat-area');
+  if (!chatArea) return;
+  
+  const user = plazaUsers.find(u => u.name === userName) || { name: userName, avatar: userName[0] };
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.style.cssText = 'margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start;';
+  
+  if (isSelf) {
+    messageDiv.style.flexDirection = 'row-reverse';
+  }
+  
+  messageDiv.innerHTML = `
+    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">${user.avatar}</div>
+    <div style="max-width: 70%;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${userName} ${time}</div>
+      <div style="background-color: ${isSelf ? '#3498db' : 'white'}; color: ${isSelf ? 'white' : '#333'}; padding: 8px 12px; border-radius: 12px; font-size: 13px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">${content}</div>
+    </div>
+  `;
+  
+  chatArea.appendChild(messageDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 添加系统消息
+function addPlazaSystemMessage(content) {
+  const chatArea = document.getElementById('plaza-chat-area');
+  if (!chatArea) return;
+  
+  const systemDiv = document.createElement('div');
+  systemDiv.style.cssText = 'text-align: center; margin: 10px 0;';
+  systemDiv.innerHTML = `
+    <span style="background-color: #e8e8e8; color: #666; padding: 4px 12px; border-radius: 10px; font-size: 12px;">${content}</span>
+  `;
+  
+  chatArea.appendChild(systemDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 发送广场消息
+function sendPlazaMessage() {
+  const input = document.getElementById('plaza-message-input');
+  if (!input) return;
+  
+  const message = input.value.trim();
+  if (!message) return;
+  
+  if (!plazaState.isJoined) {
+    alert('请先进入聊天广场');
+    return;
+  }
+  
+  const now = new Date();
+  const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+  
+  // 添加自己的消息
+  addPlazaMessage('我', message, time, true);
+  
+  // 清空输入框
+  input.value = '';
+  
+  // 模拟其他用户回复（随机）
+  if (Math.random() > 0.5) {
+    setTimeout(() => {
+      const randomUser = plazaUsers[Math.floor(Math.random() * plazaUsers.length)];
+      const replies = [
+        '说得对！',
+        '同意您的观点',
+        '谢谢分享',
+        '我也遇到了同样的问题',
+        '有什么好的解决方案吗？',
+        '学习了！'
+      ];
+      const randomReply = replies[Math.floor(Math.random() * replies.length)];
+      addPlazaMessage(randomUser.name, randomReply, time, false);
+    }, 2000 + Math.random() * 3000);
+  }
 }

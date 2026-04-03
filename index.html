@@ -353,55 +353,8 @@
         <h2 style="text-align: center;">欢迎使用银河星辰财务专用浏览器</h2>
         <p style="text-align: center;">专为财务人员设计的安全、高效、功能强大的浏览器</p>
         
-        <div class="quick-features">
-          <div class="quick-feature-item" onclick="window.location.href='accounting.html'">
-            <div class="feature-icon">📊</div>
-            <div class="feature-name">记账凭证</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='finance_management.html'">
-            <div class="feature-icon">📈</div>
-            <div class="feature-name">财务报表</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='tax_reporting.html'">
-            <div class="feature-icon">💳</div>
-            <div class="feature-name">一键报税</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='invoice_management.html'">
-            <div class="feature-icon">🧾</div>
-            <div class="feature-name">发票管理</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='contract_management.html'">
-            <div class="feature-icon">📋</div>
-            <div class="feature-name">合同管理</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='online_store.html'">
-            <div class="feature-icon">🛒</div>
-            <div class="feature-name">在线商城</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='smart_assistant.html'">
-            <div class="feature-icon">🤖</div>
-            <div class="feature-name">AI助手</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='data_analysis.html'">
-            <div class="feature-icon">📊</div>
-            <div class="feature-name">数据分析</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='finance_academy.html'">
-            <div class="feature-icon">📚</div>
-            <div class="feature-name">财务学堂</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='templates_tools.html'">
-            <div class="feature-icon">📝</div>
-            <div class="feature-name">模板专区</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='cloud_chat.html'">
-            <div class="feature-icon">☁️</div>
-            <div class="feature-name">个人云盘</div>
-          </div>
-          <div class="quick-feature-item" onclick="window.location.href='news.html'">
-            <div class="feature-icon">📰</div>
-            <div class="feature-name">行业头条</div>
-          </div>
+        <div class="quick-features" id="quickFeaturesContainer">
+          <!-- 功能卡片将通过JavaScript动态生成和排序 -->
         </div>
         
         <div style="text-align: center; margin-top: 30px;">
@@ -515,6 +468,86 @@
         });
       });
       
+      // 功能配置数据
+      const featureConfig = [
+        { id: 'accounting', name: '记账凭证', icon: '📊', url: 'accounting.html' },
+        { id: 'finance_management', name: '财务报表', icon: '📈', url: 'finance_management.html' },
+        { id: 'tax_reporting', name: '一键报税', icon: '💳', url: 'tax_reporting.html' },
+        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'invoice_management.html' },
+        { id: 'contract_management', name: '合同管理', icon: '📋', url: 'contract_management.html' },
+        { id: 'online_store', name: '在线商城', icon: '🛒', url: 'online_store.html' },
+        { id: 'smart_assistant', name: 'AI助手', icon: '🤖', url: 'smart_assistant.html' },
+        { id: 'data_analysis', name: '数据分析', icon: '📊', url: 'data_analysis.html' },
+        { id: 'finance_academy', name: '财务学堂', icon: '📚', url: 'finance_academy.html' },
+        { id: 'templates_tools', name: '模板专区', icon: '📝', url: 'templates_tools.html' },
+        { id: 'cloud_chat', name: '个人云盘', icon: '☁️', url: 'cloud_chat.html' },
+        { id: 'news', name: '行业头条', icon: '📰', url: 'news.html' }
+      ];
+
+      // 获取功能使用频次数据
+      function getFeatureUsageData() {
+        const data = localStorage.getItem('featureUsageData');
+        return data ? JSON.parse(data) : {};
+      }
+
+      // 保存功能使用频次数据
+      function saveFeatureUsageData(data) {
+        localStorage.setItem('featureUsageData', JSON.stringify(data));
+      }
+
+      // 记录功能使用
+      function recordFeatureUsage(featureId) {
+        const data = getFeatureUsageData();
+        if (!data[featureId]) {
+          data[featureId] = { count: 0, lastUsed: null };
+        }
+        data[featureId].count++;
+        data[featureId].lastUsed = new Date().toISOString();
+        saveFeatureUsageData(data);
+      }
+
+      // 根据使用频次排序功能
+      function sortFeaturesByUsage() {
+        const usageData = getFeatureUsageData();
+        
+        return [...featureConfig].sort((a, b) => {
+          const countA = usageData[a.id]?.count || 0;
+          const countB = usageData[b.id]?.count || 0;
+          return countB - countA; // 降序排列，使用频次高的在前
+        });
+      }
+
+      // 渲染功能卡片
+      function renderFeatureCards() {
+        const container = document.getElementById('quickFeaturesContainer');
+        if (!container) return;
+        
+        const sortedFeatures = sortFeaturesByUsage();
+        
+        container.innerHTML = sortedFeatures.map(feature => {
+          const usageData = getFeatureUsageData();
+          const count = usageData[feature.id]?.count || 0;
+          const usageBadge = count > 0 ? `<span style="position: absolute; top: 5px; right: 5px; background: #e74c3c; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;">${count}</span>` : '';
+          
+          return `
+            <div class="quick-feature-item" onclick="handleFeatureClick('${feature.id}', '${feature.url}')" style="position: relative;">
+              ${usageBadge}
+              <div class="feature-icon">${feature.icon}</div>
+              <div class="feature-name">${feature.name}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 处理功能点击
+      function handleFeatureClick(featureId, url) {
+        recordFeatureUsage(featureId);
+        window.location.href = url;
+      }
+
+      // 初始化渲染
+      renderFeatureCards();
+
       // 更多功能展开/折叠
       function toggleMoreFeatures() {
         const moreFeatures = document.getElementById('moreFeatures');

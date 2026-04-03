@@ -325,7 +325,7 @@
               <span>📊 核心功能</span>
               <span class="toggle-icon" style="font-size: 12px; transition: transform 0.3s;">▼</span>
             </h3>
-            <div class="card-content" style="overflow: hidden; transition: max-height 0.3s ease;">
+            <div class="card-content" style="overflow-y: auto; max-height: 280px; transition: max-height 0.3s ease;">
               <div class="feature-item">
                 <h4><a href="accounting.html" style="text-decoration: none; color: inherit;">记账凭证</a></h4>
                 <p>智能凭证录入，丰富会计科目，支持自定义</p>
@@ -358,7 +358,7 @@
               <span>🎯 智能工具</span>
               <span class="toggle-icon" style="font-size: 12px; transition: transform 0.3s;">▼</span>
             </h3>
-            <div class="card-content" style="overflow: hidden; transition: max-height 0.3s ease;">
+            <div class="card-content" style="overflow-y: auto; max-height: 280px; transition: max-height 0.3s ease;">
               <div class="feature-item">
                 <h4><a href="smart_assistant.html" style="text-decoration: none; color: inherit;">AI助手</a></h4>
                 <p>智能语音交互，财务问题智能解答</p>
@@ -391,7 +391,7 @@
               <span>📚 学习资源</span>
               <span class="toggle-icon" style="font-size: 12px; transition: transform 0.3s;">▼</span>
             </h3>
-            <div class="card-content" style="overflow: hidden; transition: max-height 0.3s ease;">
+            <div class="card-content" style="overflow-y: auto; max-height: 280px; transition: max-height 0.3s ease;">
               <div class="feature-item">
                 <h4><a href="finance_academy.html" style="text-decoration: none; color: inherit;">财务学堂</a></h4>
                 <p>在线课程、考试认证、专家咨询</p>
@@ -424,7 +424,7 @@
               <span>💼 办公协作</span>
               <span class="toggle-icon" style="font-size: 12px; transition: transform 0.3s;">▼</span>
             </h3>
-            <div class="card-content" style="overflow: hidden; transition: max-height 0.3s ease;">
+            <div class="card-content" style="overflow-y: auto; max-height: 280px; transition: max-height 0.3s ease;">
               <div class="feature-item">
                 <h4><a href="cloud_chat.html" style="text-decoration: none; color: inherit;">个人云盘</a></h4>
                 <p>文件存储管理，支持上传、下载、分享</p>
@@ -457,7 +457,7 @@
               <span>📰 行业头条</span>
               <span class="toggle-icon" style="font-size: 12px; transition: transform 0.3s;">▼</span>
             </h3>
-            <div class="card-content" id="news-container" style="overflow: hidden; transition: max-height 0.3s ease;">
+            <div class="card-content" id="news-container" style="overflow-y: auto; max-height: 280px; transition: max-height 0.3s ease;">
               <div class="news-item">
                 <div class="news-title">财政部发布2026年新会计准则实施指南</div>
                 <div class="news-source">来源：财政部官网</div>
@@ -533,7 +533,7 @@
         
         if (content.style.maxHeight === '0px') {
           // 展开
-          content.style.maxHeight = content.scrollHeight + 'px';
+          content.style.maxHeight = '280px';
           icon.style.transform = 'rotate(0deg)';
         } else {
           // 折叠
@@ -541,11 +541,6 @@
           icon.style.transform = 'rotate(-90deg)';
         }
       }
-      
-      // 初始化卡片状态
-      document.querySelectorAll('.card-content').forEach(content => {
-        content.style.maxHeight = content.scrollHeight + 'px';
-      });
       
       // 功能卡片点击事件
       const featureItems = document.querySelectorAll('.feature-item');

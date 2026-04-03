@@ -295,14 +295,14 @@ function closeModal(modalId) {
 }
 
 // 点击模态框外部关闭
-window.onclick = function(event) {
+window.addEventListener('click', function(event) {
   const modals = document.querySelectorAll('.modal');
   modals.forEach(modal => {
     if (event.target == modal) {
       modal.style.display = 'none';
     }
   });
-}
+});
 
 // 初始化聊天器
 if (document.readyState === 'loading') {

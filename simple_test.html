@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>简单测试 - 导航菜单点击</title>
+  <style>
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    a {
+      display: block;
+      padding: 10px;
+      background: #2c3e50;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    a:hover {
+      background: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <h1>导航菜单测试</h1>
+  <ul>
+    <li><a href="#" data-module="personnel">人员管理</a></li>
+    <li><a href="#" data-module="user">用户管理</a></li>
+    <li><a href="#" data-module="warehouse">仓库管理</a></li>
+    <li><a href="#" data-module="customer-service">客服管理</a></li>
+    <li><a href="#" data-module="complaint">投诉管理</a></li>
+  </ul>
+  <div id="result">点击菜单项查看结果</div>
+  
+  <script>
+    // 简单的点击事件处理
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM加载完成，开始绑定事件');
+      
+      const menuItems = document.querySelectorAll('a');
+      const resultDiv = document.getElementById('result');
+      
+      console.log('找到菜单项数量:', menuItems.length);
+      
+      menuItems.forEach(function(item) {
+        console.log('绑定点击事件到:', item.textContent);
+        
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('点击了:', this.textContent);
+          resultDiv.innerHTML = '您点击了：' + this.textContent;
+          alert('您选择了：' + this.textContent);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

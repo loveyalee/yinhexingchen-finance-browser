@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>导航菜单测试</title>
+  <style>
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+    }
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .nav-item a.active {
+      background-color: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>管理后台</h2>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="#" class="active">人员管理</a></li>
+      <li class="nav-item"><a href="#">用户管理</a></li>
+      <li class="nav-item"><a href="#">仓库管理</a></li>
+      <li class="nav-item"><a href="#">客服管理</a></li>
+      <li class="nav-item"><a href="#">投诉管理</a></li>
+    </ul>
+  </div>
+  
+  <script>
+    // 直接在脚本标签中执行，不使用DOMContentLoaded
+    console.log('脚本开始执行');
+    
+    // 等待一小段时间确保DOM已加载
+    setTimeout(function() {
+      console.log('开始绑定事件');
+      
+      // 获取所有导航菜单项
+      const navItems = document.querySelectorAll('.nav-item a');
+      console.log('找到菜单项数量:', navItems.length);
+      
+      // 遍历并绑定点击事件
+      navItems.forEach(function(item, index) {
+        console.log('绑定点击事件到第', index + 1, '个菜单项:', item.textContent);
+        
+        item.onclick = function(e) {
+          e.preventDefault();
+          console.log('点击了:', this.textContent);
+          alert('您选择了：' + this.textContent);
+          
+          // 更新active状态
+          navItems.forEach(function(nav) {
+            nav.classList.remove('active');
+          });
+          this.classList.add('active');
+        };
+      });
+      
+      console.log('事件绑定完成');
+    }, 100);
+  </script>
+</body>
+</html>

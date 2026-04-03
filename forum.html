@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>会计论坛 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background-color: rgba(52, 152, 219, 0.8);
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+    }
+    
+    .nav-item.has-submenu:hover .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .forum-container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      height: calc(100vh - 120px);
+    }
+    
+    .forum-main {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .forum-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .forum-header h3 {
+      margin: 0;
+      color: #2c3e50;
+    }
+    
+    .forum-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .post-item {
+      padding: 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.3s;
+    }
+    
+    .post-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .post-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .post-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .post-content {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .post-actions {
+      display: flex;
+      gap: 15px;
+      font-size: 12px;
+    }
+    
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .action-btn:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .action-btn.liked {
+      color: #e74c3c;
+    }
+    
+    .action-btn.bookmarked {
+      color: #f39c12;
+    }
+    
+    .comments-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+    
+    .comment-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+    
+    .comment-header {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .comment-content {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    
+    .comment-form {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .comment-form input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+    }
+    
+    .forum-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .sidebar-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .sidebar-card-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+    
+    .sidebar-card-content {
+      padding: 15px;
+    }
+    
+    .knowledge-base-item {
+      padding: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .knowledge-base-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .knowledge-base-item h4 {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+    
+    .knowledge-base-item p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+    }
+    
+    .create-post-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      width: 500px;
+      max-width: 90%;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+      font-size: 14px;
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    
+    .user-info {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      background-color: #f8f9fa;
+    }
+    
+    .user-info p {
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html" class="active">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn">←</button>
+            <button class="btn">→</button>
+            <button class="btn">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="login-btn">登录</button>
+          <button class="btn" id="logout-btn" style="display: none;">退出</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <h2 class="page-title">会计论坛</h2>
+        
+        <div class="forum-container">
+          <div class="forum-main">
+            <div class="forum-header">
+              <h3>最新帖子</h3>
+              <button class="btn btn-primary" id="create-post-btn">发布新帖</button>
+            </div>
+            
+            <div class="forum-content" id="forum-content">
+              <!-- 帖子列表将通过JavaScript动态生成 -->
+            </div>
+          </div>
+          
+          <div class="forum-sidebar">
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                知识库文章
+              </div>
+              <div class="sidebar-card-content" id="knowledge-base-content">
+                <!-- 知识库文章将通过JavaScript动态生成 -->
+              </div>
+            </div>
+            
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                热门话题
+              </div>
+              <div class="sidebar-card-content">
+                <div class="knowledge-base-item">
+                  <h4>财务报表分析技巧</h4>
+                  <p>掌握财务报表分析的核心方法</p>
+                </div>
+                <div class="knowledge-base-item">
+                  <h4>税务筹划最佳实践</h4>
+                  <p>合法节税的实用技巧</p>
+                </div>
+                <div class="knowledge-base-item">
+                  <h4>企业内部控制</h4>
+                  <p>建立有效的内部控制体系</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="sidebar-card">
+              <div class="user-info">
+                <p id="user-type">用户类型：未登录</p>
+                <p id="user-status">状态：未登录</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 发布新帖模态框 -->
+  <div class="create-post-modal" id="create-post-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>发布新帖</h3>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <form id="post-form">
+        <div class="form-group">
+          <label for="post-title">标题</label>
+          <input type="text" id="post-title" placeholder="请输入帖子标题" required>
+        </div>
+        <div class="form-group">
+          <label for="post-content">内容</label>
+          <textarea id="post-content" placeholder="请输入帖子内容" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancel-post">取消</button>
+          <button type="submit" class="btn btn-primary">发布</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 模拟用户登录状态
+      let isLoggedIn = false;
+      let userType = '';
+      
+      // 模拟帖子数据
+      const posts = [
+        {
+          id: 1,
+          title: '如何做好企业财务分析？',
+          content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法？',
+          author: '财务专家',
+          time: '2024-01-01 10:00',
+          likes: 25,
+          comments: [
+            {
+              author: '会计小白',
+              content: '我觉得应该关注盈利能力、运营能力和偿债能力三大指标',
+              time: '2024-01-01 10:30'
+            },
+            {
+              author: '财务经理',
+              content: '除了财务指标，还要结合行业特点和企业战略进行分析',
+              time: '2024-01-01 11:00'
+            }
+          ],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 2,
+          title: '税务筹划的常见方法有哪些？',
+          content: '企业在合法范围内如何进行税务筹划？有哪些实用的方法和技巧？',
+          author: '税务师',
+          time: '2024-01-02 14:00',
+          likes: 18,
+          comments: [
+            {
+              author: '企业主',
+              content: '希望能分享一些具体的案例',
+              time: '2024-01-02 14:30'
+            }
+          ],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 3,
+          title: '财务软件选择指南',
+          content: '如何选择适合企业的财务软件？需要考虑哪些因素？',
+          author: 'IT顾问',
+          time: '2024-01-03 09:00',
+          likes: 32,
+          comments: [],
+          liked: false,
+          bookmarked: false
+        }
+      ];
+      
+      // 模拟知识库文章数据
+      const knowledgeBaseArticles = [
+        {
+          id: 1,
+          title: '企业会计准则解读',
+          content: '详细解读最新企业会计准则的变化和应用',
+          author: '会计准则专家',
+          time: '2024-01-01'
+        },
+        {
+          id: 2,
+          title: '财务报表编制指南',
+          content: '手把手教你编制规范的财务报表',
+          author: '财务总监',
+          time: '2024-01-02'
+        },
+        {
+          id: 3,
+          title: '税务申报实务',
+          content: '各类税种的申报流程和注意事项',
+          author: '税务专家',
+          time: '2024-01-03'
+        }
+      ];
+      
+      // 渲染帖子列表
+      function renderPosts() {
+        const forumContent = document.getElementById('forum-content');
+        forumContent.innerHTML = '';
+        
+        posts.forEach(post => {
+          const postItem = document.createElement('div');
+          postItem.className = 'post-item';
+          postItem.innerHTML = `
+            <div class="post-header">
+              <div>
+                <div class="post-title">${post.title}</div>
+                <div class="post-meta">作者：${post.author} | 发布时间：${post.time}</div>
+              </div>
+            </div>
+            <div class="post-content">${post.content}</div>
+            <div class="post-actions">
+              <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+                <span>👍</span>
+                <span>${post.likes}</span>
+              </button>
+              <button class="action-btn" onclick="toggleComments(${post.id})">
+                <span>💬</span>
+                <span>${post.comments.length}</span>
+              </button>
+              <button class="action-btn ${post.bookmarked ? 'bookmarked' : ''}" onclick="toggleBookmark(${post.id})">
+                <span>⭐</span>
+                <span>收藏</span>
+              </button>
+            </div>
+            <div class="comments-section" id="comments-${post.id}" style="display: ${post.comments.length > 0 ? 'block' : 'none'}">
+              ${post.comments.map(comment => `
+                <div class="comment-item">
+                  <div class="comment-header">${comment.author} | ${comment.time}</div>
+                  <div class="comment-content">${comment.content}</div>
+                </div>
+              `).join('')}
+              ${isLoggedIn ? `
+                <div class="comment-form">
+                  <input type="text" placeholder="写下你的评论..." id="comment-input-${post.id}">
+                  <button class="btn btn-primary" onclick="addComment(${post.id})")>发表</button>
+                </div>
+              ` : '<p style="font-size: 12px; color: #666;">登录后可以发表评论</p>'}
+            </div>
+          `;
+          forumContent.appendChild(postItem);
+        });
+      }
+      
+      // 渲染知识库文章
+      function renderKnowledgeBase() {
+        const knowledgeBaseContent = document.getElementById('knowledge-base-content');
+        knowledgeBaseContent.innerHTML = '';
+        
+        knowledgeBaseArticles.forEach(article => {
+          const articleItem = document.createElement('div');
+          articleItem.className = 'knowledge-base-item';
+          articleItem.innerHTML = `
+            <h4>${article.title}</h4>
+            <p>${article.content}</p>
+            <p style="font-size: 11px; color: #999; margin-top: 5px;">作者：${article.author} | ${article.time}</p>
+          `;
+          knowledgeBaseContent.appendChild(articleItem);
+        });
+      }
+      
+      // 切换点赞状态
+      window.toggleLike = function(postId) {
+        if (!isLoggedIn) {
+          alert('请先登录后再点赞');
+          return;
+        }
+        
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          post.liked = !post.liked;
+          post.likes += post.liked ? 1 : -1;
+          renderPosts();
+        }
+      };
+      
+      // 切换收藏状态
+      window.toggleBookmark = function(postId) {
+        if (!isLoggedIn) {
+          alert('请先登录后再收藏');
+          return;
+        }
+        
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          post.bookmarked = !post.bookmarked;
+          renderPosts();
+        }
+      };
+      
+      // 切换评论显示
+      window.toggleComments = function(postId) {
+        const commentsSection = document.getElementById(`comments-${postId}`);
+        if (commentsSection) {
+          commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+        }
+      };
+      
+      // 添加评论
+      window.addComment = function(postId) {
+        if (!isLoggedIn) {
+          alert('请先登录后再发表评论');
+          return;
+        }
+        
+        const commentInput = document.getElementById(`comment-input-${postId}`);
+        const content = commentInput.value.trim();
+        
+        if (content) {
+          const post = posts.find(p => p.id === postId);
+          if (post) {
+            post.comments.push({
+              author: '当前用户',
+              content: content,
+              time: new Date().toLocaleString('zh-CN')
+            });
+            commentInput.value = '';
+            renderPosts();
+          }
+        }
+      };
+      
+      // 打开发布新帖模态框
+      document.getElementById('create-post-btn').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录后再发布帖子');
+          window.location.href = 'login.html';
+          return;
+        }
+        document.getElementById('create-post-modal').style.display = 'flex';
+      });
+      
+      // 关闭模态框
+      document.getElementById('modal-close').addEventListener('click', function() {
+        document.getElementById('create-post-modal').style.display = 'none';
+      });
+      
+      document.getElementById('cancel-post').addEventListener('click', function() {
+        document.getElementById('create-post-modal').style.display = 'none';
+      });
+      
+      // 发布新帖
+      document.getElementById('post-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const title = document.getElementById('post-title').value.trim();
+        const content = document.getElementById('post-content').value.trim();
+        
+        if (title && content) {
+          posts.unshift({
+            id: posts.length + 1,
+            title: title,
+            content: content,
+            author: '当前用户',
+            time: new Date().toLocaleString('zh-CN'),
+            likes: 0,
+            comments: [],
+            liked: false,
+            bookmarked: false
+          });
+          
+          document.getElementById('create-post-modal').style.display = 'none';
+          document.getElementById('post-form').reset();
+          renderPosts();
+          alert('帖子发布成功！');
+        }
+      });
+      
+      // 登录按钮
+      document.getElementById('login-btn').addEventListener('click', function() {
+        window.location.href = 'login.html';
+      });
+      
+      // 退出按钮
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        // 清除localStorage中的用户信息
+        localStorage.removeItem('userInfo');
+        isLoggedIn = false;
+        userType = '';
+        updateUserInfo();
+        alert('已退出登录');
+      });
+      
+      // 更新用户信息
+      function updateUserInfo() {
+        if (isLoggedIn) {
+          document.getElementById('login-btn').style.display = 'none';
+          document.getElementById('logout-btn').style.display = 'inline-block';
+          document.getElementById('user-type').textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
+          document.getElementById('user-status').textContent = '状态：已登录';
+        } else {
+          document.getElementById('login-btn').style.display = 'inline-block';
+          document.getElementById('logout-btn').style.display = 'none';
+          document.getElementById('user-type').textContent = '用户类型：未登录';
+          document.getElementById('user-status').textContent = '状态：未登录';
+        }
+      }
+      
+      // 检查登录状态
+      function checkLoginStatus() {
+        // 从localStorage中获取登录状态
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const parsedUserInfo = JSON.parse(userInfo);
+          isLoggedIn = parsedUserInfo.isLoggedIn || false;
+          userType = parsedUserInfo.userType || '';
+        } else {
+          isLoggedIn = false;
+          userType = '';
+        }
+        updateUserInfo();
+      }
+      
+      // 初始化
+      checkLoginStatus();
+      renderPosts();
+      renderKnowledgeBase();
+      
+      // 浏览器功能
+      const searchInput = document.querySelector('.browser-bar input');
+      const searchButton = document.querySelector('.browser-bar .btn-primary');
+      
+      searchButton.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+          alert('搜索: ' + query);
+        }
+      });
+      
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            alert('搜索: ' + query);
+          }
+        }
+      });
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+# 在服务器上安装Node.js
+
+## 连接服务器
+ssh -o StrictHostKeyChecking=no root@49.232.63.136
+密码: 3452572Ab!
+
+## 安装Node.js
+
+### 方法1: 使用NodeSource（推荐）
+curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+apt-get install -y nodejs
+
+### 方法2: 使用apt直接安装
+apt update
+apt install -y nodejs npm
+
+## 验证安装
+node -v
+npm -v
+
+## 安装完成后继续
+1. 上传项目文件: scp -o StrictHostKeyChecking=no -r * root@49.232.63.136:/var/www/yinhexingchen/
+2. 安装依赖: cd /var/www/yinhexingchen && npm install
+3. 启动服务器: cd /var/www/yinhexingchen && nohup node server.js > server.log 2>&1 &

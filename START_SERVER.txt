@@ -1,0 +1,29 @@
+# 启动支付服务器
+
+## 检查npm install是否完成
+等待npm install命令执行完成，看到命令提示符返回即可。
+
+## 启动服务器
+在服务器上执行：
+```bash
+cd /var/www/yinhexingchen && nohup node server.js > server.log 2>&1 &
+```
+
+## 验证服务器是否启动
+```bash
+ps aux | grep node
+```
+应该能看到node server.js进程在运行。
+
+## 查看日志
+```bash
+tail -f /var/www/yinhexingchen/server.log
+```
+
+## 测试访问
+在浏览器中访问：
+- http://49.232.63.136:3000
+
+## 部署完成
+- 项目地址: https://zonya.work
+- 支付服务器: http://49.232.63.136:3000

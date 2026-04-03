@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>直播功能 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .live-container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      height: calc(100vh - 120px);
+    }
+    
+    .live-stream {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stream-player {
+      height: 400px;
+      background-color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      position: relative;
+    }
+    
+    .stream-placeholder {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .stream-placeholder i {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    
+    .stream-controls {
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .stream-info {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .stream-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .stream-meta {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .live-list {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .live-list-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+    
+    .live-list-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    
+    .live-item {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .live-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .live-item.active {
+      background-color: #e3f2fd;
+      border-left: 3px solid #3498db;
+    }
+    
+    .live-item-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .live-item-meta {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .live-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    
+    .live-status.live {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .live-status.offline {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .user-info {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      background-color: #f8f9fa;
+    }
+    
+    .user-info p {
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn">←</button>
+            <button class="btn">→</button>
+            <button class="btn">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="login-btn">登录</button>
+          <button class="btn" id="logout-btn" style="display: none;">退出</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <h2 class="page-title">直播功能</h2>
+        
+        <div class="live-container">
+          <div class="live-stream">
+            <div class="stream-player" id="stream-player">
+              <div class="stream-placeholder" id="stream-placeholder">
+                <i>📹</i>
+                <h3>未开始直播</h3>
+                <p>点击下方按钮开始直播</p>
+              </div>
+            </div>
+            
+            <div class="stream-info">
+              <div class="stream-title" id="stream-title">直播标题</div>
+              <div class="stream-meta">
+                <span id="stream-author">主播：未登录</span>
+                <span id="stream-viewers">观看人数：0</span>
+                <span id="stream-status">状态：未开始</span>
+              </div>
+            </div>
+            
+            <div class="stream-controls">
+              <button class="btn btn-success" id="start-stream">开始直播</button>
+              <button class="btn btn-danger" id="stop-stream" disabled>结束直播</button>
+              <button class="btn" id="share-stream">分享直播</button>
+            </div>
+          </div>
+          
+          <div class="live-list">
+            <div class="live-list-header">
+              直播列表
+            </div>
+            <div class="live-list-content" id="live-list-content">
+              <!-- 直播列表项将通过JavaScript动态生成 -->
+            </div>
+            <div class="user-info">
+              <p id="user-type">用户类型：未登录</p>
+              <p id="user-status">状态：未登录</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 模拟用户登录状态
+      let isLoggedIn = false;
+      let userType = '';
+      
+      // 模拟直播列表数据
+      const liveStreams = [
+        {
+          id: 1,
+          title: '财务软件使用技巧',
+          author: '财务专家',
+          viewers: 128,
+          status: 'live',
+          startTime: '2024-01-01 10:00',
+          type: 'personal'
+        },
+        {
+          id: 2,
+          title: '企业税务筹划',
+          author: '税务师',
+          viewers: 89,
+          status: 'live',
+          startTime: '2024-01-01 14:00',
+          type: 'enterprise'
+        },
+        {
+          id: 3,
+          title: '财务报表分析',
+          author: '分析师',
+          viewers: 0,
+          status: 'offline',
+          startTime: '2024-01-02 09:00',
+          type: 'personal'
+        }
+      ];
+      
+      // 渲染直播列表
+      function renderLiveList() {
+        const liveListContent = document.getElementById('live-list-content');
+        liveListContent.innerHTML = '';
+        
+        liveStreams.forEach(stream => {
+          const liveItem = document.createElement('div');
+          liveItem.className = 'live-item';
+          liveItem.innerHTML = `
+            <div class="live-item-title">
+              ${stream.title}
+              <span class="live-status ${stream.status}">${stream.status === 'live' ? '直播中' : '未开始'}</span>
+            </div>
+            <div class="live-item-meta">
+              主播：${stream.author} | 观看：${stream.viewers}人 | 开始：${stream.startTime}
+            </div>
+          `;
+          
+          liveItem.addEventListener('click', function() {
+            selectStream(stream);
+          });
+          
+          liveListContent.appendChild(liveItem);
+        });
+      }
+      
+      // 选择直播
+      function selectStream(stream) {
+        document.getElementById('stream-title').textContent = stream.title;
+        document.getElementById('stream-author').textContent = `主播：${stream.author}`;
+        document.getElementById('stream-viewers').textContent = `观看人数：${stream.viewers}`;
+        document.getElementById('stream-status').textContent = `状态：${stream.status === 'live' ? '直播中' : '未开始'}`;
+        
+        // 更新选中状态
+        document.querySelectorAll('.live-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+      }
+      
+      // 开始直播
+      document.getElementById('start-stream').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录后再开始直播');
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        document.getElementById('stream-placeholder').innerHTML = `
+          <h3>直播中</h3>
+          <p>正在直播...</p>
+        `;
+        document.getElementById('stream-status').textContent = '状态：直播中';
+        document.getElementById('start-stream').disabled = true;
+        document.getElementById('stop-stream').disabled = false;
+        alert('直播已开始');
+      });
+      
+      // 结束直播
+      document.getElementById('stop-stream').addEventListener('click', function() {
+        document.getElementById('stream-placeholder').innerHTML = `
+          <i>📹</i>
+          <h3>未开始直播</h3>
+          <p>点击下方按钮开始直播</p>
+        `;
+        document.getElementById('stream-status').textContent = '状态：未开始';
+        document.getElementById('start-stream').disabled = false;
+        document.getElementById('stop-stream').disabled = true;
+        alert('直播已结束');
+      });
+      
+      // 分享直播
+      document.getElementById('share-stream').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录后再分享直播');
+          window.location.href = 'login.html';
+          return;
+        }
+        alert('直播链接已复制到剪贴板');
+      });
+      
+      // 登录按钮
+      document.getElementById('login-btn').addEventListener('click', function() {
+        window.location.href = 'login.html';
+      });
+      
+      // 退出按钮
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        // 清除localStorage中的用户信息
+        localStorage.removeItem('userInfo');
+        isLoggedIn = false;
+        userType = '';
+        updateUserInfo();
+        alert('已退出登录');
+      });
+      
+      // 更新用户信息
+      function updateUserInfo() {
+        if (isLoggedIn) {
+          document.getElementById('login-btn').style.display = 'none';
+          document.getElementById('logout-btn').style.display = 'inline-block';
+          document.getElementById('user-type').textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
+          document.getElementById('user-status').textContent = '状态：已登录';
+        } else {
+          document.getElementById('login-btn').style.display = 'inline-block';
+          document.getElementById('logout-btn').style.display = 'none';
+          document.getElementById('user-type').textContent = '用户类型：未登录';
+          document.getElementById('user-status').textContent = '状态：未登录';
+        }
+      }
+      
+      // 检查登录状态
+      function checkLoginStatus() {
+        // 从localStorage中获取登录状态
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const parsedUserInfo = JSON.parse(userInfo);
+          isLoggedIn = parsedUserInfo.isLoggedIn || false;
+          userType = parsedUserInfo.userType || '';
+        } else {
+          isLoggedIn = false;
+          userType = '';
+        }
+        updateUserInfo();
+      }
+      
+      // 初始化
+      checkLoginStatus();
+      renderLiveList();
+      
+      // 浏览器功能
+      const searchInput = document.querySelector('.browser-bar input');
+      const searchButton = document.querySelector('.browser-bar .btn-primary');
+      
+      searchButton.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+          alert('搜索: ' + query);
+        }
+      });
+      
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            alert('搜索: ' + query);
+          }
+        }
+      });
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

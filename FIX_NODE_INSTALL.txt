@@ -1,0 +1,33 @@
+# 修复Node.js安装错误
+
+## 错误原因
+安装Node.js 16.x时与系统现有的libnode72包发生冲突
+
+## 解决步骤
+
+1. **强制覆盖安装**
+   ```bash
+   dpkg -i --force-overwrite /var/cache/apt/archives/nodejs_16.20.2-1nodesource1_amd64.deb
+   ```
+
+2. **修复依赖关系**
+   ```bash
+   apt-get install -f
+   ```
+
+3. **或者先移除冲突的包，再安装**
+   ```bash
+   apt-get remove -y libnode72
+   apt-get install -y nodejs
+   ```
+
+4. **验证安装**
+   ```bash
+   node -v
+   npm -v
+   ```
+
+## 安装完成后继续
+1. 上传项目文件
+2. 安装依赖
+3. 启动服务器

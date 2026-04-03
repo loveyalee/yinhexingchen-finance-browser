@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>支付 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background-color: #3498db;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .payment-container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .payment-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .payment-title {
+      font-size: 24px;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .payment-amount {
+      font-size: 36px;
+      font-weight: bold;
+      color: #e74c3c;
+      margin-bottom: 20px;
+    }
+    
+    .payment-info {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .info-label {
+      color: #666;
+    }
+    
+    .info-value {
+      font-weight: 500;
+    }
+    
+    .payment-methods {
+      margin-bottom: 30px;
+    }
+    
+    .payment-methods h3 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .method-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .method-item {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .method-item:hover {
+      border-color: #3498db;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    }
+    
+    .method-item.active {
+      border-color: #3498db;
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+    
+    .method-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    
+    .method-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .payment-actions {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #7f8c8d;
+    }
+    
+    .payment-status {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .status-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    
+    .status-title {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .status-message {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <h1>支付</h1>
+      </div>
+      
+      <div class="content-area">
+        <div class="payment-container" id="payment-form">
+          <div class="payment-header">
+            <h2 class="payment-title">确认支付</h2>
+            <div class="payment-amount" id="payment-amount">¥0.00</div>
+          </div>
+          
+          <div class="payment-info">
+            <div class="info-item">
+              <span class="info-label">订单编号:</span>
+              <span class="info-value" id="order-id">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">商品名称:</span>
+              <span class="info-value" id="product-name">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">创建时间:</span>
+              <span class="info-value" id="create-time">-</span>
+            </div>
+          </div>
+          
+          <div class="payment-methods">
+            <h3>选择支付方式</h3>
+            <div class="method-list" id="method-list">
+              <!-- 支付方式将通过JavaScript动态添加 -->
+            </div>
+          </div>
+          
+          <div class="payment-actions">
+            <button class="btn btn-secondary" onclick="window.history.back()">取消</button>
+            <button class="btn btn-primary" id="pay-button">立即支付</button>
+          </div>
+        </div>
+        
+        <div class="payment-container" id="payment-status" style="display: none;">
+          <div class="payment-status">
+            <div class="status-icon" id="status-icon">⏳</div>
+            <h3 class="status-title" id="status-title">处理中</h3>
+            <p class="status-message" id="status-message">正在处理您的支付请求...</p>
+            <div class="payment-actions">
+              <button class="btn btn-primary" id="back-button">返回</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="payment-config.js"></script>
+  <script src="payment.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 获取URL参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const amount = parseFloat(urlParams.get('amount') || '0');
+      const orderId = urlParams.get('orderId') || 'ORDER_' + Date.now();
+      const productName = urlParams.get('productName') || '商品';
+      const type = urlParams.get('type') || 'product'; // product 或 membership
+      
+      // 初始化支付配置
+      if (window.paymentConfig) {
+        PaymentProcessor.init({
+          wechat: window.paymentConfig.wechat,
+          alipay: window.paymentConfig.alipay,
+          serverUrl: window.paymentConfig.server.url
+        });
+      }
+      
+      // 填充支付信息
+      document.getElementById('payment-amount').textContent = '¥' + amount.toFixed(2);
+      document.getElementById('order-id').textContent = orderId;
+      document.getElementById('product-name').textContent = productName;
+      document.getElementById('create-time').textContent = new Date().toLocaleString();
+      
+      // 加载支付方式
+      if (window.paymentConfig && window.paymentConfig.paymentMethods) {
+        const methodList = document.getElementById('method-list');
+        window.paymentConfig.paymentMethods.forEach(method => {
+          if (method.enabled) {
+            const methodItem = document.createElement('div');
+            methodItem.className = 'method-item';
+            methodItem.dataset.method = method.id;
+            methodItem.innerHTML = `
+              <div class="method-icon">${method.icon}</div>
+              <div class="method-name">${method.name}</div>
+            `;
+            methodItem.addEventListener('click', function() {
+              document.querySelectorAll('.method-item').forEach(item => item.classList.remove('active'));
+              this.classList.add('active');
+            });
+            methodList.appendChild(methodItem);
+          }
+        });
+        
+        // 默认选中第一个支付方式
+        const firstMethod = methodList.querySelector('.method-item');
+        if (firstMethod) {
+          firstMethod.classList.add('active');
+        }
+      }
+      
+      // 支付按钮点击事件
+      document.getElementById('pay-button').addEventListener('click', async function() {
+        const selectedMethod = document.querySelector('.method-item.active');
+        if (!selectedMethod) {
+          alert('请选择支付方式');
+          return;
+        }
+        
+        const paymentMethod = selectedMethod.dataset.method;
+        
+        // 显示支付状态
+        document.getElementById('payment-form').style.display = 'none';
+        document.getElementById('payment-status').style.display = 'block';
+        
+        try {
+          // 发起支付
+          const result = await PaymentProcessor.createPayment({
+            amount: amount,
+            orderId: orderId,
+            paymentMethod: paymentMethod,
+            description: productName
+          });
+          
+          if (result.success) {
+            // 支付成功
+            document.getElementById('status-icon').textContent = '✅';
+            document.getElementById('status-title').textContent = '支付成功';
+            document.getElementById('status-message').textContent = '您的支付已成功完成！';
+          } else {
+            // 支付失败
+            document.getElementById('status-icon').textContent = '❌';
+            document.getElementById('status-title').textContent = '支付失败';
+            document.getElementById('status-message').textContent = '支付过程中出现错误，请重试。';
+          }
+        } catch (error) {
+          // 支付异常
+          document.getElementById('status-icon').textContent = '❌';
+          document.getElementById('status-title').textContent = '支付失败';
+          document.getElementById('status-message').textContent = '支付过程中出现错误：' + error.message;
+        }
+      });
+      
+      // 返回按钮点击事件
+      document.getElementById('back-button').addEventListener('click', function() {
+        if (type === 'membership') {
+          window.location.href = 'member.html';
+        } else {
+          window.location.href = 'online_store.html';
+        }
+      });
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

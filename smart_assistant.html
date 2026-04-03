@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能财务助手 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+    }
+    
+    .nav-item.has-submenu:hover .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .assistant-container {
+      display: flex;
+      gap: 20px;
+      height: 100%;
+    }
+    
+    .chat-panel {
+      flex: 1;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chat-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #f8f9fa;
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .chat-header h2 {
+      font-size: 18px;
+      color: #2c3e50;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+    }
+    
+    .message.user {
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    
+    .message.assistant {
+      align-self: flex-start;
+    }
+    
+    .message-content {
+      padding: 10px 15px;
+      border-radius: 18px;
+      word-wrap: break-word;
+    }
+    
+    .message.user .message-content {
+      background-color: #3498db;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message.assistant .message-content {
+      background-color: #f1f0f0;
+      color: #333;
+      border-bottom-left-radius: 4px;
+    }
+    
+    .message-time {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+      text-align: right;
+    }
+    
+    .chat-input {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .chat-input input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .voice-btn {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .voice-btn.recording {
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+      }
+    }
+    
+    .sidebar-panel {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    
+    .card h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+    
+    .reminder-item {
+      padding: 10px;
+      border-left: 3px solid #e74c3c;
+      background-color: #f9f9f9;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 10px;
+    }
+    
+    .reminder-item h4 {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .reminder-item p {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .recommendation-item {
+      padding: 10px;
+      border-left: 3px solid #f39c12;
+      background-color: #f9f9f9;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .recommendation-item:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .recommendation-item h4 {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .recommendation-item p {
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html" class="active">智能财务助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn" onclick="window.history.back()">←</button>
+            <button class="btn" onclick="window.history.forward()">→</button>
+            <button class="btn" onclick="location.reload()">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary">登录</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <h2>智能财务助手</h2>
+        <p>通过语音交互、智能提醒和个性化推荐，为您提供全方位的财务支持</p>
+        
+        <div class="assistant-container">
+          <div class="chat-panel">
+            <div class="chat-header">
+              <h2>财务助手</h2>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="message assistant">
+                <div class="message-content">
+                  您好！我是您的智能财务助手，有什么可以帮您的吗？
+                </div>
+                <div class="message-time">10:00</div>
+              </div>
+            </div>
+            <div class="chat-input">
+              <input type="text" id="chatInput" placeholder="输入问题或指令...">
+              <button class="voice-btn" id="voiceBtn" title="语音输入">🎤</button>
+              <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+            </div>
+          </div>
+          
+          <div class="sidebar-panel">
+            <div class="card">
+              <h3>智能提醒</h3>
+              <div class="reminder-item">
+                <h4>报税截止提醒</h4>
+                <p>增值税申报截止日期：3天后</p>
+              </div>
+              <div class="reminder-item">
+                <h4>账单到期提醒</h4>
+                <p>供应商A账单：2天后到期</p>
+              </div>
+              <div class="reminder-item">
+                <h4>财务报表提醒</h4>
+                <p>月度财务报表需在5天内完成</p>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h3>个性化推荐</h3>
+              <div class="recommendation-item" onclick="showRecommendation('tax')">
+                <h4>税务筹划建议</h4>
+                <p>根据您的业务情况，提供节税方案</p>
+              </div>
+              <div class="recommendation-item" onclick="showRecommendation('finance')">
+                <h4>财务管理优化</h4>
+                <p>现金流管理和成本控制建议</p>
+              </div>
+              <div class="recommendation-item" onclick="showRecommendation('investment')">
+                <h4>投资机会分析</h4>
+                <p>适合您企业的投资方向</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let isRecording = false;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const chatInput = document.getElementById('chatInput');
+      const voiceBtn = document.getElementById('voiceBtn');
+      
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+      
+      voiceBtn.addEventListener('click', function() {
+        toggleVoiceRecording();
+      });
+    });
+    
+    function sendMessage() {
+      const chatInput = document.getElementById('chatInput');
+      const message = chatInput.value.trim();
+      
+      if (message) {
+        addMessage('user', message);
+        chatInput.value = '';
+        
+        // 模拟助手回复
+        setTimeout(() => {
+          let response;
+          if (message.includes('报税')) {
+            response = '您可以在一键报税模块中完成增值税、企业所得税等申报。需要我为您导航到该模块吗？';
+          } else if (message.includes('财务报表')) {
+            response = '您可以在数据分析模块中生成各类财务报表，包括资产负债表、利润表和现金流量表。';
+          } else if (message.includes('预算')) {
+            response = '您可以在预算管理模块中设置和跟踪企业预算执行情况。';
+          } else {
+            response = '感谢您的咨询。请问您需要了解哪方面的财务信息？';
+          }
+          addMessage('assistant', response);
+        }, 1000);
+      }
+    }
+    
+    function addMessage(type, content) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      
+      const now = new Date();
+      const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      messageDiv.innerHTML = `
+        <div class="message-content">${content}</div>
+        <div class="message-time">${time}</div>
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function toggleVoiceRecording() {
+      const voiceBtn = document.getElementById('voiceBtn');
+      isRecording = !isRecording;
+      
+      if (isRecording) {
+        voiceBtn.classList.add('recording');
+        voiceBtn.title = '停止录音';
+        // 模拟录音功能
+        setTimeout(() => {
+          isRecording = false;
+          voiceBtn.classList.remove('recording');
+          voiceBtn.title = '语音输入';
+          addMessage('user', '如何优化企业现金流？');
+          
+          setTimeout(() => {
+            addMessage('assistant', '优化企业现金流可以从以下几个方面入手：1. 加快应收账款回收速度；2. 合理控制存货水平；3. 优化付款周期；4. 考虑使用供应链金融工具。');
+          }, 1000);
+        }, 3000);
+      } else {
+        voiceBtn.classList.remove('recording');
+        voiceBtn.title = '语音输入';
+      }
+    }
+    
+    function showRecommendation(type) {
+      let content;
+      
+      switch(type) {
+        case 'tax':
+          content = '根据您的企业情况，建议您：1. 合理利用税收优惠政策；2. 优化企业组织架构；3. 规范成本费用核算；4. 定期进行税务筹划。';
+          break;
+        case 'finance':
+          content = '财务管理优化建议：1. 建立现金流量预测系统；2. 实施成本控制措施；3. 优化资金结构；4. 建立财务风险预警机制。';
+          break;
+        case 'investment':
+          content = '投资机会分析：1. 考虑行业上下游整合；2. 关注数字化转型相关领域；3. 评估研发投入回报；4. 探索国际市场机会。';
+          break;
+      }
+      
+      addMessage('assistant', content);
+    }
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>付费问答 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background-color: rgba(52, 152, 219, 0.8);
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+    }
+    
+    .nav-item.has-submenu:hover .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .qa-container {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 20px;
+      height: calc(100vh - 120px);
+    }
+    
+    .qa-main {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .qa-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .qa-header h3 {
+      margin: 0;
+      color: #2c3e50;
+    }
+    
+    .qa-tabs {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .qa-tab {
+      padding: 8px 16px;
+      border: none;
+      background-color: #f5f5f5;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+    
+    .qa-tab.active {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .qa-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .question-item {
+      padding: 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.3s;
+    }
+    
+    .question-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    
+    .question-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .question-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .question-content {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .reward-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: #f39c12;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .status-badge.pending {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .status-badge.answered {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .status-badge.resolved {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .question-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .answer-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+    
+    .answer-item {
+      padding: 15px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border-left: 3px solid #3498db;
+    }
+    
+    .answer-header {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .answer-content {
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    
+    .answer-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .qa-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .sidebar-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .sidebar-card-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+    
+    .sidebar-card-content {
+      padding: 15px;
+    }
+    
+    .stats-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .stats-item:last-child {
+      border-bottom: none;
+    }
+    
+    .wallet-balance {
+      font-size: 24px;
+      font-weight: bold;
+      color: #27ae60;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      width: 500px;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+      font-size: 14px;
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    
+    .payment-methods {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .payment-method {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .payment-method:hover {
+      border-color: #3498db;
+    }
+    
+    .payment-method.selected {
+      border-color: #3498db;
+      background-color: #e3f2fd;
+    }
+    
+    .payment-method i {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .transaction-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .transaction-item {
+      padding: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+    
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+    
+    .transaction-amount {
+      font-weight: bold;
+    }
+    
+    .transaction-amount.income {
+      color: #27ae60;
+    }
+    
+    .transaction-amount.expense {
+      color: #e74c3c;
+    }
+    
+    .user-info {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      background-color: #f8f9fa;
+    }
+    
+    .user-info p {
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html" class="active">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn">←</button>
+            <button class="btn">→</button>
+            <button class="btn">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="login-btn">登录</button>
+          <button class="btn" id="logout-btn" style="display: none;">退出</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <h2 class="page-title">付费问答</h2>
+        
+        <div class="qa-container">
+          <div class="qa-main">
+            <div class="qa-header">
+              <h3>问题列表</h3>
+              <div class="qa-tabs">
+                <button class="qa-tab active" data-tab="all">全部</button>
+                <button class="qa-tab" data-tab="pending">待回答</button>
+                <button class="qa-tab" data-tab="answered">已回答</button>
+                <button class="qa-tab" data-tab="my">我的</button>
+              </div>
+              <button class="btn btn-primary" id="ask-question-btn">提问</button>
+            </div>
+            
+            <div class="qa-content" id="qa-content">
+              <!-- 问题列表将通过JavaScript动态生成 -->
+            </div>
+          </div>
+          
+          <div class="qa-sidebar">
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                我的钱包
+              </div>
+              <div class="sidebar-card-content">
+                <div class="wallet-balance" id="wallet-balance">¥0.00</div>
+                <div style="text-align: center; margin-top: 10px;">
+                  <button class="btn btn-success" id="recharge-btn">充值</button>
+                  <button class="btn btn-secondary" id="withdraw-btn">提现</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                问答统计
+              </div>
+              <div class="sidebar-card-content">
+                <div class="stats-item">
+                  <span>提问数量</span>
+                  <span id="asked-count">0</span>
+                </div>
+                <div class="stats-item">
+                  <span>回答数量</span>
+                  <span id="answered-count">0</span>
+                </div>
+                <div class="stats-item">
+                  <span>被采纳答案</span>
+                  <span id="adopted-count">0</span>
+                </div>
+                <div class="stats-item">
+                  <span>获得收益</span>
+                  <span id="earned-amount">¥0.00</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                最近交易
+              </div>
+              <div class="sidebar-card-content">
+                <div class="transaction-list" id="transaction-list">
+                  <!-- 交易记录将通过JavaScript动态生成 -->
+                </div>
+              </div>
+            </div>
+            
+            <div class="sidebar-card">
+              <div class="user-info">
+                <p id="user-type">用户类型：未登录</p>
+                <p id="user-status">状态：未登录</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 提问模态框 -->
+  <div class="modal" id="ask-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>发布问题</h3>
+        <button class="modal-close" id="ask-modal-close">&times;</button>
+      </div>
+      <form id="ask-form">
+        <div class="form-group">
+          <label for="question-title">问题标题</label>
+          <input type="text" id="question-title" placeholder="请简要描述您的问题" required>
+        </div>
+        <div class="form-group">
+          <label for="question-content">问题详情</label>
+          <textarea id="question-content" placeholder="请详细描述您的问题，包括背景、具体需求等" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="question-category">问题分类</label>
+          <select id="question-category" required>
+            <option value="">请选择分类</option>
+            <option value="accounting">会计核算</option>
+            <option value="tax">税务筹划</option>
+            <option value="audit">审计咨询</option>
+            <option value="finance">财务管理</option>
+            <option value="software">财务软件</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="question-reward">悬赏金额（元）</label>
+          <input type="number" id="question-reward" min="10" max="10000" value="50" required>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="ask-cancel">取消</button>
+          <button type="submit" class="btn btn-primary">发布并支付</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- 支付模态框 -->
+  <div class="modal" id="payment-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>选择支付方式</h3>
+        <button class="modal-close" id="payment-modal-close">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>支付金额</label>
+        <div style="font-size: 24px; font-weight: bold; color: #e74c3c;" id="payment-amount">¥0.00</div>
+      </div>
+      <div class="form-group">
+        <label>选择支付方式</label>
+        <div class="payment-methods">
+          <div class="payment-method" data-method="wechat">
+            <div style="font-size: 24px;">💬</div>
+            <div>微信支付</div>
+          </div>
+          <div class="payment-method" data-method="alipay">
+            <div style="font-size: 24px;">💰</div>
+            <div>支付宝</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" id="payment-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="payment-confirm">确认支付</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 回答模态框 -->
+  <div class="modal" id="answer-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>回答问题</h3>
+        <button class="modal-close" id="answer-modal-close">&times;</button>
+      </div>
+      <form id="answer-form">
+        <div class="form-group">
+          <label>问题标题</label>
+          <div id="answer-question-title" style="font-weight: bold; padding: 10px; background-color: #f5f5f5; border-radius: 4px;"></div>
+        </div>
+        <div class="form-group">
+          <label for="answer-content">您的回答</label>
+          <textarea id="answer-content" placeholder="请详细回答这个问题..." required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="answer-cancel">取消</button>
+          <button type="submit" class="btn btn-primary">提交回答</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="payment.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 模拟用户登录状态
+      let isLoggedIn = false;
+      let userType = '';
+      let currentUser = null;
+      
+      // 从localStorage获取钱包数据或使用默认值
+      let userWallet = JSON.parse(localStorage.getItem('userWallet')) || {
+        balance: 1000.00,
+        askedCount: 2,
+        answeredCount: 5,
+        adoptedCount: 3,
+        earnedAmount: 350.00
+      };
+      
+      // 模拟问题数据
+      let questions = [
+        {
+          id: 1,
+          title: '企业所得税汇算清缴需要注意哪些问题？',
+          content: '今年第一次做企业所得税汇算清缴，不知道需要注意哪些事项，有没有详细的流程指导？',
+          category: 'tax',
+          categoryName: '税务筹划',
+          author: '财务小白',
+          authorId: 'user1',
+          time: '2024-01-15 10:00',
+          reward: 100,
+          status: 'pending',
+          answers: []
+        },
+        {
+          id: 2,
+          title: '如何优化财务报表的现金流？',
+          content: '公司现金流紧张，想通过优化财务报表来改善，有什么好的建议？',
+          category: 'finance',
+          categoryName: '财务管理',
+          author: '企业主',
+          authorId: 'user2',
+          time: '2024-01-14 15:30',
+          reward: 200,
+          status: 'answered',
+          answers: [
+            {
+              id: 1,
+              author: '财务专家',
+              authorId: 'expert1',
+              content: '优化现金流可以从以下几个方面入手：1. 加强应收账款管理；2. 合理安排付款时间；3. 优化库存管理；4. 考虑短期融资...',
+              time: '2024-01-14 16:00',
+              isAdopted: false
+            }
+          ]
+        },
+        {
+          id: 3,
+          title: '金蝶软件如何设置自动备份？',
+          content: '使用金蝶财务软件，想设置自动备份功能，不知道怎么操作？',
+          category: 'software',
+          categoryName: '财务软件',
+          author: '会计新手',
+          authorId: 'user3',
+          time: '2024-01-13 09:00',
+          reward: 50,
+          status: 'resolved',
+          answers: [
+            {
+              id: 1,
+              author: '软件工程师',
+              authorId: 'expert2',
+              content: '在金蝶软件中设置自动备份的步骤如下：1. 进入系统管理；2. 选择账套管理；3. 点击自动备份设置...',
+              time: '2024-01-13 10:00',
+              isAdopted: true
+            }
+          ]
+        }
+      ];
+      
+      // 从localStorage获取交易记录
+      let transactions = JSON.parse(localStorage.getItem('userTransactions')) || [
+        { type: 'expense', amount: 100, desc: '发布问题悬赏', time: '2024-01-15 10:00' },
+        { type: 'income', amount: 200, desc: '回答被采纳', time: '2024-01-14 18:00' },
+        { type: 'expense', amount: 50, desc: '发布问题悬赏', time: '2024-01-13 09:00' },
+        { type: 'income', amount: 150, desc: '回答被采纳', time: '2024-01-12 16:00' }
+      ];
+      
+      // 当前选中的支付方式
+      let selectedPaymentMethod = null;
+      let currentQuestion = null;
+      
+      // 更新钱包显示
+      function updateWallet() {
+        document.getElementById('wallet-balance').textContent = `¥${userWallet.balance.toFixed(2)}`;
+        document.getElementById('asked-count').textContent = userWallet.askedCount;
+        document.getElementById('answered-count').textContent = userWallet.answeredCount;
+        document.getElementById('adopted-count').textContent = userWallet.adoptedCount;
+        document.getElementById('earned-amount').textContent = `¥${userWallet.earnedAmount.toFixed(2)}`;
+        
+        // 保存钱包数据到localStorage
+        localStorage.setItem('userWallet', JSON.stringify(userWallet));
+      }
+      
+      // 渲染交易记录
+      function renderTransactions() {
+        const transactionList = document.getElementById('transaction-list');
+        transactionList.innerHTML = '';
+        
+        transactions.forEach(transaction => {
+          const transactionItem = document.createElement('div');
+          transactionItem.className = 'transaction-item';
+          transactionItem.innerHTML = `
+            <div style="display: flex; justify-content: space-between;">
+              <span>${transaction.desc}</span>
+              <span class="transaction-amount ${transaction.type}">
+                ${transaction.type === 'income' ? '+' : '-'}¥${transaction.amount.toFixed(2)}
+              </span>
+            </div>
+            <div style="font-size: 11px; color: #999; margin-top: 5px;">${transaction.time}</div>
+          `;
+          transactionList.appendChild(transactionItem);
+        });
+        
+        // 保存交易记录到localStorage
+        localStorage.setItem('userTransactions', JSON.stringify(transactions));
+      }
+      
+      // 渲染问题列表
+      function renderQuestions(filter = 'all') {
+        const qaContent = document.getElementById('qa-content');
+        qaContent.innerHTML = '';
+        
+        let filteredQuestions = questions;
+        if (filter === 'pending') {
+          filteredQuestions = questions.filter(q => q.status === 'pending');
+        } else if (filter === 'answered') {
+          filteredQuestions = questions.filter(q => q.status === 'answered' || q.status === 'resolved');
+        } else if (filter === 'my') {
+          filteredQuestions = questions.filter(q => q.authorId === (currentUser ? currentUser.id : ''));
+        }
+        
+        filteredQuestions.forEach(question => {
+          const questionItem = document.createElement('div');
+          questionItem.className = 'question-item';
+          
+          let statusBadge = '';
+          if (question.status === 'pending') {
+            statusBadge = '<span class="status-badge pending">待回答</span>';
+          } else if (question.status === 'answered') {
+            statusBadge = '<span class="status-badge answered">已回答</span>';
+          } else if (question.status === 'resolved') {
+            statusBadge = '<span class="status-badge resolved">已解决</span>';
+          }
+          
+          let answerSection = '';
+          if (question.answers.length > 0) {
+            answerSection = `
+              <div class="answer-section">
+                ${question.answers.map(answer => `
+                  <div class="answer-item">
+                    <div class="answer-header">${answer.author} | ${answer.time} ${answer.isAdopted ? '<span style="color: #27ae60;">✓ 已采纳</span>' : ''}</div>
+                    <div class="answer-content">${answer.content}</div>
+                    ${question.authorId === (currentUser ? currentUser.id : '') && !answer.isAdopted && question.status !== 'resolved' ? `
+                      <div class="answer-actions">
+                        <button class="btn btn-success" onclick="adoptAnswer(${question.id}, ${answer.id})">采纳答案</button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
+          
+          questionItem.innerHTML = `
+            <div class="question-header">
+              <div>
+                <div class="question-title">${question.title}</div>
+                <div class="question-meta">
+                  提问者：${question.author} | ${question.time} | 分类：${question.categoryName}
+                </div>
+              </div>
+              <div>
+                <span class="reward-badge">💰 ¥${question.reward}</span>
+                ${statusBadge}
+              </div>
+            </div>
+            <div class="question-content">${question.content}</div>
+            <div class="question-actions">
+              ${question.status === 'pending' && question.authorId !== (currentUser ? currentUser.id : '') ? `
+                <button class="btn btn-primary" onclick="openAnswerModal(${question.id})">我来回答</button>
+              ` : ''}
+              <button class="btn btn-secondary" onclick="viewQuestionDetail(${question.id})">查看详情</button>
+            </div>
+            ${answerSection}
+          `;
+          
+          qaContent.appendChild(questionItem);
+        });
+      }
+      
+      // 打开回答模态框
+      window.openAnswerModal = function(questionId) {
+        if (!isLoggedIn) {
+          alert('请先登录后再回答问题');
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        currentQuestion = questions.find(q => q.id === questionId);
+        if (currentQuestion) {
+          document.getElementById('answer-question-title').textContent = currentQuestion.title;
+          document.getElementById('answer-modal').style.display = 'flex';
+        }
+      };
+      
+      // 采纳答案
+      window.adoptAnswer = function(questionId, answerId) {
+        if (!isLoggedIn) {
+          alert('请先登录');
+          return;
+        }
+        
+        const question = questions.find(q => q.id === questionId);
+        if (question) {
+          const answer = question.answers.find(a => a.id === answerId);
+          if (answer) {
+            answer.isAdopted = true;
+            question.status = 'resolved';
+            
+            // 资金流转：从平台托管到回答人账户
+            userWallet.balance -= question.reward;
+            transactions.unshift({
+              type: 'expense',
+              amount: question.reward,
+              desc: `支付问题悬赏：${question.title}`,
+              time: new Date().toLocaleString('zh-CN')
+            });
+            
+            updateWallet();
+            renderTransactions();
+            renderQuestions();
+            alert('已采纳答案，悬赏金已支付给回答者！');
+          }
+        }
+      };
+      
+      // 查看问题详情
+      window.viewQuestionDetail = function(questionId) {
+        const question = questions.find(q => q.id === questionId);
+        if (question) {
+          alert(`问题详情：\n\n标题：${question.title}\n内容：${question.content}\n悬赏：¥${question.reward}\n状态：${question.status}`);
+        }
+      };
+      
+      // 标签切换
+      document.querySelectorAll('.qa-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.qa-tab').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          renderQuestions(this.dataset.tab);
+        });
+      });
+      
+      // 打开提问模态框
+      document.getElementById('ask-question-btn').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录后再提问');
+          window.location.href = 'login.html';
+          return;
+        }
+        document.getElementById('ask-modal').style.display = 'flex';
+      });
+      
+      // 关闭提问模态框
+      document.getElementById('ask-modal-close').addEventListener('click', function() {
+        document.getElementById('ask-modal').style.display = 'none';
+      });
+      
+      document.getElementById('ask-cancel').addEventListener('click', function() {
+        document.getElementById('ask-modal').style.display = 'none';
+      });
+      
+      // 提交问题
+      document.getElementById('ask-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const title = document.getElementById('question-title').value.trim();
+        const content = document.getElementById('question-content').value.trim();
+        const category = document.getElementById('question-category').value;
+        const reward = parseFloat(document.getElementById('question-reward').value);
+        
+        if (title && content && category && reward) {
+          currentQuestion = { title, content, category, reward };
+          document.getElementById('payment-amount').textContent = `¥${reward.toFixed(2)}`;
+          document.getElementById('ask-modal').style.display = 'none';
+          document.getElementById('payment-modal').style.display = 'flex';
+        }
+      });
+      
+      // 支付方式选择
+      document.querySelectorAll('.payment-method').forEach(method => {
+        method.addEventListener('click', function() {
+          document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedPaymentMethod = this.dataset.method;
+        });
+      });
+      
+      // 关闭支付模态框
+      document.getElementById('payment-modal-close').addEventListener('click', function() {
+        document.getElementById('payment-modal').style.display = 'none';
+      });
+      
+      document.getElementById('payment-cancel').addEventListener('click', function() {
+        document.getElementById('payment-modal').style.display = 'none';
+      });
+      
+      // 确认支付
+      document.getElementById('payment-confirm').addEventListener('click', function() {
+        if (!selectedPaymentMethod) {
+          alert('请选择支付方式');
+          return;
+        }
+        
+        // 模拟支付流程
+        const categoryNames = {
+          'accounting': '会计核算',
+          'tax': '税务筹划',
+          'audit': '审计咨询',
+          'finance': '财务管理',
+          'software': '财务软件',
+          'other': '其他'
+        };
+        
+        const newQuestion = {
+          id: questions.length + 1,
+          title: currentQuestion.title,
+          content: currentQuestion.content,
+          category: currentQuestion.category,
+          categoryName: categoryNames[currentQuestion.category],
+          author: currentUser ? currentUser.name : '当前用户',
+          authorId: currentUser ? currentUser.id : 'current',
+          time: new Date().toLocaleString('zh-CN'),
+          reward: currentQuestion.reward,
+          status: 'pending',
+          answers: []
+        };
+        
+        questions.unshift(newQuestion);
+        
+        // 扣除余额（模拟支付）
+        userWallet.balance -= currentQuestion.reward;
+        userWallet.askedCount++;
+        
+        transactions.unshift({
+          type: 'expense',
+          amount: currentQuestion.reward,
+          desc: `发布问题悬赏：${currentQuestion.title}`,
+          time: new Date().toLocaleString('zh-CN')
+        });
+        
+        document.getElementById('payment-modal').style.display = 'none';
+        document.getElementById('ask-form').reset();
+        selectedPaymentMethod = null;
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+        
+        updateWallet();
+        renderTransactions();
+        renderQuestions();
+        alert('问题发布成功！悬赏金已托管到平台，等待回答。');
+      });
+      
+      // 关闭回答模态框
+      document.getElementById('answer-modal-close').addEventListener('click', function() {
+        document.getElementById('answer-modal').style.display = 'none';
+      });
+      
+      document.getElementById('answer-cancel').addEventListener('click', function() {
+        document.getElementById('answer-modal').style.display = 'none';
+      });
+      
+      // 提交回答
+      document.getElementById('answer-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = document.getElementById('answer-content').value.trim();
+        
+        if (content && currentQuestion) {
+          const answer = {
+            id: currentQuestion.answers.length + 1,
+            author: currentUser ? currentUser.name : '当前用户',
+            authorId: currentUser ? currentUser.id : 'current',
+            content: content,
+            time: new Date().toLocaleString('zh-CN'),
+            isAdopted: false
+          };
+          
+          currentQuestion.answers.push(answer);
+          currentQuestion.status = 'answered';
+          
+          userWallet.answeredCount++;
+          
+          document.getElementById('answer-modal').style.display = 'none';
+          document.getElementById('answer-form').reset();
+          
+          updateWallet();
+          renderQuestions();
+          alert('回答提交成功！等待提问者确认。');
+        }
+      });
+      
+      // 充值按钮
+      document.getElementById('recharge-btn').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录');
+          return;
+        }
+        const amount = prompt('请输入充值金额：');
+        if (amount && !isNaN(amount) && amount > 0) {
+          userWallet.balance += parseFloat(amount);
+          transactions.unshift({
+            type: 'income',
+            amount: parseFloat(amount),
+            desc: '钱包充值',
+            time: new Date().toLocaleString('zh-CN')
+          });
+          updateWallet();
+          renderTransactions();
+          alert(`成功充值 ¥${amount}`);
+        }
+      });
+      
+      // 提现按钮
+      document.getElementById('withdraw-btn').addEventListener('click', function() {
+        if (!isLoggedIn) {
+          alert('请先登录');
+          return;
+        }
+        const amount = prompt('请输入提现金额：');
+        if (amount && !isNaN(amount) && amount > 0 && amount <= userWallet.balance) {
+          userWallet.balance -= parseFloat(amount);
+          transactions.unshift({
+            type: 'expense',
+            amount: parseFloat(amount),
+            desc: '钱包提现',
+            time: new Date().toLocaleString('zh-CN')
+          });
+          updateWallet();
+          renderTransactions();
+          alert(`成功提现 ¥${amount}`);
+        } else if (amount > userWallet.balance) {
+          alert('余额不足');
+        }
+      });
+      
+      // 登录按钮
+      document.getElementById('login-btn').addEventListener('click', function() {
+        window.location.href = 'login.html';
+      });
+      
+      // 退出按钮
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        localStorage.removeItem('userInfo');
+        isLoggedIn = false;
+        userType = '';
+        currentUser = null;
+        updateUserInfo();
+        alert('已退出登录');
+      });
+      
+      // 更新用户信息
+      function updateUserInfo() {
+        if (isLoggedIn) {
+          document.getElementById('login-btn').style.display = 'none';
+          document.getElementById('logout-btn').style.display = 'inline-block';
+          document.getElementById('user-type').textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
+          document.getElementById('user-status').textContent = '状态：已登录';
+        } else {
+          document.getElementById('login-btn').style.display = 'inline-block';
+          document.getElementById('logout-btn').style.display = 'none';
+          document.getElementById('user-type').textContent = '用户类型：未登录';
+          document.getElementById('user-status').textContent = '状态：未登录';
+        }
+      }
+      
+      // 检查登录状态
+      function checkLoginStatus() {
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          const parsedUserInfo = JSON.parse(userInfo);
+          isLoggedIn = parsedUserInfo.isLoggedIn || false;
+          userType = parsedUserInfo.userType || '';
+          currentUser = {
+            id: parsedUserInfo.phone || 'user',
+            name: parsedUserInfo.phone || '当前用户'
+          };
+        } else {
+          isLoggedIn = false;
+          userType = '';
+          currentUser = null;
+        }
+        updateUserInfo();
+      }
+      
+      // 初始化
+      checkLoginStatus();
+      updateWallet();
+      renderTransactions();
+      renderQuestions();
+      
+      // 浏览器功能
+      const searchInput = document.querySelector('.browser-bar input');
+      const searchButton = document.querySelector('.browser-bar .btn-primary');
+      
+      searchButton.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+          alert('搜索: ' + query);
+        }
+      });
+      
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            alert('搜索: ' + query);
+          }
+        }
+      });
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

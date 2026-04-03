@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    /* 悬浮客服助手 */
+    .customer-service {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 9999;
+    }
+    
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      background-color: #3498db;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      border: 2px solid white;
+    }
+    
+    .service-icon:hover {
+      transform: scale(1.1) translateY(0);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .service-icon .icon {
+      font-size: 24px;
+      color: white;
+      margin-bottom: 2px;
+    }
+    
+    .service-icon .name {
+      font-size: 10px;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .service-panel {
+      position: absolute;
+      right: 70px;
+      bottom: 0;
+      width: 300px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 20px;
+      display: none;
+    }
+    
+    .service-panel.active {
+      display: block;
+    }
+    
+    .service-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .service-header h3 {
+      margin: 0;
+      color: #2c3e50;
+    }
+    
+    .service-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #95a5a6;
+    }
+    
+    .service-content {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .service-item {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .service-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .service-item h4 {
+      margin: 0 0 5px 0;
+      font-size: 14px;
+      color: #34495e;
+    }
+    
+    .service-item p {
+      margin: 0;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: relative;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+      margin-top: 5px;
+    }
+    
+    .nav-item.has-submenu.active .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .feature-item {
+      padding: 10px;
+      border-left: 3px solid #3498db;
+      background-color: #f9f9f9;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .feature-item h4 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    
+    .feature-item p {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    /* 行业头条样式 */
+    .news-item {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .news-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .news-item:last-child {
+      border-bottom: none;
+    }
+    
+    .news-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+    
+    .news-source {
+      font-size: 12px;
+      color: #95a5a6;
+      margin-bottom: 3px;
+    }
+    
+    .news-time {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+    
+    .news-update {
+      margin-top: 15px;
+      text-align: right;
+    }
+    
+    .news-update button {
+      padding: 6px 12px;
+      border: 1px solid #3498db;
+      border-radius: 4px;
+      background-color: white;
+      color: #3498db;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s;
+    }
+    
+    .news-update button:hover {
+      background-color: #3498db;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn">←</button>
+            <button class="btn">→</button>
+            <button class="btn">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary">登录</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <h2>欢迎使用财务专用浏览器</h2>
+        <p>专为财务人员设计的安全、高效、功能强大的浏览器</p>
+        
+        <div class="dashboard">
+          <div class="card">
+            <h3>核心功能</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>财务软件集成</h4>
+                <p>无缝集成进销存、会计核算等财务软件</p>
+              </div>
+              <div class="feature-item">
+                <h4>一键报税</h4>
+                <p>自动填充申报表单，多税种支持</p>
+              </div>
+              <div class="feature-item">
+                <h4>数据分析</h4>
+                <p>财务指标分析和可视化报表</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3>辅助功能</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>财务学堂</h4>
+                <p>在线课程、考试认证、专家咨询</p>
+              </div>
+              <div class="feature-item">
+                <h4>模板专区</h4>
+                <p>财务报表、税务申报等各类模板</p>
+              </div>
+              <div class="feature-item">
+                <h4>在线商城</h4>
+                <p>财务软件、培训课程购买</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3>附加功能</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>AI助手</h4>
+                <p>语音交互、智能提醒、个性化推荐</p>
+              </div>
+              <div class="feature-item">
+                <h4>风险预警系统</h4>
+                <p>财务风险监测、异常交易识别</p>
+              </div>
+              <div class="feature-item">
+                <h4>多维度分析</h4>
+                <p>行业对标、竞争对手分析</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3>安全保障</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>数据加密</h4>
+                <p>端到端加密，保护财务数据安全</p>
+              </div>
+              <div class="feature-item">
+                <h4>防钓鱼保护</h4>
+                <p>识别并阻止钓鱼网站</p>
+              </div>
+              <div class="feature-item">
+                <h4>权限管理</h4>
+                <p>精细的访问控制和审计日志</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3>行业头条</h3>
+            <div class="card-content" id="news-container">
+              <div class="news-item">
+                <div class="news-title">财政部发布2026年新会计准则实施指南</div>
+                <div class="news-source">来源：财政部官网</div>
+                <div class="news-time">2026-04-03 09:30</div>
+              </div>
+              <div class="news-item">
+                <div class="news-title">国家税务总局发布2026年税收优惠政策解读</div>
+                <div class="news-source">来源：税务总局网站</div>
+                <div class="news-time">2026-04-02 16:45</div>
+              </div>
+              <div class="news-item">
+                <div class="news-title">2026年企业所得税汇算清缴指南发布</div>
+                <div class="news-source">来源：会计家园</div>
+                <div class="news-time">2026-04-02 10:15</div>
+              </div>
+              <div class="news-item">
+                <div class="news-title">财务机器人在企业财务管理中的应用</div>
+                <div class="news-source">来源：财务与会计</div>
+                <div class="news-time">2026-04-01 14:20</div>
+              </div>
+              <div class="news-item">
+                <div class="news-title">2026年金融行业监管政策解读</div>
+                <div class="news-source">来源：金融时报</div>
+                <div class="news-time">2026-04-01 08:50</div>
+              </div>
+            </div>
+            <div class="news-update">
+              <button id="refresh-news">刷新新闻</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 悬浮客服助手 -->
+  <div class="customer-service">
+    <div class="service-icon" id="service-icon">
+      <div class="icon">💬</div>
+      <div class="name">小雅客服</div>
+    </div>
+    <div class="service-panel" id="service-panel">
+      <div class="service-header">
+        <h3>小雅客服</h3>
+        <button class="service-close" id="service-close">×</button>
+      </div>
+      <div class="service-content">
+        <div class="service-item">
+          <h4>在线咨询</h4>
+          <p>专业客服为您解答问题</p>
+        </div>
+        <div class="service-item">
+          <h4>技术支持</h4>
+          <p>软件使用问题解决方案</p>
+        </div>
+        <div class="service-item">
+          <h4>产品咨询</h4>
+          <p>了解更多产品功能</p>
+        </div>
+        <div class="service-item">
+          <h4>意见反馈</h4>
+          <p>提交您的宝贵建议</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 浏览器功能实现
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.querySelector('.browser-bar input');
+      const searchButton = document.querySelector('.browser-bar .btn-primary');
+      
+      searchButton.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+          // 模拟搜索功能
+          alert('搜索: ' + query);
+        }
+      });
+      
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = searchInput.value.trim();
+          if (query) {
+            alert('搜索: ' + query);
+          }
+        }
+      });
+      
+      // 导航菜单点击事件
+      const navItems = document.querySelectorAll('.nav-item a');
+      navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+          // 移除e.preventDefault()，允许默认的页面跳转
+        });
+      });
+      
+      // 功能卡片点击事件
+      const featureItems = document.querySelectorAll('.feature-item');
+      featureItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const featureName = this.querySelector('h4').textContent;
+          console.log('点击了功能：', featureName);
+          
+          // 根据功能名称跳转到对应页面
+          if (featureName === '财务软件集成') {
+            window.location.href = 'finance_software.html';
+          } else if (featureName === '一键报税') {
+            window.location.href = 'tax_reporting.html';
+          } else if (featureName === '数据分析') {
+            window.location.href = 'data_analysis.html';
+          } else if (featureName === '财务学堂') {
+            window.location.href = 'finance_academy.html';
+          } else if (featureName === '模板专区') {
+            window.location.href = 'templates_tools.html';
+          } else if (featureName === '在线商城') {
+            window.location.href = 'online_store.html';
+          } else if (featureName === 'AI助手') {
+            window.location.href = 'smart_assistant.html';
+          } else if (featureName === '风险预警系统') {
+            window.location.href = 'risk_management.html';
+          }
+        });
+        
+        // 添加鼠标悬停效果
+        item.style.cursor = 'pointer';
+        item.addEventListener('mouseenter', function() {
+          this.style.backgroundColor = '#e3f2fd';
+        });
+        item.addEventListener('mouseleave', function() {
+          this.style.backgroundColor = '#f9f9f9';
+        });
+      });
+      
+      // 退出登录按钮点击事件
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (confirm('确定要退出登录吗？')) {
+            // 跳转到登录页面
+            window.location.href = 'login.html';
+          }
+        });
+      }
+      
+      // 客服助手功能
+      const serviceIcon = document.getElementById('service-icon');
+      const servicePanel = document.getElementById('service-panel');
+      const serviceClose = document.getElementById('service-close');
+      const serviceItems = document.querySelectorAll('.service-item');
+      
+      // 点击客服图标显示/隐藏面板
+      serviceIcon.addEventListener('click', function() {
+        servicePanel.classList.toggle('active');
+      });
+      
+      // 点击关闭按钮隐藏面板
+      serviceClose.addEventListener('click', function() {
+        servicePanel.classList.remove('active');
+      });
+      
+      // 点击服务项目
+      serviceItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const serviceName = this.querySelector('h4').textContent;
+          alert(`您选择了：${serviceName}\n我们的客服将尽快为您服务！`);
+          servicePanel.classList.remove('active');
+        });
+      });
+      
+      // 点击页面其他地方隐藏面板
+      document.addEventListener('click', function(e) {
+        if (!serviceIcon.contains(e.target) && !servicePanel.contains(e.target)) {
+          servicePanel.classList.remove('active');
+        }
+      });
+      
+      // 行业头条功能
+      const newsContainer = document.getElementById('news-container');
+      const refreshNewsBtn = document.getElementById('refresh-news');
+      
+      // 新闻数据源
+      const newsSources = [
+        {
+          title: '财政部发布2026年新会计准则实施指南',
+          source: '财政部官网',
+          time: '2026-04-03 09:30'
+        },
+        {
+          title: '国家税务总局发布2026年税收优惠政策解读',
+          source: '税务总局网站',
+          time: '2026-04-02 16:45'
+        },
+        {
+          title: '2026年企业所得税汇算清缴指南发布',
+          source: '会计家园',
+          time: '2026-04-02 10:15'
+        },
+        {
+          title: '财务机器人在企业财务管理中的应用',
+          source: '财务与会计',
+          time: '2026-04-01 14:20'
+        },
+        {
+          title: '2026年金融行业监管政策解读',
+          source: '金融时报',
+          time: '2026-04-01 08:50'
+        },
+        {
+          title: '企业数字化转型中的财务管理变革',
+          source: '中国会计报',
+          time: '2026-03-31 15:30'
+        },
+        {
+          title: '2026年个人所得税专项附加扣除政策调整',
+          source: '税务总局网站',
+          time: '2026-03-31 10:20'
+        },
+        {
+          title: '财务共享中心建设的最佳实践',
+          source: '财务与会计',
+          time: '2026-03-30 14:15'
+        },
+        {
+          title: '2026年房地产行业税务政策分析',
+          source: '税务研究',
+          time: '2026-03-30 09:45'
+        },
+        {
+          title: '人工智能在财务审计中的应用',
+          source: '审计研究',
+          time: '2026-03-29 16:30'
+        }
+      ];
+      
+      // 随机生成新闻
+      function generateRandomNews() {
+        // 随机选择5条新闻
+        const shuffled = newsSources.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 5);
+        
+        // 清空现有新闻
+        newsContainer.innerHTML = '';
+        
+        // 添加新闻
+        selected.forEach(news => {
+          const newsItem = document.createElement('div');
+          newsItem.className = 'news-item';
+          newsItem.innerHTML = `
+            <div class="news-title">${news.title}</div>
+            <div class="news-source">来源：${news.source}</div>
+            <div class="news-time">${news.time}</div>
+          `;
+          
+          // 添加点击事件
+          newsItem.addEventListener('click', function() {
+            alert(`您点击了新闻：${news.title}\n来源：${news.source}`);
+          });
+          
+          newsContainer.appendChild(newsItem);
+        });
+      }
+      
+      // 手动刷新新闻
+      refreshNewsBtn.addEventListener('click', function() {
+        refreshNewsBtn.textContent = '刷新中...';
+        setTimeout(() => {
+          generateRandomNews();
+          refreshNewsBtn.textContent = '刷新新闻';
+        }, 1000);
+      });
+      
+      // 自动更新新闻（模拟后台自动采集）
+      function autoUpdateNews() {
+        setTimeout(() => {
+          generateRandomNews();
+          // 每30分钟自动更新一次
+          setInterval(generateRandomNews, 30 * 60 * 1000);
+        }, 5000); // 页面加载5秒后首次更新
+      }
+      
+      // 初始化新闻
+      autoUpdateNews();
+      
+      // 处理二级菜单的点击事件
+      document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          this.classList.toggle('active');
+        });
+      });
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>财务BP - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      font-weight: bold;
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+    }
+    
+    .nav-item.has-submenu:hover .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .browser-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .browser-bar input {
+      flex: 1;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+    }
+    
+    .browser-controls {
+      display: flex;
+      gap: 10px;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .bp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .bp-filters {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .bp-filters select {
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .bp-filters input {
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .bp-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .bp-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .bp-card h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+    
+    .bp-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .bp-trend {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .bp-trend.positive {
+      color: #27ae60;
+    }
+    
+    .bp-trend.negative {
+      color: #e74c3c;
+    }
+    
+    .bp-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .bp-tab {
+      padding: 10px 20px;
+      background-color: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .bp-tab.active {
+      background-color: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+    
+    .bp-table {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .bp-table-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #f8f9fa;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .bp-table-header h3 {
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    
+    .bp-table-content {
+      padding: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .bp-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .chart-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    
+    .chart-header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chart-header h3 {
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    
+    .chart-content {
+      height: 300px;
+      position: relative;
+    }
+    
+    .chart-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html" class="active">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn" onclick="window.history.back()">←</button>
+            <button class="btn" onclick="window.history.forward()">→</button>
+            <button class="btn" onclick="location.reload()">⟳</button>
+          </div>
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <button class="btn btn-primary">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary">登录</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <div class="bp-header">
+          <h2>财务BP</h2>
+          <div class="bp-filters">
+            <select>
+              <option>全部业务线</option>
+              <option>销售部</option>
+              <option>市场部</option>
+              <option>研发部</option>
+              <option>运营部</option>
+            </select>
+            <input type="date" placeholder="开始日期">
+            <input type="date" placeholder="结束日期">
+            <button class="btn btn-primary">筛选</button>
+            <button class="btn btn-success">新建分析</button>
+          </div>
+        </div>
+        <p>业务财务一体化管理，为业务决策提供财务支持</p>
+        
+        <div class="bp-dashboard">
+          <div class="bp-card">
+            <h3>业务收入</h3>
+            <div class="bp-value">¥1,250,000</div>
+            <div class="bp-trend positive">
+              <span>↗</span>
+              <span>12.5% 同比增长</span>
+            </div>
+          </div>
+          
+          <div class="bp-card">
+            <h3>业务成本</h3>
+            <div class="bp-value">¥750,000</div>
+            <div class="bp-trend positive">
+              <span>↗</span>
+              <span>8.3% 同比增长</span>
+            </div>
+          </div>
+          
+          <div class="bp-card">
+            <h3>业务利润</h3>
+            <div class="bp-value">¥500,000</div>
+            <div class="bp-trend positive">
+              <span>↗</span>
+              <span>20.0% 同比增长</span>
+            </div>
+          </div>
+          
+          <div class="bp-card">
+            <h3>利润率</h3>
+            <div class="bp-value">40.0%</div>
+            <div class="bp-trend positive">
+              <span>↗</span>
+              <span>2.5% 同比增长</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bp-tabs">
+          <div class="bp-tab active" onclick="switchTab('business')">业务分析</div>
+          <div class="bp-tab" onclick="switchTab('planning')">财务规划</div>
+          <div class="bp-tab" onclick="switchTab('budget')">预算管理</div>
+          <div class="bp-tab" onclick="switchTab('performance')">绩效评估</div>
+          <div class="bp-tab" onclick="switchTab('forecast')">预测分析</div>
+        </div>
+        
+        <div class="bp-table" id="business-tab">
+          <div class="bp-table-header">
+            <h3>业务线分析</h3>
+            <button class="btn btn-primary">导出</button>
+          </div>
+          <div class="bp-table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>业务线</th>
+                  <th>收入</th>
+                  <th>成本</th>
+                  <th>利润</th>
+                  <th>利润率</th>
+                  <th>同比增长</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>产品A</td>
+                  <td>¥450,000</td>
+                  <td>¥250,000</td>
+                  <td>¥200,000</td>
+                  <td>44.4%</td>
+                  <td class="bp-trend positive">+15.2%</td>
+                  <td class="bp-actions">
+                    <button class="btn btn-success">详情</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>产品B</td>
+                  <td>¥350,000</td>
+                  <td>¥200,000</td>
+                  <td>¥150,000</td>
+                  <td>42.9%</td>
+                  <td class="bp-trend positive">+10.8%</td>
+                  <td class="bp-actions">
+                    <button class="btn btn-success">详情</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>产品C</td>
+                  <td>¥250,000</td>
+                  <td>¥180,000</td>
+                  <td>¥70,000</td>
+                  <td>28.0%</td>
+                  <td class="bp-trend negative">-2.1%</td>
+                  <td class="bp-actions">
+                    <button class="btn btn-success">详情</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>服务业务</td>
+                  <td>¥200,000</td>
+                  <td>¥120,000</td>
+                  <td>¥80,000</td>
+                  <td>40.0%</td>
+                  <td class="bp-trend positive">+18.5%</td>
+                  <td class="bp-actions">
+                    <button class="btn btn-success">详情</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>业务收入趋势</h3>
+            <select class="btn">
+              <option>月度</option>
+              <option>季度</option>
+              <option>年度</option>
+            </select>
+          </div>
+          <div class="chart-content">
+            <div class="chart-placeholder">
+              业务收入趋势图表
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初始化显示业务分析标签
+      switchTab('business');
+    });
+    
+    function switchTab(tabName) {
+      // 隐藏所有标签内容
+      document.querySelectorAll('.bp-table').forEach(table => {
+        table.style.display = 'none';
+      });
+      
+      // 移除所有标签的活动状态
+      document.querySelectorAll('.bp-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // 显示选中的标签内容
+      const activeTab = document.getElementById(tabName + '-tab');
+      if (activeTab) {
+        activeTab.style.display = 'block';
+      }
+      
+      // 添加活动状态到选中的标签
+      event.target.classList.add('active');
+    }
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

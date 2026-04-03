@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>我的会员 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background-color: #3498db;
+    }
+    
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+    }
+    
+    .nav-item.has-submenu:hover .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .member-profile {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .member-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .member-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: #3498db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      font-weight: bold;
+      margin-right: 30px;
+    }
+    
+    .member-info {
+      flex: 1;
+    }
+    
+    .member-info h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .member-level {
+      display: inline-block;
+      background-color: #f39c12;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    
+    .member-stats {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .member-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #7f8c8d;
+    }
+    
+    .member-benefits {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .member-benefits h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .benefits-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .benefit-item {
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: box-shadow 0.3s;
+    }
+    
+    .benefit-item:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .benefit-item h4 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .benefit-item p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .membership-plans {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .membership-plans h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .plans-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .plan-item {
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    
+    .plan-item.featured {
+      border-color: #3498db;
+      box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    }
+    
+    .plan-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .plan-badge {
+      position: absolute;
+      top: -10px;
+      right: 20px;
+      background-color: #f39c12;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .plan-item h4 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .plan-price {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3498db;
+      margin-bottom: 15px;
+    }
+    
+    .plan-features {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+    
+    .plan-features li {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .plan-features li:before {
+      content: '✓';
+      color: #27ae60;
+      margin-right: 8px;
+      font-weight: bold;
+    }
+    
+    .feedback-item {
+      grid-column: 1 / -1;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: box-shadow 0.3s;
+    }
+    
+    .member-wallet {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .member-wallet h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .wallet-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .wallet-balance-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .wallet-balance {
+      font-size: 36px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    
+    .wallet-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #219a52;
+    }
+    
+    .wallet-transactions h4 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .transaction-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    
+    .transaction-item {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+    
+    .transaction-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .transaction-info {
+      flex: 1;
+    }
+    
+    .transaction-desc {
+      font-size: 14px;
+      font-weight: 500;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .transaction-time {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .transaction-amount {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    .transaction-amount.income {
+      color: #27ae60;
+    }
+    
+    .transaction-amount.expense {
+      color: #e74c3c;
+    }
+    
+    .member-credit {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .member-credit h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .credit-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .credit-score-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .credit-score-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .score-value {
+      font-size: 48px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    
+    .score-level {
+      font-size: 18px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    
+    .credit-progress {
+      width: 100%;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .credit-details h4 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .credit-factors {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .factor-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+    
+    .factor-name {
+      font-size: 14px;
+      color: #2c3e50;
+    }
+    
+    .factor-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #3498db;
+    }
+    
+    .credit-levels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .level-item {
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .level-item.active {
+      border-color: #3498db;
+      background-color: #e3f2fd;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+    }
+    
+    .level-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .level-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .level-benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .level-benefits span {
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      align-items: center;
+    }
+    
+    .level-benefits span:before {
+      content: '✓';
+      color: #27ae60;
+      margin-right: 5px;
+      font-size: 10px;
+    }
+    
+    .feedback-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    
+    .form-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    
+    .form-control {
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-control textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
+        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
+        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_management.html">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
+        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="finance_jobs.html">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item"><a href="member.html" class="active">我的会员</a></li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <h1>我的会员</h1>
+        <div>
+          <button class="btn btn-primary">升级会员</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <div class="member-profile">
+          <div class="member-header">
+            <div class="member-avatar">张</div>
+            <div class="member-info">
+              <h2>张三</h2>
+              <div class="member-level">黄金会员</div>
+              <div class="member-stats">
+                <div class="stat-item">
+                  <div class="stat-value">128</div>
+                  <div class="stat-label">会员积分</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">2026-12-31</div>
+                  <div class="stat-label">会员到期</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="credit-score">85</div>
+                  <div class="stat-label">信用分</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="wallet-balance">¥0.00</div>
+                  <div class="stat-label">账户余额</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">3</div>
+                  <div class="stat-label">专属服务</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <button class="btn btn-primary">编辑资料</button>
+                <button class="btn btn-secondary">查看账单</button>
+                <button class="btn btn-success" id="wallet-btn">我的钱包</button>
+                <button class="btn btn-secondary" id="logout-btn">退出登录</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="member-benefits">
+          <h3>会员权益</h3>
+          <div class="benefits-list">
+            <div class="benefit-item">
+              <h4>财务软件免费使用</h4>
+              <p>免费使用银河星辰财务软件的所有功能，包括会计核算、进销存、工资管理等</p>
+            </div>
+            <div class="benefit-item">
+              <h4>专属客服</h4>
+              <p>享受7x24小时专属客服服务，优先解决您的问题</p>
+            </div>
+            <div class="benefit-item">
+              <h4>课程折扣</h4>
+              <p>财务学堂所有课程享受8折优惠</p>
+            </div>
+            <div class="benefit-item">
+              <h4>模板下载</h4>
+              <p>免费下载所有财务模板，包括财务报表、税务申报等</p>
+            </div>
+            <div class="benefit-item">
+              <h4>云盘扩容</h4>
+              <p>云盘存储空间扩容至100GB</p>
+            </div>
+            <div class="benefit-item">
+              <h4>数据分析</h4>
+              <p>免费使用高级数据分析功能，包括财务指标分析和可视化报表</p>
+            </div>
+            <div class="benefit-item">
+              <h4>在线直播</h4>
+              <p>参与财务专家在线直播，学习最新财务知识和技能</p>
+              <button class="btn btn-primary" style="margin-top: 10px; font-size: 12px; padding: 6px 12px;" onclick="window.location.href='live_streaming.html'">进入直播</button>
+            </div>
+            <div class="benefit-item feedback-item">
+              <h4>投诉建议</h4>
+              <div class="feedback-form">
+                <div class="form-group">
+                  <label for="feedback-type">类型</label>
+                  <select id="feedback-type" class="form-control">
+                    <option value="suggestion">建议</option>
+                    <option value="complaint">投诉</option>
+                    <option value="question">咨询</option>
+                    <option value="other">其他</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="feedback-subject">主题</label>
+                  <input type="text" id="feedback-subject" class="form-control" placeholder="请输入主题">
+                </div>
+                <div class="form-group">
+                  <label for="feedback-content">内容</label>
+                  <textarea id="feedback-content" class="form-control" rows="3" placeholder="请详细描述您的问题或建议"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="feedback-contact">联系方式</label>
+                  <input type="text" id="feedback-contact" class="form-control" placeholder="请留下您的联系方式，以便我们回复">
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary" id="submit-feedback" style="font-size: 12px; padding: 8px 16px;">提交</button>
+                  <button class="btn btn-secondary" id="reset-feedback" style="font-size: 12px; padding: 8px 16px;">重置</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="member-credit">
+          <h3>信用分评估</h3>
+          <div class="credit-content">
+            <div class="credit-score-section">
+              <div class="credit-score-display">
+                <div class="score-value" id="credit-score-display">85</div>
+                <div class="score-level">良好</div>
+              </div>
+              <div class="credit-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 85%; background-color: #27ae60;"></div>
+                </div>
+                <div class="progress-labels">
+                  <span>0</span>
+                  <span>60</span>
+                  <span>80</span>
+                  <span>90</span>
+                  <span>100</span>
+                </div>
+              </div>
+            </div>
+            <div class="credit-details">
+              <h4>信用分构成</h4>
+              <div class="credit-factors">
+                <div class="factor-item">
+                  <div class="factor-name">知识问答活跃度</div>
+                  <div class="factor-value">30/30</div>
+                </div>
+                <div class="factor-item">
+                  <div class="factor-name">回答质量</div>
+                  <div class="factor-value">25/25</div>
+                </div>
+                <div class="factor-item">
+                  <div class="factor-name">交易诚信</div>
+                  <div class="factor-value">20/20</div>
+                </div>
+                <div class="factor-item">
+                  <div class="factor-name">会员活跃度</div>
+                  <div class="factor-value">10/10</div>
+                </div>
+                <div class="factor-item">
+                  <div class="factor-name">账户安全</div>
+                  <div class="factor-value">10/10</div>
+                </div>
+              </div>
+              <h4>信用等级权益</h4>
+              <div class="credit-levels">
+                <div class="level-item">
+                  <div class="level-name">优秀 (90-100)</div>
+                  <div class="level-benefits">
+                    <span>优先客服支持</span>
+                    <span>专属活动邀请</span>
+                    <span>交易手续费减免</span>
+                  </div>
+                </div>
+                <div class="level-item active">
+                  <div class="level-name">良好 (80-89)</div>
+                  <div class="level-benefits">
+                    <span>优先客服支持</span>
+                    <span>专属活动邀请</span>
+                  </div>
+                </div>
+                <div class="level-item">
+                  <div class="level-name">一般 (60-79)</div>
+                  <div class="level-benefits">
+                    <span>标准客服支持</span>
+                  </div>
+                </div>
+                <div class="level-item">
+                  <div class="level-name">待提升 (0-59)</div>
+                  <div class="level-benefits">
+                    <span>基础服务</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="member-wallet" id="wallet">
+          <h3>我的钱包</h3>
+          <div class="wallet-content">
+            <div class="wallet-balance-section">
+              <div class="wallet-balance" id="wallet-balance">¥0.00</div>
+              <div class="wallet-actions">
+                <button class="btn btn-success" id="recharge-btn">充值</button>
+                <button class="btn btn-secondary" id="withdraw-btn">提现</button>
+              </div>
+            </div>
+            <div class="wallet-transactions">
+              <h4>交易明细</h4>
+              <div class="transaction-list" id="transaction-list">
+                <!-- 交易记录将通过JavaScript动态生成 -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="membership-plans">
+          <h3>会员套餐</h3>
+          <div class="plans-list">
+            <div class="plan-item">
+              <h4>普通会员</h4>
+              <div class="plan-price">¥0/月</div>
+              <ul class="plan-features">
+                <li>基础财务软件功能</li>
+                <li>5GB云盘空间</li>
+                <li>部分模板下载</li>
+                <li>标准客服支持</li>
+              </ul>
+              <button class="btn btn-primary">当前套餐</button>
+            </div>
+            <div class="plan-item featured">
+              <div class="plan-badge">推荐</div>
+              <h4>黄金会员</h4>
+              <div class="plan-price">¥99/月</div>
+              <ul class="plan-features">
+                <li>全部财务软件功能</li>
+                <li>100GB云盘空间</li>
+                <li>所有模板下载</li>
+                <li>专属客服支持</li>
+                <li>课程8折优惠</li>
+                <li>高级数据分析</li>
+              </ul>
+              <button class="btn btn-primary">立即升级</button>
+            </div>
+            <div class="plan-item">
+              <h4>钻石会员</h4>
+              <div class="plan-price">¥199/月</div>
+              <ul class="plan-features">
+                <li>全部黄金会员权益</li>
+                <li>500GB云盘空间</li>
+                <li>课程5折优惠</li>
+                <li>一对一财务顾问</li>
+                <li>免费参加线下培训</li>
+                <li>优先体验新功能</li>
+              </ul>
+              <button class="btn btn-primary">立即升级</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 会员升级按钮点击事件
+      const upgradeButtons = document.querySelectorAll('.btn-primary');
+      upgradeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          if (this.textContent === '升级会员' || this.textContent === '立即升级') {
+            let amount = 0;
+            let productName = '';
+            
+            if (this.textContent === '立即升级' && this.closest('.plan-item')) {
+              const planItem = this.closest('.plan-item');
+              const priceText = planItem.querySelector('.plan-price').textContent;
+              amount = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+              productName = planItem.querySelector('h4').textContent + '会员';
+            } else {
+              amount = 99; // 默认黄金会员价格
+              productName = '黄金会员';
+            }
+            
+            // 跳转到支付页面
+            window.location.href = `payment.html?amount=${amount}&productName=${encodeURIComponent(productName)}&type=membership`;
+          } else if (this.textContent === '编辑资料') {
+            alert('正在跳转到编辑资料页面...');
+            // 这里可以添加跳转到编辑资料页面的逻辑
+          } else if (this.textContent === '查看账单') {
+            alert('正在跳转到账单页面...');
+            // 这里可以添加跳转到账单页面的逻辑
+          }
+        });
+      });
+      
+      // 退出登录按钮点击事件
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (confirm('确定要退出登录吗？')) {
+            // 跳转到登录页面
+            window.location.href = 'login.html';
+          }
+        });
+      }
+      
+      // 投诉建议表单处理
+      const submitFeedbackBtn = document.getElementById('submit-feedback');
+      const resetFeedbackBtn = document.getElementById('reset-feedback');
+      
+      if (submitFeedbackBtn) {
+        submitFeedbackBtn.addEventListener('click', function() {
+          const type = document.getElementById('feedback-type').value;
+          const subject = document.getElementById('feedback-subject').value;
+          const content = document.getElementById('feedback-content').value;
+          const contact = document.getElementById('feedback-contact').value;
+          
+          if (!subject || !content) {
+            alert('请填写主题和内容');
+            return;
+          }
+          
+          alert('投诉建议提交成功！我们会尽快处理您的反馈。');
+          
+          // 重置表单
+          document.getElementById('feedback-type').value = 'suggestion';
+          document.getElementById('feedback-subject').value = '';
+          document.getElementById('feedback-content').value = '';
+          document.getElementById('feedback-contact').value = '';
+        });
+      }
+      
+      if (resetFeedbackBtn) {
+        resetFeedbackBtn.addEventListener('click', function() {
+          document.getElementById('feedback-type').value = 'suggestion';
+          document.getElementById('feedback-subject').value = '';
+          document.getElementById('feedback-content').value = '';
+          document.getElementById('feedback-contact').value = '';
+        });
+      }
+      
+      // 从localStorage获取钱包数据
+      let userWallet = JSON.parse(localStorage.getItem('userWallet')) || {
+        balance: 1000.00,
+        askedCount: 2,
+        answeredCount: 5,
+        adoptedCount: 3,
+        earnedAmount: 350.00
+      };
+      
+      // 从localStorage获取交易记录
+      let transactions = JSON.parse(localStorage.getItem('userTransactions')) || [
+        { type: 'expense', amount: 100, desc: '发布问题悬赏', time: '2024-01-15 10:00' },
+        { type: 'income', amount: 200, desc: '回答被采纳', time: '2024-01-14 18:00' },
+        { type: 'expense', amount: 50, desc: '发布问题悬赏', time: '2024-01-13 09:00' },
+        { type: 'income', amount: 150, desc: '回答被采纳', time: '2024-01-12 16:00' }
+      ];
+      
+      // 从localStorage获取用户数据
+      let userData = JSON.parse(localStorage.getItem('userData')) || {
+        loginDays: 30,
+        lastLogin: new Date().toISOString(),
+        completedProfiles: true,
+        securityScore: 10
+      };
+      
+      // 更新钱包显示
+      function updateWallet() {
+        document.getElementById('wallet-balance').textContent = `¥${userWallet.balance.toFixed(2)}`;
+        
+        // 保存钱包数据到localStorage
+        localStorage.setItem('userWallet', JSON.stringify(userWallet));
+      }
+      
+      // 渲染交易记录
+      function renderTransactions() {
+        const transactionList = document.getElementById('transaction-list');
+        transactionList.innerHTML = '';
+        
+        transactions.forEach(transaction => {
+          const transactionItem = document.createElement('div');
+          transactionItem.className = 'transaction-item';
+          transactionItem.innerHTML = `
+            <div class="transaction-info">
+              <div class="transaction-desc">${transaction.desc}</div>
+              <div class="transaction-time">${transaction.time}</div>
+            </div>
+            <div class="transaction-amount ${transaction.type}">
+              ${transaction.type === 'income' ? '+' : '-'}¥${transaction.amount.toFixed(2)}
+            </div>
+          `;
+          transactionList.appendChild(transactionItem);
+        });
+      }
+      
+      // 充值功能
+      function handleRecharge() {
+        const amount = prompt('请输入充值金额：');
+        if (amount && !isNaN(amount) && amount > 0) {
+          userWallet.balance += parseFloat(amount);
+          transactions.unshift({
+            type: 'income',
+            amount: parseFloat(amount),
+            desc: '钱包充值',
+            time: new Date().toLocaleString('zh-CN')
+          });
+          updateWallet();
+          renderTransactions();
+          localStorage.setItem('userTransactions', JSON.stringify(transactions));
+          alert(`成功充值 ¥${amount}`);
+        }
+      }
+      
+      // 提现功能
+      function handleWithdraw() {
+        const amount = prompt('请输入提现金额：');
+        if (amount && !isNaN(amount) && amount > 0 && amount <= userWallet.balance) {
+          userWallet.balance -= parseFloat(amount);
+          transactions.unshift({
+            type: 'expense',
+            amount: parseFloat(amount),
+            desc: '钱包提现',
+            time: new Date().toLocaleString('zh-CN')
+          });
+          updateWallet();
+          renderTransactions();
+          localStorage.setItem('userTransactions', JSON.stringify(transactions));
+          alert(`成功提现 ¥${amount}`);
+        } else if (amount > userWallet.balance) {
+          alert('余额不足');
+        }
+      }
+      
+      // 绑定充值和提现按钮事件
+      const rechargeBtn = document.getElementById('recharge-btn');
+      const withdrawBtn = document.getElementById('withdraw-btn');
+      
+      if (rechargeBtn) {
+        rechargeBtn.addEventListener('click', handleRecharge);
+      }
+      
+      if (withdrawBtn) {
+        withdrawBtn.addEventListener('click', handleWithdraw);
+      }
+      
+      // 绑定我的钱包按钮事件
+      const walletBtn = document.getElementById('wallet-btn');
+      if (walletBtn) {
+        walletBtn.addEventListener('click', function() {
+          document.getElementById('wallet').scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+      
+      // 计算信用分
+      function calculateCreditScore() {
+        // 知识问答活跃度 (0-30分)
+        const qnaActivity = Math.min((userWallet.askedCount + userWallet.answeredCount) * 3, 30);
+        
+        // 回答质量 (0-25分)
+        const answerQuality = Math.min(userWallet.adoptedCount * 5, 25);
+        
+        // 交易诚信 (0-20分)
+        const transactionCount = transactions.length;
+        const transactionIntegrity = Math.min(transactionCount * 2, 20);
+        
+        // 会员活跃度 (0-10分)
+        const membershipActivity = Math.min(Math.floor(userData.loginDays / 3), 10);
+        
+        // 账户安全 (0-10分)
+        const accountSecurity = userData.securityScore;
+        
+        // 计算总分
+        const totalScore = Math.round(qnaActivity + answerQuality + transactionIntegrity + membershipActivity + accountSecurity);
+        
+        // 确保分数在0-100之间
+        return Math.min(Math.max(totalScore, 0), 100);
+      }
+      
+      // 获取信用等级
+      function getCreditLevel(score) {
+        if (score >= 90) return { level: '优秀', color: '#27ae60' };
+        if (score >= 80) return { level: '良好', color: '#3498db' };
+        if (score >= 60) return { level: '一般', color: '#f39c12' };
+        return { level: '待提升', color: '#e74c3c' };
+      }
+      
+      // 更新信用分显示
+      function updateCreditScore() {
+        const score = calculateCreditScore();
+        const levelInfo = getCreditLevel(score);
+        
+        // 更新信用分显示
+        document.getElementById('credit-score').textContent = score;
+        document.getElementById('credit-score-display').textContent = score;
+        document.querySelector('.score-level').textContent = levelInfo.level;
+        
+        // 更新进度条
+        const progressFill = document.querySelector('.progress-fill');
+        progressFill.style.width = `${score}%`;
+        progressFill.style.backgroundColor = levelInfo.color;
+        
+        // 更新信用等级高亮
+        document.querySelectorAll('.level-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        
+        if (score >= 90) {
+          document.querySelectorAll('.level-item')[0].classList.add('active');
+        } else if (score >= 80) {
+          document.querySelectorAll('.level-item')[1].classList.add('active');
+        } else if (score >= 60) {
+          document.querySelectorAll('.level-item')[2].classList.add('active');
+        } else {
+          document.querySelectorAll('.level-item')[3].classList.add('active');
+        }
+        
+        // 保存用户数据到localStorage
+        localStorage.setItem('userData', JSON.stringify(userData));
+      }
+      
+      // 初始化更新钱包余额和交易记录
+      updateWallet();
+      renderTransactions();
+      updateCreditScore();
+    });
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

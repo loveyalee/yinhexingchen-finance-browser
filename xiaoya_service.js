@@ -306,6 +306,46 @@ function bindChatWindowEvents() {
   }
 }
 
+// AI知识库 - 系统功能问答
+const aiKnowledgeBase = {
+  '登录': '您可以在登录页面输入账号和密码进行登录。如果忘记密码，可以点击"忘记密码"链接重置。客服登录请访问：cs_admin_login.html',
+  '注册': '点击首页的"注册"按钮，填写相关信息即可完成注册。支持个人用户和第三方机构注册。',
+  '发票': '我们提供完整的发票管理功能，包括发票申请、查询、下载等。您可以在"财务管理 > 发票管理"模块中使用。',
+  '合同': '合同管理模块支持合同起草、审批、签署、归档等全生命周期管理。请在"财务管理 > 合同管理"中查看。',
+  '印章': '电子印章管理提供安全可靠的电子签章服务，支持合同盖章、文件签署等功能。',
+  '客服': '我们提供多种客服渠道：1. 在线咨询（当前窗口）2. 客服热线：400-888-8888 3. 邮箱：support@yinhexingchen.com',
+  '招聘': '财务快聘平台为财务人员提供求职和企业招聘服务，分为个人求职和企业招聘两大模块。',
+  '云盘': '云盘功能提供文件存储和管理服务，支持文件上传、下载、分享等操作。',
+  '记账': '记账凭证模块支持凭证录入、审核、查询等功能，会计科目丰富，支持自定义。',
+  '报表': '财务报表模块可自动生成资产负债表、利润表、现金流量表等各类财务报表。',
+  '会员': '会员中心提供钱包、信用分、交易明细等功能，可以查看账户余额和消费记录。',
+  '帮助': '您可以通过以下方式获取帮助：1. 在线咨询 2. 技术支持文档 3. 拨打客服热线 400-888-8888',
+  '价格': '具体价格信息请访问官网或联系客服咨询，我们提供多种套餐供您选择。',
+  '功能': '银河星辰财务浏览器主要功能包括：财务报表、发票管理、合同管理、电子印章、财务快聘、云盘存储、记账凭证、会员中心等。'
+};
+
+// AI智能回复
+function getAIResponse(userMessage) {
+  const message = userMessage.toLowerCase();
+  
+  // 关键词匹配
+  for (const [keyword, response] of Object.entries(aiKnowledgeBase)) {
+    if (message.includes(keyword)) {
+      return response;
+    }
+  }
+  
+  // 默认回复
+  const defaultResponses = [
+    '您好！我是小雅，银河星辰财务浏览器的智能客服。我可以帮您了解：登录注册、发票管理、合同管理、电子印章、财务快聘、云盘存储、记账凭证等功能。请问您想了解哪方面？',
+    '抱歉，我可能没理解您的问题。您可以问我关于：财务报表、发票管理、合同管理、会员中心、客服联系方式等问题。',
+    '感谢您的咨询！如需更详细的帮助，您可以：1. 查看技术支持文档 2. 拨打客服热线 400-888-8888 3. 提交意见反馈'
+  ];
+  
+  // 随机选择一个默认回复
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+}
+
 // 发送聊天消息
 function sendChatMessage() {
   const chatInput = document.getElementById('chat-input');
@@ -327,19 +367,20 @@ function sendChatMessage() {
   chatInput.value = '';
   chatMessages.scrollTop = chatMessages.scrollHeight;
   
-  // 模拟客服回复
+  // AI智能回复
   setTimeout(function() {
+    const aiResponse = getAIResponse(message);
     const csMsgDiv = document.createElement('div');
     csMsgDiv.style.cssText = 'display: flex; margin-bottom: 15px;';
     csMsgDiv.innerHTML = `
-      <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 10px; flex-shrink: 0;">雅</div>
+      <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 10px; flex-shrink: 0;">🤖</div>
       <div style="background-color: white; padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); max-width: 70%;">
-        <p style="margin: 0; font-size: 14px; color: #333;">收到您的消息，客服正在处理中，请稍候...</p>
+        <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">${aiResponse}</p>
       </div>
     `;
     chatMessages.appendChild(csMsgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-  }, 1000);
+  }, 800);
 }
 
 // 打开技术支持窗口

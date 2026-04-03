@@ -2,6 +2,12 @@
 function initXiaoyaService() {
   console.log('初始化小雅客服...');
   
+  // 检查是否已存在小雅客服
+  if (document.getElementById('xiaoya-service')) {
+    console.log('小雅客服已存在，跳过初始化');
+    return;
+  }
+  
   // 创建小雅客服HTML
   const xiaoyaHTML = `
     <!-- 悬浮客服助手 -->

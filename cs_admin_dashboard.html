@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客服工作台 - 银河星辰财务浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background-color: #f5f5f5;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    /* 左侧会话列表 */
+    .sidebar {
+      width: 280px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .cs-info {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .cs-avatar {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    
+    .cs-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    .cs-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .status-online {
+      background-color: #27ae60;
+    }
+    
+    .status-offline {
+      background-color: #95a5a6;
+    }
+    
+    .status-busy {
+      background-color: #f39c12;
+    }
+    
+    .status-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .session-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .tab:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    
+    .tab.active {
+      background-color: rgba(255,255,255,0.1);
+      border-bottom: 2px solid #3498db;
+    }
+    
+    .session-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .session-item {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background-color 0.3s;
+      position: relative;
+    }
+    
+    .session-item:hover {
+      background-color: rgba(255,255,255,0.05);
+    }
+    
+    .session-item.active {
+      background-color: rgba(255,255,255,0.1);
+    }
+    
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    
+    .session-name {
+      font-weight: bold;
+    }
+    
+    .session-time {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+    
+    .session-preview {
+      font-size: 13px;
+      color: #bdc3c7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .unread-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #e74c3c;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+    
+    /* 中间聊天区域 */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: white;
+    }
+    
+    .chat-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .chat-user-avatar {
+      width: 40px;
+      height: 40px;
+      background-color: #3498db;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .chat-actions button {
+      background: none;
+      border: 1px solid #e0e0e0;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    
+    .message {
+      display: flex;
+      margin-bottom: 15px;
+      max-width: 70%;
+    }
+    
+    .message.sent {
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .message-content {
+      margin: 0 10px;
+      padding: 12px 15px;
+      border-radius: 18px;
+      word-wrap: break-word;
+    }
+    
+    .message.received .message-content {
+      background-color: white;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .message.sent .message-content {
+      background-color: #3498db;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #95a5a6;
+      margin-top: 5px;
+    }
+    
+    .message.sent .message-time {
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+    }
+    
+    .chat-input-area {
+      padding: 15px 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+    }
+    
+    .chat-input:focus {
+      border-color: #3498db;
+    }
+    
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background-color: #3498db;
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.3s;
+    }
+    
+    .send-btn:hover {
+      background-color: #2980b9;
+    }
+    
+    /* 右侧快捷回复 */
+    .quick-reply {
+      width: 250px;
+      background-color: white;
+      border-left: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .quick-reply-header {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: bold;
+    }
+    
+    .quick-reply-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    
+    .quick-reply-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.3s;
+    }
+    
+    .quick-reply-item:hover {
+      background-color: #e3f2fd;
+    }
+    
+    .logout-btn {
+      margin: 15px;
+      padding: 10px;
+      background-color: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #95a5a6;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 左侧会话列表 -->
+    <div class="sidebar">
+      <div class="cs-info">
+        <div class="cs-avatar" id="csAvatar">客</div>
+        <div class="cs-name" id="csName">客服姓名</div>
+        <div class="cs-status">
+          <span class="status-indicator status-online" id="statusIndicator"></span>
+          <span id="statusText">在线</span>
+          <button class="status-toggle" onclick="toggleStatus()">切换状态</button>
+        </div>
+      </div>
+      
+      <div class="session-tabs">
+        <div class="tab active" onclick="switchTab('active')">进行中</div>
+        <div class="tab" onclick="switchTab('waiting')">等待中</div>
+      </div>
+      
+      <div class="session-list" id="sessionList">
+        <!-- 会话列表动态生成 -->
+      </div>
+      
+      <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+    
+    <!-- 中间聊天区域 -->
+    <div class="chat-area">
+      <div class="chat-header" id="chatHeader">
+        <div class="chat-user-info">
+          <div class="chat-user-avatar" id="currentUserAvatar">用</div>
+          <div>
+            <div style="font-weight: bold;" id="currentUserName">请选择会话</div>
+            <div style="font-size: 12px; color: #95a5a6;" id="currentUserStatus">点击左侧列表开始聊天</div>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button onclick="transferSession()">转接</button>
+          <button onclick="endSession()">结束会话</button>
+        </div>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <div>请选择左侧会话开始聊天</div>
+        </div>
+      </div>
+      
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+    
+    <!-- 右侧快捷回复 -->
+    <div class="quick-reply">
+      <div class="quick-reply-header">快捷回复</div>
+      <div class="quick-reply-list">
+        <div class="quick-reply-item" onclick="insertQuickReply('您好，请问有什么可以帮您？')">您好，请问有什么可以帮您？</div>
+        <div class="quick-reply-item" onclick="insertQuickReply('请稍等，我为您查询一下。')">请稍等，我为您查询一下。</div>
+        <div class="quick-reply-item" onclick="insertQuickReply('感谢您的咨询，还有其他问题吗？')">感谢您的咨询，还有其他问题吗？</div>
+        <div class="quick-reply-item" onclick="insertQuickReply('问题已记录，我们会尽快处理。')">问题已记录，我们会尽快处理。</div>
+        <div class="quick-reply-item" onclick="insertQuickReply('祝您使用愉快！')">祝您使用愉快！</div>
+        <div class="quick-reply-item" onclick="insertQuickReply('再见，如有问题随时联系我们。')">再见，如有问题随时联系我们。</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 检查登录状态
+    function checkLogin() {
+      const isLoggedIn = localStorage.getItem('csAdminLoggedIn');
+      if (!isLoggedIn) {
+        window.location.href = 'cs_admin_login.html';
+        return false;
+      }
+      return true;
+    }
+    
+    // 初始化
+    let currentSession = null;
+    let csStatus = localStorage.getItem('csStatus') || 'online';
+    
+    // 模拟会话数据
+    const sessions = [
+      { id: 1, name: '用户-李先生', avatar: '李', lastMessage: '请问如何申请发票？', time: '10:30', unread: 2 },
+      { id: 2, name: '用户-王女士', avatar: '王', lastMessage: '报税遇到问题', time: '10:25', unread: 0 },
+      { id: 3, name: '用户-张先生', avatar: '张', lastMessage: '谢谢帮助！', time: '10:15', unread: 0 }
+    ];
+    
+    // 模拟消息历史
+    const messages = {
+      1: [
+        { type: 'received', content: '您好，请问如何申请发票？', time: '10:28' },
+        { type: 'sent', content: '您好，请问您需要申请什么类型的发票？', time: '10:29' },
+        { type: 'received', content: '增值税普通发票', time: '10:30' }
+      ],
+      2: [
+        { type: 'received', content: '我在报税时遇到了问题', time: '10:24' }
+      ],
+      3: [
+        { type: 'sent', content: '您的问题已解决', time: '10:14' },
+        { type: 'received', content: '谢谢帮助！', time: '10:15' }
+      ]
+    };
+    
+    // 加载客服信息
+    function loadCsInfo() {
+      const csName = localStorage.getItem('csName') || '客服';
+      const csId = localStorage.getItem('csId') || '';
+      document.getElementById('csName').textContent = csName;
+      document.getElementById('csAvatar').textContent = csName.charAt(0);
+      updateStatusDisplay();
+    }
+    
+    // 更新状态显示
+    function updateStatusDisplay() {
+      const indicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
+      
+      indicator.className = 'status-indicator status-' + csStatus;
+      statusText.textContent = csStatus === 'online' ? '在线' : (csStatus === 'busy' ? '忙碌' : '离线');
+    }
+    
+    // 切换状态
+    function toggleStatus() {
+      const statuses = ['online', 'busy', 'offline'];
+      const currentIndex = statuses.indexOf(csStatus);
+      csStatus = statuses[(currentIndex + 1) % statuses.length];
+      localStorage.setItem('csStatus', csStatus);
+      updateStatusDisplay();
+    }
+    
+    // 加载会话列表
+    function loadSessionList() {
+      const listEl = document.getElementById('sessionList');
+      listEl.innerHTML = sessions.map(session => `
+        <div class="session-item ${currentSession === session.id ? 'active' : ''}" onclick="selectSession(${session.id})">
+          <div class="session-header">
+            <span class="session-name">${session.name}</span>
+            <span class="session-time">${session.time}</span>
+          </div>
+          <div class="session-preview">${session.lastMessage}</div>
+          ${session.unread > 0 ? `<span class="unread-badge">${session.unread}</span>` : ''}
+        </div>
+      `).join('');
+    }
+    
+    // 选择会话
+    function selectSession(sessionId) {
+      currentSession = sessionId;
+      const session = sessions.find(s => s.id === sessionId);
+      
+      document.getElementById('currentUserName').textContent = session.name;
+      document.getElementById('currentUserAvatar').textContent = session.avatar;
+      document.getElementById('currentUserStatus').textContent = '在线';
+      
+      // 清除未读标记
+      session.unread = 0;
+      loadSessionList();
+      
+      // 加载消息
+      loadMessages(sessionId);
+    }
+    
+    // 加载消息
+    function loadMessages(sessionId) {
+      const messagesEl = document.getElementById('chatMessages');
+      const sessionMessages = messages[sessionId] || [];
+      
+      if (sessionMessages.length === 0) {
+        messagesEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <div>开始新的对话</div>
+          </div>
+        `;
+        return;
+      }
+      
+      messagesEl.innerHTML = sessionMessages.map(msg => `
+        <div class="message ${msg.type}">
+          <div class="message-avatar">${msg.type === 'sent' ? '客' : '用'}</div>
+          <div>
+            <div class="message-content">${msg.content}</div>
+            <div class="message-time">${msg.time}</div>
+          </div>
+        </div>
+      `).join('');
+      
+      // 滚动到底部
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+    
+    // 发送消息
+    function sendMessage() {
+      if (!currentSession) {
+        alert('请先选择一个会话');
+        return;
+      }
+      
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      
+      if (!content) return;
+      
+      const now = new Date();
+      const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+      
+      // 添加到消息列表
+      if (!messages[currentSession]) {
+        messages[currentSession] = [];
+      }
+      messages[currentSession].push({ type: 'sent', content, time });
+      
+      // 更新会话预览
+      const session = sessions.find(s => s.id === currentSession);
+      session.lastMessage = content;
+      session.time = time;
+      
+      input.value = '';
+      loadMessages(currentSession);
+      loadSessionList();
+    }
+    
+    // 插入快捷回复
+    function insertQuickReply(text) {
+      document.getElementById('messageInput').value = text;
+    }
+    
+    // 切换标签
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+    
+    // 转接会话
+    function transferSession() {
+      if (!currentSession) {
+        alert('请先选择一个会话');
+        return;
+      }
+      alert('转接功能开发中...');
+    }
+    
+    // 结束会话
+    function endSession() {
+      if (!currentSession) {
+        alert('请先选择一个会话');
+        return;
+      }
+      if (confirm('确定要结束当前会话吗？')) {
+        alert('会话已结束');
+        currentSession = null;
+        loadSessionList();
+        document.getElementById('chatMessages').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <div>请选择左侧会话开始聊天</div>
+          </div>
+        `;
+        document.getElementById('currentUserName').textContent = '请选择会话';
+        document.getElementById('currentUserStatus').textContent = '点击左侧列表开始聊天';
+      }
+    }
+    
+    // 退出登录
+    function logout() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('csAdminLoggedIn');
+        localStorage.removeItem('csId');
+        localStorage.removeItem('csName');
+        localStorage.removeItem('csStatus');
+        window.location.href = 'cs_admin_login.html';
+      }
+    }
+    
+    // 回车发送
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    // 页面加载
+    window.onload = function() {
+      if (checkLogin()) {
+        loadCsInfo();
+        loadSessionList();
+      }
+    };
+  </script>
+</body>
+</html>

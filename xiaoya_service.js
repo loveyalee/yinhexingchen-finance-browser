@@ -174,7 +174,9 @@ function initXiaoyaService() {
 
 // 初始化小雅客服
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initXiaoyaService);
+  document.addEventListener('DOMContentLoaded', function() {
+    initXiaoyaService();
+  });
 } else {
   initXiaoyaService();
 }

@@ -192,26 +192,46 @@ function initChatFloat() {
   
   // 绑定标签切换事件
   document.addEventListener('DOMContentLoaded', function() {
+    // 标签切换功能
     const chatTabs = document.querySelectorAll('.chat-panel-tab');
+    console.log('找到标签数量:', chatTabs.length);
+    
     chatTabs.forEach(tab => {
-      tab.addEventListener('click', function() {
-        // 移除所有标签的active类
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const tabName = this.getAttribute('data-tab');
+        console.log('点击标签:', tabName);
+        
+        // 移除所有标签的active样式
         chatTabs.forEach(t => {
           t.style.borderBottomColor = 'transparent';
           t.style.color = '';
           t.style.fontWeight = '';
         });
-        // 添加当前标签的active类
+        
+        // 添加当前标签的active样式
         this.style.borderBottomColor = '#3498db';
         this.style.color = '#3498db';
         this.style.fontWeight = 'bold';
         
         // 隐藏所有内容
         const tabContents = document.querySelectorAll('.chat-panel-tab-content');
-        tabContents.forEach(content => content.style.display = 'none');
+        tabContents.forEach(content => {
+          content.style.display = 'none';
+          content.classList.remove('active');
+        });
+        
         // 显示对应内容
-        const tabId = this.getAttribute('data-tab');
-        document.getElementById(tabId + '-tab').style.display = 'block';
+        const targetContent = document.getElementById(tabName + '-tab');
+        if (targetContent) {
+          targetContent.style.display = 'block';
+          targetContent.classList.add('active');
+          console.log('显示内容:', tabName + '-tab');
+        } else {
+          console.error('找不到内容元素:', tabName + '-tab');
+        }
       });
     });
     

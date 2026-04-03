@@ -60,9 +60,15 @@ function initXiaoyaService() {
           </div>
         </div>
       </div>
-      <div style="padding: 15px; border-top: 1px solid #e0e0e0; display: flex; gap: 10px;">
-        <input type="text" id="chat-input" placeholder="输入消息..." style="flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 20px; outline: none; font-size: 14px;">
-        <button id="chat-send" style="width: 40px; height: 40px; border: none; background-color: #3498db; color: white; border-radius: 50%; cursor: pointer; font-size: 16px;">➤</button>
+      <div style="padding: 10px 15px; border-top: 1px solid #e0e0e0; background-color: #f8f9fa;">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <input type="text" id="chat-input" placeholder="输入消息..." style="flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 20px; outline: none; font-size: 14px;">
+          <button id="chat-send" style="width: 40px; height: 40px; border: none; background-color: #3498db; color: white; border-radius: 50%; cursor: pointer; font-size: 16px;">➤</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="chat-status" style="font-size: 12px; color: #27ae60;">🤖 AI智能客服为您服务</span>
+          <button id="transfer-to-human" style="padding: 6px 12px; background-color: #e74c3c; color: white; border: none; border-radius: 15px; cursor: pointer; font-size: 12px;">转人工客服</button>
+        </div>
       </div>
     </div>
     
@@ -281,10 +287,14 @@ function closeChatWindow() {
 }
 
 // 绑定聊天窗口事件
+// 当前客服模式：'ai' 或 'human'
+let chatMode = 'ai';
+
 function bindChatWindowEvents() {
   const chatClose = document.getElementById('chat-close');
   const chatSend = document.getElementById('chat-send');
   const chatInput = document.getElementById('chat-input');
+  const transferBtn = document.getElementById('transfer-to-human');
   
   if (chatClose) {
     chatClose.onclick = function(e) {
@@ -303,6 +313,78 @@ function bindChatWindowEvents() {
         sendChatMessage();
       }
     };
+  }
+  
+  // 转人工客服按钮
+  if (transferBtn) {
+    transferBtn.onclick = function(e) {
+      e.stopPropagation();
+      transferToHuman();
+    };
+  }
+}
+
+// 转人工客服
+function transferToHuman() {
+  const chatStatus = document.getElementById('chat-status');
+  const transferBtn = document.getElementById('transfer-to-human');
+  const chatMessages = document.getElementById('chat-messages');
+  
+  if (chatMode === 'ai') {
+    // 切换到人工模式
+    chatMode = 'human';
+    if (chatStatus) {
+      chatStatus.innerHTML = '👨‍💼 人工客服为您服务';
+      chatStatus.style.color = '#e74c3c';
+    }
+    if (transferBtn) {
+      transferBtn.textContent = '返回AI客服';
+      transferBtn.style.backgroundColor = '#3498db';
+    }
+    
+    // 添加系统提示
+    const systemMsgDiv = document.createElement('div');
+    systemMsgDiv.style.cssText = 'text-align: center; margin: 15px 0;';
+    systemMsgDiv.innerHTML = `
+      <span style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 10px; font-size: 12px;">已为您转接人工客服，请稍候...</span>
+    `;
+    chatMessages.appendChild(systemMsgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // 模拟人工客服接入
+    setTimeout(function() {
+      const humanMsgDiv = document.createElement('div');
+      humanMsgDiv.style.cssText = 'display: flex; margin-bottom: 15px;';
+      humanMsgDiv.innerHTML = `
+        <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #e74c3c; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 10px; flex-shrink: 0;">👨</div>
+        <div style="background-color: white; padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); max-width: 70%;">
+          <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">您好！我是人工客服小张，很高兴为您服务。请问有什么可以帮助您的？</p>
+        </div>
+      `;
+      chatMessages.appendChild(humanMsgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 1500);
+    
+  } else {
+    // 切换回AI模式
+    chatMode = 'ai';
+    if (chatStatus) {
+      chatStatus.innerHTML = '🤖 AI智能客服为您服务';
+      chatStatus.style.color = '#27ae60';
+    }
+    if (transferBtn) {
+      transferBtn.textContent = '转人工客服';
+      transferBtn.style.backgroundColor = '#e74c3c';
+    }
+    
+    // 添加系统提示
+    const systemMsgDiv = document.createElement('div');
+    systemMsgDiv.style.cssText = 'text-align: center; margin: 15px 0;';
+    systemMsgDiv.innerHTML = `
+      <span style="background-color: #d4edda; color: #155724; padding: 5px 10px; border-radius: 10px; font-size: 12px;">已切换回AI智能客服</span>
+    `;
+    chatMessages.appendChild(systemMsgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 }
 

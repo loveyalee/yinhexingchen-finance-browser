@@ -190,13 +190,13 @@ function initChatFloat() {
   // 将聊天器添加到页面底部
   document.body.insertAdjacentHTML('beforeend', chatFloatHTML);
   
-  // 绑定标签切换事件
-  document.addEventListener('DOMContentLoaded', function() {
+  // 立即绑定标签切换事件（因为DOM已经插入）
+  setTimeout(function() {
     // 标签切换功能
     const chatTabs = document.querySelectorAll('.chat-panel-tab');
     console.log('找到标签数量:', chatTabs.length);
     
-    chatTabs.forEach(tab => {
+    chatTabs.forEach(function(tab) {
       tab.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -205,7 +205,7 @@ function initChatFloat() {
         console.log('点击标签:', tabName);
         
         // 移除所有标签的active样式
-        chatTabs.forEach(t => {
+        chatTabs.forEach(function(t) {
           t.style.borderBottomColor = 'transparent';
           t.style.color = '';
           t.style.fontWeight = '';
@@ -218,16 +218,14 @@ function initChatFloat() {
         
         // 隐藏所有内容
         const tabContents = document.querySelectorAll('.chat-panel-tab-content');
-        tabContents.forEach(content => {
+        tabContents.forEach(function(content) {
           content.style.display = 'none';
-          content.classList.remove('active');
         });
         
         // 显示对应内容
         const targetContent = document.getElementById(tabName + '-tab');
         if (targetContent) {
           targetContent.style.display = 'block';
-          targetContent.classList.add('active');
           console.log('显示内容:', tabName + '-tab');
         } else {
           console.error('找不到内容元素:', tabName + '-tab');
@@ -245,7 +243,7 @@ function initChatFloat() {
         }
       });
     }
-  });
+  }, 100);
 }
 
 // 切换聊天面板

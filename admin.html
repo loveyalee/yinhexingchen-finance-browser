@@ -486,6 +486,10 @@
   
 
   
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
   <script>
     // 检查是否已登录
     function isLoggedIn() {
@@ -497,7 +501,9 @@
     }
     
     // 浏览器功能实现
+    console.log('开始执行JavaScript');
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMContentLoaded事件触发');
       // 登录验证
       if (!isLoggedIn()) {
         window.location.href = 'admin_login.html';
@@ -526,8 +532,11 @@
       
       // 导航菜单点击事件
       const navItems = document.querySelectorAll('.nav-item a');
+      console.log('导航菜单项数量:', navItems.length);
       navItems.forEach(item => {
+        console.log('绑定点击事件到:', item.textContent.trim());
         item.addEventListener('click', function(e) {
+          console.log('点击了:', this.textContent.trim());
           e.preventDefault();
           const menuText = this.textContent.trim();
           
@@ -543,6 +552,7 @@
       
       // 显示对应模块内容
       function showModuleContent(moduleName) {
+        console.log('显示模块内容:', moduleName);
         // 这里可以根据模块名称显示不同的内容
         // 暂时使用alert来模拟
         alert(`您选择了：${moduleName}`);
@@ -568,9 +578,5 @@
     
 
   </script>
-<!-- 引用蜻蜓聊天器 -->
-  <script src="chat_float.js"></script>
-  <!-- 引用小雅客服 -->
-  <script src="xiaoya_service.js"></script>
   </body>
 </html>

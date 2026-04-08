@@ -499,38 +499,48 @@
       color: #1a2d42; min-width: 32px;
     }
 
-    /* ── 新版借贷方金额：单输入框 + 位格只读显示 ── */
-    /* 金额输入单元格（输入框所在td，横跨所有位格） */
-    .ve-amount-input-cell {
-      padding: 0; vertical-align: middle;
-      border: 1px solid #dde5ef;
+    /* ── 新版借贷方金额：位格点击后 overlay 输入（金蝶云星辰方式）── */
+    /* 11位格容器（colspan=11的td） */
+    .ve-amount-group {
+      padding: 0 !important; position: relative;
+      vertical-align: middle;
     }
-    /* 金额输入框本体 */
-    .ve-amount-inp {
-      width: 100%; border: none; outline: none; background: transparent;
+    /* 位格横排div容器 */
+    .ve-digit-row {
+      display: flex; width: 100%; height: 30px;
+      border-left: 1px solid #dde5ef;
+    }
+    /* 每个位格div */
+    .ve-dig-cell {
+      flex: 1; min-width: 26px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      color: #aab8c8; /* 默认暗色（0值） */
+      border-right: 1px solid #dde5ef;
+      cursor: text; user-select: none;
+      transition: background 0.1s;
+    }
+    .ve-dig-cell:hover { background: rgba(26,95,168,0.04); }
+    /* 元与角之间加粗分隔 */
+    .ve-dig-cell:nth-child(9) { border-right: 2px solid #8ab4d4; }
+    /* 借贷方最后一格（分）右边加粗 */
+    .ve-dig-last { border-right: 2px solid #a0b8d0 !important; }
+    /* 有值的位格 */
+    .ve-dig-cell.has-val { color: #1a2d42; font-weight: 700; }
+    /* overlay 输入框（绝对定位覆盖整组位格）*/
+    .ve-overlay-inp {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      border: 2px solid #1a5fa8; border-radius: 2px;
+      background: #e8f4ff;
       text-align: right; font-size: 13px; font-family: 'Courier New', monospace;
-      padding: 6px 8px; color: #1a2d42; cursor: text;
+      padding: 0 8px; color: #1a2d42; outline: none; z-index: 20;
+      display: none; box-sizing: border-box;
+      box-shadow: 0 0 0 3px rgba(26,95,168,0.15);
     }
-    .ve-amount-inp:focus { background: #e8f4ff; }
-    /* 位格只读显示格 */
-    .ve-digit-cell {
-      border: 1px solid #dde5ef; text-align: center;
-      font-size: 13px; font-family: 'Courier New', monospace;
-      padding: 0; min-width: 28px; width: 28px;
-      background: transparent; color: #1a2d42; vertical-align: middle;
-      user-select: none; pointer-events: none;
-    }
-    .ve-digit-cell-inner {
-      padding: 6px 0; display: block; min-height: 28px; line-height: 28px;
-    }
-    /* 元与角之间的分隔样式 */
-    .ve-digit-cell.ve-yuan { border-right: 2px solid #8ab4d4 !important; }
-    /* 借贷最后一格右边加粗分隔 */
-    .ve-last-digit { border-right: 2px solid #a0b8d0 !important; }
-    /* 位格有值时高亮 */
-    .ve-digit-cell.has-val { color: #1a2d42; font-weight: 600; }
-    .ve-digit-cell { border: 1px solid #dde5ef; text-align: center; font-size: 13px; padding: 6px 0; }
-    .ve-dot-cell { font-weight: 700; background: #f5f8fc !important; font-size: 15px; }
+    .ve-credit-dig-group .ve-overlay-inp { background: #fff8ee; border-color: #c8641a;
+      box-shadow: 0 0 0 3px rgba(200,100,26,0.15); }
+    /* 行选中时位格背景 */
+    .ve-row.ve-selected .ve-dig-cell { background: transparent; }
 
     /* 科目设置按钮 */
     .ve-acc-set-btn {
@@ -902,17 +912,15 @@
                       <th class="ve-th-no" rowspan="2">行</th>
                       <th class="ve-th-summary" rowspan="2">摘　　要</th>
                       <th class="ve-th-account" rowspan="2">会 计 科 目</th>
-                      <th colspan="12" class="ve-th-side ve-th-debit">借　　方</th>
-                      <th colspan="12" class="ve-th-side ve-th-credit">贷　　方</th>
+                      <th colspan="11" class="ve-th-side ve-th-debit">借　　方</th>
+                      <th colspan="11" class="ve-th-side ve-th-credit">贷　　方</th>
                     </tr>
                     <tr class="ve-thead-digits">
-                      <!-- 借方：输入列 + 11位格 -->
-                      <th class="ve-digit ve-th-input-col" style="min-width:90px;width:90px;">金额输入</th>
+                      <!-- 借方 11位格 -->
                       <th class="ve-digit">亿</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
                       <th class="ve-digit">万</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
                       <th class="ve-digit">元</th><th class="ve-digit">角</th><th class="ve-digit ve-last">分</th>
-                      <!-- 贷方：输入列 + 11位格 -->
-                      <th class="ve-digit ve-th-input-col" style="min-width:90px;width:90px;">金额输入</th>
+                      <!-- 贷方 11位格 -->
                       <th class="ve-digit">亿</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
                       <th class="ve-digit">万</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
                       <th class="ve-digit">元</th><th class="ve-digit">角</th><th class="ve-digit ve-last">分</th>
@@ -924,16 +932,14 @@
                   <tfoot>
                     <tr class="ve-total-row">
                       <td colspan="3" class="ve-total-label">合　　计</td>
-                      <!-- 借方合计：输入占位 + 11位格 -->
-                      <td class="ve-digit-cell" style="background:#eef3fa;border-right:1px solid #c0ccd8;"></td>
+                      <!-- 借方合计 11位格 -->
                       <td class="ve-digit-cell" id="td-d-yi"></td><td class="ve-digit-cell" id="td-d-qian1"></td>
                       <td class="ve-digit-cell" id="td-d-bai1"></td><td class="ve-digit-cell" id="td-d-shi1"></td>
                       <td class="ve-digit-cell" id="td-d-wan"></td><td class="ve-digit-cell" id="td-d-qian2"></td>
                       <td class="ve-digit-cell" id="td-d-bai2"></td><td class="ve-digit-cell" id="td-d-shi2"></td>
                       <td class="ve-digit-cell" id="td-d-yuan"></td>
                       <td class="ve-digit-cell" id="td-d-jiao"></td><td class="ve-digit-cell" id="td-d-fen"></td>
-                      <!-- 贷方合计：输入占位 + 11位格 -->
-                      <td class="ve-digit-cell" style="background:#eef3fa;border-right:1px solid #c0ccd8;"></td>
+                      <!-- 贷方合计 11位格 -->
                       <td class="ve-digit-cell" id="td-c-yi"></td><td class="ve-digit-cell" id="td-c-qian1"></td>
                       <td class="ve-digit-cell" id="td-c-bai1"></td><td class="ve-digit-cell" id="td-c-shi1"></td>
                       <td class="ve-digit-cell" id="td-c-wan"></td><td class="ve-digit-cell" id="td-c-qian2"></td>
@@ -1055,25 +1061,27 @@
         return [s[0],s[1],s[2],s[3],s[4],s[5],s[6],s[7],s[8],s[9],s[10]];
       }
 
-      // 填充位格格子（去除前导零）
-      function fillDigitCells(tdCells, digits) {
-        // tdCells: 11个td元素数组, digits: 11位字符串数组
+      // 填充位格格子（去除前导零）—— 兼容 div.ve-dig-cell 和旧式 td
+      function fillDigitCells(cells, digits) {
         var hasNonZero = false;
-        for (var i = 0; i < tdCells.length; i++) {
-          var inner = tdCells[i].querySelector('.ve-digit-cell-inner') || tdCells[i];
+        for (var i = 0; i < cells.length; i++) {
+          // 兼容两种结构：div直接用textContent，td可能有inner span
+          var el = cells[i].querySelector('.ve-digit-cell-inner') || cells[i];
           var d = digits[i];
           if (i >= 8) {
-            // 元、角、分始终显示（即使是0）
-            inner.textContent = d;
-            tdCells[i].classList.toggle('has-val', d !== '0');
+            el.textContent = d;
+            var isNonZero = d !== '0';
+            cells[i].style.fontWeight = isNonZero ? '700' : 'normal';
+            cells[i].style.color = isNonZero ? '#1a2d42' : '#aab8c8';
           } else {
             if (!hasNonZero && d === '0') {
-              inner.textContent = '';
-              tdCells[i].classList.remove('has-val');
+              el.textContent = '';
+              cells[i].style.fontWeight = 'normal';
             } else {
               hasNonZero = true;
-              inner.textContent = d;
-              tdCells[i].classList.add('has-val');
+              el.textContent = d;
+              cells[i].style.fontWeight = '700';
+              cells[i].style.color = '#1a2d42';
             }
           }
         }
@@ -1218,88 +1226,145 @@
         tdAcc.appendChild(creditInput);
         tr.appendChild(tdAcc);
 
-        // ── 创建借方/贷方金额输入列 + 11个位格只读显示列 ──
+        // ── 创建借方/贷方金额：11个位格 + 点击后 overlay 输入框（金蝶云星辰方式）──
         function createAmountGroup(hiddenInput, sideClass) {
-          var digitCells = []; // 存11个位格td
+          var digitCells = []; // 11个位格td
+          // 11位格容器：用第一个位格上放一个相对定位包裹层
+          var groupWrapper = document.createElement('td');
+          groupWrapper.colSpan = 11;
+          groupWrapper.className = 've-amount-group ' + sideClass + '-group';
+          groupWrapper.style.cssText = 'padding:0;position:relative;border:none;';
 
-          // 1. 金额输入框td（带背景色区分）
-          var tdInp = document.createElement('td');
-          tdInp.className = 've-amount-input-cell';
-          tdInp.style.cssText = 'min-width:90px;width:90px;border:1px solid #dde5ef;' +
-            (sideClass === 've-debit-dig' ? 'background:#f5faff;' : 'background:#fffaf5;');
+          // 内部用一个 div 水平排列11个位格span
+          var digitRow = document.createElement('div');
+          digitRow.className = 've-digit-row';
+          digitRow.style.cssText = 'display:flex;width:100%;height:100%;position:relative;';
 
-          var amtInp = document.createElement('input');
-          amtInp.type = 'number';
-          amtInp.className = 've-amount-inp ' + sideClass + '-inp';
-          amtInp.placeholder = '0.00';
-          amtInp.min = '0';
-          amtInp.step = '0.01';
-          amtInp.setAttribute('autocomplete','off');
-          amtInp.style.cssText = 'width:100%;border:none;outline:none;background:transparent;' +
-            'text-align:right;font-size:13px;font-family:"Courier New",monospace;' +
-            'padding:6px 6px;color:#1a2d42;';
+          var DIGIT_BORDERS = [false,false,false,false,false,false,false,false,true,false,false]; // 元后加粗
 
-          // 输入时实时拆分到位格
-          amtInp.addEventListener('input', function(){
-            var v = parseFloat(amtInp.value) || 0;
-            if (v < 0) { amtInp.value = ''; v = 0; }
-            hiddenInput.value = v ? v.toFixed(2) : '';
-            var digits = splitAmount(v);
-            fillDigitCells(digitCells, digits);
-            // 如果借方有值，自动清空贷方，反之亦然
-            if (sideClass === 've-debit-dig') {
-              var cInp = tr.querySelector('.ve-credit-dig-inp');
-              if (cInp && v > 0 && parseFloat(cInp.value) > 0) { cInp.value = ''; creditInput.value = ''; fillDigitCells(creditDigitCells, splitAmount(0)); }
-            } else {
-              var dInp = tr.querySelector('.ve-debit-dig-inp');
-              if (dInp && v > 0 && parseFloat(dInp.value) > 0) { dInp.value = ''; debitInput.value = ''; fillDigitCells(debitDigitCells, splitAmount(0)); }
-            }
-            veUpdateTotals();
-          });
-
-          // 失焦时格式化为两位小数
-          amtInp.addEventListener('blur', function(){
-            var v = parseFloat(amtInp.value);
-            if (!isNaN(v) && v > 0) {
-              amtInp.value = v.toFixed(2);
-              hiddenInput.value = v.toFixed(2);
-              fillDigitCells(digitCells, splitAmount(v));
-            } else {
-              amtInp.value = '';
-              hiddenInput.value = '';
-              fillDigitCells(digitCells, splitAmount(0));
-            }
-            veUpdateTotals();
-          });
-
-          tdInp.appendChild(amtInp);
-          tr.appendChild(tdInp);
-
-          // 2. 11个位格只读显示td
-          var labels = ['亿','千','百','十','万','千','百','十','元','角','分'];
           for (var i = 0; i < 11; i++) {
-            var tdDig = document.createElement('td');
-            tdDig.className = 've-digit-cell' + (i === 8 ? ' ve-yuan' : '') + (i === 10 ? ' ve-last-digit' : '');
-            tdDig.style.cssText = 'min-width:26px;width:26px;text-align:center;' +
-              'font-family:"Courier New",monospace;font-size:13px;' +
-              'border:1px solid #dde5ef;padding:0;vertical-align:middle;' +
-              'cursor:default;user-select:none;';
-            // 点击位格时，聚焦到金额输入框
-            (function(myAmtInp){
-              tdDig.style.pointerEvents = 'auto';
-              tdDig.addEventListener('click', function(){ myAmtInp.focus(); myAmtInp.select(); });
-            })(amtInp);
-
-            var inner = document.createElement('span');
-            inner.className = 've-digit-cell-inner';
-            inner.style.cssText = 'display:block;padding:6px 0;min-height:26px;line-height:26px;text-align:center;';
-            inner.textContent = (i >= 8) ? '0' : '';
-            tdDig.appendChild(inner);
-            tr.appendChild(tdDig);
-            digitCells.push(tdDig);
+            var cell = document.createElement('div');
+            cell.className = 've-dig-cell' + (i===10?' ve-dig-last':'');
+            cell.style.cssText = 'flex:1;min-width:26px;text-align:center;' +
+              'font-family:"Courier New",monospace;font-size:13px;color:#1a2d42;' +
+              'border-right:1px solid #dde5ef;' +
+              (DIGIT_BORDERS[i] ? 'border-right:2px solid #8ab4d4;' : '') +
+              (i===10 ? 'border-right:2px solid #a0b8d0;' : '') +
+              'padding:6px 0;cursor:text;user-select:none;' +
+              'box-sizing:border-box;line-height:1.4;';
+            cell.textContent = (i >= 8) ? '0' : '';
+            digitRow.appendChild(cell);
+            digitCells.push(cell);
           }
 
-          return { digitCells: digitCells, amtInp: amtInp };
+          // overlay 输入框（绝对定位，覆盖整组）
+          var overlayInp = document.createElement('input');
+          overlayInp.type = 'text';
+          overlayInp.inputMode = 'decimal';
+          overlayInp.className = 've-overlay-inp ' + sideClass + '-inp';
+          overlayInp.placeholder = '请输入金额';
+          overlayInp.setAttribute('autocomplete','off');
+          overlayInp.style.cssText = [
+            'position:absolute;left:0;top:0;width:100%;height:100%;',
+            'border:2px solid #1a5fa8;border-radius:2px;',
+            'background:' + (sideClass==='ve-debit-dig' ? '#eef7ff' : '#fff8ee') + ';',
+            'text-align:right;font-size:13px;font-family:"Courier New",monospace;',
+            'padding:0 8px;color:#1a2d42;outline:none;z-index:10;',
+            'display:none;box-sizing:border-box;'
+          ].join('');
+
+          // 点击任意位格 → 显示 overlay 输入框
+          digitRow.addEventListener('mousedown', function(e){
+            e.preventDefault(); // 阻止 td 失焦
+            showOverlay();
+          });
+
+          function showOverlay() {
+            // 读当前值回填
+            var cur = parseFloat(hiddenInput.value) || 0;
+            overlayInp.value = cur > 0 ? cur.toFixed(2) : '';
+            overlayInp.style.display = 'block';
+            // 隐藏位格文字（视觉让出空间）
+            digitCells.forEach(function(c){ c.style.color = 'transparent'; });
+            setTimeout(function(){
+              overlayInp.focus();
+              overlayInp.select();
+            }, 0);
+          }
+
+          function hideOverlay() {
+            overlayInp.style.display = 'none';
+            digitCells.forEach(function(c){ c.style.color = '#1a2d42'; });
+          }
+
+          function commitValue() {
+            var raw = overlayInp.value.replace(/[^\d.]/g,'');
+            var v = parseFloat(raw) || 0;
+            if (v < 0) v = 0;
+            hiddenInput.value = v > 0 ? v.toFixed(2) : '';
+            fillDigitCells(digitCells, splitAmount(v));
+            // 互斥：借方有值则清贷，反之亦然
+            if (sideClass === 've-debit-dig') {
+              var cInp = tr.querySelector('.ve-credit-dig-inp');
+              if (cInp && v > 0 && parseFloat(cInp.value||0) > 0) {
+                cInp.value = '';
+                creditInput.value = '';
+                // 清贷方位格
+                var cGrp = tr.querySelector('.ve-credit-dig-group');
+                if (cGrp) {
+                  var cCells = Array.from(cGrp.querySelectorAll('.ve-dig-cell'));
+                  fillDigitCells(cCells, splitAmount(0));
+                }
+              }
+            } else {
+              var dInp = tr.querySelector('.ve-debit-dig-inp');
+              if (dInp && v > 0 && parseFloat(dInp.value||0) > 0) {
+                dInp.value = '';
+                debitInput.value = '';
+                var dGrp = tr.querySelector('.ve-debit-dig-group');
+                if (dGrp) {
+                  var dCells = Array.from(dGrp.querySelectorAll('.ve-dig-cell'));
+                  fillDigitCells(dCells, splitAmount(0));
+                }
+              }
+            }
+            veUpdateTotals();
+            hideOverlay();
+          }
+
+          // 只允许数字和小数点
+          overlayInp.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === 'Tab') {
+              e.preventDefault();
+              commitValue();
+              // Tab 跳到对面金额区或下一行
+              if (e.key === 'Tab') {
+                var allInps = Array.from(document.querySelectorAll('.ve-overlay-inp, .ve-summary-input, .ve-account-input'));
+                // 直接聚焦对面同行的位格
+                var opposite = sideClass === 've-debit-dig' ? 've-credit-dig-group' : null;
+                if (opposite) {
+                  var oGrp = tr.querySelector('.' + opposite);
+                  if (oGrp) { setTimeout(function(){ oGrp.dispatchEvent(new MouseEvent('mousedown',{bubbles:true})); }, 0); }
+                }
+              }
+            } else if (e.key === 'Escape') {
+              overlayInp.value = '';
+              hideOverlay();
+            }
+          });
+
+          overlayInp.addEventListener('blur', function(){
+            // 延迟判断：如果仍在同一位格区域内则不提交
+            setTimeout(function(){
+              if (overlayInp.style.display !== 'none') commitValue();
+            }, 150);
+          });
+
+          groupWrapper.appendChild(digitRow);
+          groupWrapper.appendChild(overlayInp);
+          tr.appendChild(groupWrapper);
+
+          return { digitCells: digitCells, overlayInp: overlayInp };
         }
 
         var debitGroup  = createAmountGroup(debitInput,  've-debit-dig');

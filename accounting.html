@@ -597,10 +597,59 @@
     .ve-acc-modal-item.selected { background: #ddeeff; }
     .ve-acc-item-code { width: 52px; font-size: 12px; color: #8a9db0; font-family: monospace; flex-shrink: 0; }
     .ve-acc-item-name { flex: 1; font-size: 13px; color: #1a2d42; }
+    .ve-acc-item-level { font-size: 10px; color: #b0c0d0; margin-left: 4px; }
     .ve-acc-item-cat  { font-size: 11px; color: #aab8c8; }
+    /* 每行右侧操作按钮区 */
+    .ve-acc-item-actions { display: none; gap: 4px; margin-left: 4px; flex-shrink: 0; }
+    .ve-acc-modal-item:hover .ve-acc-item-actions { display: flex; }
+    .ve-acc-item-sub-btn {
+      padding: 2px 7px; font-size: 11px; border-radius: 3px; cursor: pointer;
+      border: 1px solid #1a5fa8; background: rgba(26,95,168,0.07);
+      color: #1a5fa8; white-space: nowrap; transition: all 0.15s;
+      line-height: 1.6;
+    }
+    .ve-acc-item-sub-btn:hover { background: #1a5fa8; color: #fff; }
+    /* 二级科目缩进 */
+    .ve-acc-modal-item.level-2 .ve-acc-item-code { color: #4a7ab0; }
+    .ve-acc-modal-item.level-2 .ve-acc-item-name { padding-left: 16px; color: #2a5080; font-size: 12.5px; }
     .ve-acc-modal-footer {
       padding: 10px 18px; border-top: 1px solid #dde5ef; background: #f7f9fc;
-      display: flex; justify-content: flex-end; gap: 8px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .ve-acc-modal-footer-left { display: flex; gap: 8px; }
+    .ve-acc-modal-footer-right { display: flex; gap: 8px; }
+    /* 子弹窗（新增科目 / 新增二级科目）*/
+    .ve-sub-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 9100; display: flex; align-items: center; justify-content: center;
+    }
+    .ve-sub-modal {
+      background: #fff; border-radius: 8px; width: 440px;
+      box-shadow: 0 8px 40px rgba(26,95,168,0.28); overflow: hidden;
+    }
+    .ve-sub-modal-head {
+      padding: 13px 18px; background: #f0f5fc; border-bottom: 1px solid #dde5ef;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ve-sub-modal-head h4 { font-size: 14px; color: #1a2d42; font-weight: 700; margin: 0; }
+    .ve-sub-modal-close {
+      width: 24px; height: 24px; border: none; border-radius: 50%;
+      background: rgba(26,95,168,0.10); cursor: pointer; font-size: 15px;
+      color: #5a7090; display: flex; align-items: center; justify-content: center;
+    }
+    .ve-sub-modal-close:hover { background: #e74c3c; color: #fff; }
+    .ve-sub-modal-body { padding: 18px 18px 10px; }
+    .ve-sub-field { margin-bottom: 14px; }
+    .ve-sub-field label { display: block; font-size: 12px; color: #5a7080; margin-bottom: 5px; font-weight: 600; }
+    .ve-sub-field input, .ve-sub-field select {
+      width: 100%; padding: 7px 10px; border: 1px solid #c0ccd8; border-radius: 4px;
+      font-size: 13px; outline: none; color: #1a2d42; background: #fff;
+    }
+    .ve-sub-field input:focus, .ve-sub-field select:focus {
+      border-color: #1a5fa8; box-shadow: 0 0 0 2px rgba(26,95,168,0.12);
+    }
+    .ve-sub-modal-footer {
+      padding: 10px 18px 14px; display: flex; justify-content: flex-end; gap: 8px;
     }
 
     /* 合计行 */
@@ -1403,8 +1452,13 @@
           '</div>',
           '<div class="ve-acc-modal-body" id="ve-acc-modal-body"></div>',
           '<div class="ve-acc-modal-footer">',
-          '  <button class="btn btn-secondary" id="ve-acc-modal-cancel">取消</button>',
-          '  <button class="btn btn-primary" id="ve-acc-modal-confirm">确定</button>',
+          '  <div class="ve-acc-modal-footer-left">',
+          '    <button class="btn btn-secondary" id="ve-acc-modal-add-btn" title="新增会计科目">＋ 新增科目</button>',
+          '  </div>',
+          '  <div class="ve-acc-modal-footer-right">',
+          '    <button class="btn btn-secondary" id="ve-acc-modal-cancel">取消</button>',
+          '    <button class="btn btn-primary" id="ve-acc-modal-confirm">确定</button>',
+          '  </div>',
           '</div>'
         ].join('');
 
@@ -1432,7 +1486,7 @@
               var matchGroup = grp.prefix.some(function(p){ return a.code.startsWith(p); });
               if (!matchGroup) return false;
               if (!kw) return true;
-              return a.code.indexOf(kw) !== -1 || a.name.indexOf(kw) !== -1;
+              return a.code.toLowerCase().indexOf(kw) !== -1 || a.name.indexOf(kw) !== -1;
             });
             if (items.length === 0) return;
             var gt = document.createElement('div');
@@ -1442,24 +1496,50 @@
             body.appendChild(gt);
             items.forEach(function(a) {
               var item = document.createElement('div');
-              item.className = 've-acc-modal-item';
+              var isLevel2 = a.code.length > 4;
+              item.className = 've-acc-modal-item' + (isLevel2 ? ' level-2' : '');
               item.dataset.code = a.code;
               item.dataset.name = a.name;
-              // 如果当前科目已选中，高亮
+              // 当前已选中高亮
               if (targetInput.value && (targetInput.value.indexOf(a.code) !== -1 || targetInput.value.indexOf(a.name) !== -1)) {
                 item.classList.add('selected');
                 selectedItem = item;
               }
-              item.innerHTML = '<span class="ve-acc-item-code">' + a.code + '</span>' +
-                '<span class="ve-acc-item-name">' + a.name + '</span>';
+              // 代码列
+              var codeSpan = document.createElement('span');
+              codeSpan.className = 've-acc-item-code';
+              codeSpan.textContent = a.code;
+              // 名称列
+              var nameSpan = document.createElement('span');
+              nameSpan.className = 've-acc-item-name';
+              nameSpan.textContent = a.name;
+              // 操作区（hover 显示）
+              var actions = document.createElement('div');
+              actions.className = 've-acc-item-actions';
+              var subBtn = document.createElement('button');
+              subBtn.type = 'button';
+              subBtn.className = 've-acc-item-sub-btn';
+              subBtn.textContent = '＋ 二级';
+              subBtn.title = '为"' + a.name + '"新增二级科目';
+              subBtn.addEventListener('mousedown', function(e){ e.stopPropagation(); });
+              subBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                veOpenSubAccountModal(a, grp.color, function(newAcc) {
+                  ACCOUNTS.push(newAcc);
+                  ACCOUNTS.sort(function(x,y){ return x.code < y.code ? -1 : 1; });
+                  renderList(searchInp.value);
+                });
+              });
+              actions.appendChild(subBtn);
+              item.appendChild(codeSpan);
+              item.appendChild(nameSpan);
+              item.appendChild(actions);
               item.addEventListener('click', function() {
                 body.querySelectorAll('.ve-acc-modal-item').forEach(function(i){ i.classList.remove('selected'); });
                 item.classList.add('selected');
                 selectedItem = item;
               });
-              item.addEventListener('dblclick', function() {
-                confirmSelect(item);
-              });
+              item.addEventListener('dblclick', function() { confirmSelect(item); });
               body.appendChild(item);
             });
           });
@@ -1489,6 +1569,14 @@
         document.getElementById('ve-acc-modal-close-btn').onclick = function(){ overlay.remove(); };
         document.getElementById('ve-acc-modal-cancel').onclick = function(){ overlay.remove(); };
         document.getElementById('ve-acc-modal-confirm').onclick = function(){ confirmSelect(null); };
+        // 新增科目按钮
+        document.getElementById('ve-acc-modal-add-btn').onclick = function() {
+          veOpenNewAccountModal(function(newAcc) {
+            ACCOUNTS.push(newAcc);
+            ACCOUNTS.sort(function(x,y){ return x.code < y.code ? -1 : 1; });
+            renderList(searchInp.value);
+          });
+        };
         overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
 
         // 键盘支持：上下移动、Enter确定、Esc关闭
@@ -1516,7 +1604,176 @@
         });
       }
 
-      // 初始化凭证录入表格
+      // ── 新增二级科目弹窗 ──
+      function veOpenSubAccountModal(parentAcc, color, onAdd) {
+        var old = document.getElementById('ve-sub-modal-overlay');
+        if (old) old.remove();
+
+        var overlay = document.createElement('div');
+        overlay.className = 've-sub-modal-overlay';
+        overlay.id = 've-sub-modal-overlay';
+
+        // 自动推算二级科目代码：取同父下最大子码+1
+        var parentCode = parentAcc.code;
+        var siblings = ACCOUNTS.filter(function(a){
+          return a.code.startsWith(parentCode) && a.code.length === parentCode.length + 2;
+        });
+        var nextNum = 1;
+        if (siblings.length > 0) {
+          var maxSuffix = siblings.reduce(function(max, a){
+            var n = parseInt(a.code.slice(parentCode.length)) || 0;
+            return n > max ? n : max;
+          }, 0);
+          nextNum = maxSuffix + 1;
+        }
+        var suggestedCode = parentCode + String(nextNum).padStart(2,'0');
+
+        overlay.innerHTML = [
+          '<div class="ve-sub-modal">',
+          '  <div class="ve-sub-modal-head">',
+          '    <h4>＋ 新增二级科目</h4>',
+          '    <button class="ve-sub-modal-close" id="ve-sub-close-btn">✕</button>',
+          '  </div>',
+          '  <div class="ve-sub-modal-body">',
+          '    <div class="ve-sub-field">',
+          '      <label>上级科目</label>',
+          '      <input type="text" value="' + parentAcc.code + ' ' + parentAcc.name + '" disabled style="background:#f5f8fc;color:#6a8098;">',
+          '    </div>',
+          '    <div class="ve-sub-field">',
+          '      <label>科目代码 <span style="color:#e74c3c;">*</span></label>',
+          '      <input type="text" id="ve-sub-code" value="' + suggestedCode + '" placeholder="如：' + suggestedCode + '" maxlength="10">',
+          '    </div>',
+          '    <div class="ve-sub-field">',
+          '      <label>科目名称 <span style="color:#e74c3c;">*</span></label>',
+          '      <input type="text" id="ve-sub-name" placeholder="请输入科目名称">',
+          '    </div>',
+          '  </div>',
+          '  <div class="ve-sub-modal-footer">',
+          '    <button class="btn btn-secondary" id="ve-sub-cancel-btn">取消</button>',
+          '    <button class="btn btn-primary" id="ve-sub-confirm-btn">确定添加</button>',
+          '  </div>',
+          '</div>'
+        ].join('');
+
+        document.body.appendChild(overlay);
+
+        var codeInp = document.getElementById('ve-sub-code');
+        var nameInp = document.getElementById('ve-sub-name');
+        setTimeout(function(){ nameInp.focus(); }, 0);
+
+        document.getElementById('ve-sub-close-btn').onclick =
+        document.getElementById('ve-sub-cancel-btn').onclick = function(){ overlay.remove(); };
+
+        document.getElementById('ve-sub-confirm-btn').onclick = function() {
+          var code = codeInp.value.trim();
+          var name = nameInp.value.trim();
+          if (!code) { codeInp.focus(); codeInp.style.borderColor='#e74c3c'; return; }
+          if (!name) { nameInp.focus(); nameInp.style.borderColor='#e74c3c'; return; }
+          if (ACCOUNTS.some(function(a){ return a.code === code; })) {
+            codeInp.style.borderColor='#e74c3c';
+            codeInp.focus();
+            alert('科目代码"' + code + '"已存在，请更换！');
+            return;
+          }
+          overlay.remove();
+          onAdd({ code: code, name: name });
+        };
+
+        overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+        [codeInp, nameInp].forEach(function(el){
+          el.addEventListener('keydown', function(e){
+            if(e.key==='Enter') document.getElementById('ve-sub-confirm-btn').click();
+            if(e.key==='Escape') overlay.remove();
+          });
+          el.addEventListener('input', function(){ el.style.borderColor=''; });
+        });
+      }
+
+      // ── 新增一级科目弹窗 ──
+      function veOpenNewAccountModal(onAdd) {
+        var old = document.getElementById('ve-new-acc-overlay');
+        if (old) old.remove();
+
+        var overlay = document.createElement('div');
+        overlay.className = 've-sub-modal-overlay';
+        overlay.id = 've-new-acc-overlay';
+
+        overlay.innerHTML = [
+          '<div class="ve-sub-modal">',
+          '  <div class="ve-sub-modal-head">',
+          '    <h4>＋ 新增会计科目</h4>',
+          '    <button class="ve-sub-modal-close" id="ve-new-close-btn">✕</button>',
+          '  </div>',
+          '  <div class="ve-sub-modal-body">',
+          '    <div class="ve-sub-field">',
+          '      <label>所属类别 <span style="color:#e74c3c;">*</span></label>',
+          '      <select id="ve-new-cat">',
+          '        <option value="1">资产类（1xxx）</option>',
+          '        <option value="2">负债类（2xxx）</option>',
+          '        <option value="4">所有者权益类（4xxx）</option>',
+          '        <option value="5">成本类（5xxx）</option>',
+          '        <option value="6">损益类（6xxx）</option>',
+          '      </select>',
+          '    </div>',
+          '    <div class="ve-sub-field">',
+          '      <label>科目代码 <span style="color:#e74c3c;">*</span></label>',
+          '      <input type="text" id="ve-new-code" placeholder="如：1099" maxlength="10">',
+          '    </div>',
+          '    <div class="ve-sub-field">',
+          '      <label>科目名称 <span style="color:#e74c3c;">*</span></label>',
+          '      <input type="text" id="ve-new-name" placeholder="请输入科目名称">',
+          '    </div>',
+          '  </div>',
+          '  <div class="ve-sub-modal-footer">',
+          '    <button class="btn btn-secondary" id="ve-new-cancel-btn">取消</button>',
+          '    <button class="btn btn-primary" id="ve-new-confirm-btn">确定添加</button>',
+          '  </div>',
+          '</div>'
+        ].join('');
+
+        document.body.appendChild(overlay);
+
+        var catSel  = document.getElementById('ve-new-cat');
+        var codeInp = document.getElementById('ve-new-code');
+        var nameInp = document.getElementById('ve-new-name');
+
+        // 切换类别时自动填充代码前缀提示
+        catSel.addEventListener('change', function(){
+          if (!codeInp.value || /^[12456]/.test(codeInp.value)) {
+            codeInp.value = catSel.value;
+            codeInp.placeholder = '如：' + catSel.value + 'xxx';
+          }
+        });
+
+        setTimeout(function(){ codeInp.focus(); }, 0);
+
+        document.getElementById('ve-new-close-btn').onclick =
+        document.getElementById('ve-new-cancel-btn').onclick = function(){ overlay.remove(); };
+
+        document.getElementById('ve-new-confirm-btn').onclick = function() {
+          var code = codeInp.value.trim();
+          var name = nameInp.value.trim();
+          if (!code) { codeInp.focus(); codeInp.style.borderColor='#e74c3c'; return; }
+          if (!name) { nameInp.focus(); nameInp.style.borderColor='#e74c3c'; return; }
+          if (ACCOUNTS.some(function(a){ return a.code === code; })) {
+            codeInp.style.borderColor='#e74c3c';
+            codeInp.focus();
+            alert('科目代码"' + code + '"已存在，请更换！');
+            return;
+          }
+          overlay.remove();
+          onAdd({ code: code, name: name });
+        };
+
+        overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+        [codeInp, nameInp].forEach(function(el){
+          el.addEventListener('keydown', function(e){
+            if(e.key==='Enter') document.getElementById('ve-new-confirm-btn').click();
+            if(e.key==='Escape') overlay.remove();
+          });
+          el.addEventListener('input', function(){ el.style.borderColor=''; });
+        });
+      }
       function initVoucherTable() {
         var tbody = document.getElementById('ve-tbody');
         if (!tbody) return;

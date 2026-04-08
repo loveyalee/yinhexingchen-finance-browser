@@ -1069,7 +1069,7 @@
           var el = cells[i].querySelector('.ve-digit-cell-inner') || cells[i];
           var d = digits[i];
           if (i >= 8) {
-            el.textContent = d;
+            el.textContent = d !== '0' ? d : '';
             var isNonZero = d !== '0';
             cells[i].style.fontWeight = isNonZero ? '700' : 'normal';
             cells[i].style.color = isNonZero ? '#1a2d42' : '#aab8c8';
@@ -1096,7 +1096,7 @@
           if (!el) continue;
           var d = digits[i];
           if (i >= 8) {
-            el.textContent = d;
+            el.textContent = d !== '0' ? d : '';
           } else {
             if (!hasNonZero && d === '0') { el.textContent = ''; }
             else { hasNonZero = true; el.textContent = d; }
@@ -1252,7 +1252,7 @@
               (i===10 ? 'border-right:2px solid #a0b8d0;' : '') +
               'padding:6px 0;cursor:text;user-select:none;' +
               'box-sizing:border-box;line-height:1.4;';
-            cell.textContent = (i >= 8) ? '0' : '';
+            cell.textContent = '';
             digitRow.appendChild(cell);
             digitCells.push(cell);
           }

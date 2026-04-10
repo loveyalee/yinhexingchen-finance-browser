@@ -389,7 +389,6 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
           <ul class="submenu">
@@ -410,6 +409,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">出入库管理</a></li>
@@ -779,6 +779,17 @@
       // 初始化渲染
       renderFeatureCards();
 
+      const currentUserInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+      const loginButton = document.querySelector('.header .btn.btn-primary');
+      if (loginButton) {
+        if (currentUserInfo && currentUserInfo.isLoggedIn) {
+          loginButton.textContent = (currentUserInfo.phone || currentUserInfo.institutionName || '已登录').slice(0, 10);
+          loginButton.onclick = function() { window.location.href = 'member.html'; };
+        } else {
+          loginButton.onclick = function() { window.location.href = 'login.html'; };
+        }
+      }
+
       // 更多功能展开/折叠
       function toggleMoreFeatures() {
         const moreFeatures = document.getElementById('moreFeatures');
@@ -955,10 +966,17 @@
       
       // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
       window.toggleSubmenu = function(element) {
-        const navItem = element.closest('.nav-item.has-submenu');
+        const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
         if (navItem) {
           navItem.classList.toggle('active');
         }
+      };
+
+      window.handleLogout = function() {
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('currentUserDb');
+        window.location.href = 'login.html';
       };
       
       // showModule 函数（用于处理子菜单点击）

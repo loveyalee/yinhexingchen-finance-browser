@@ -752,14 +752,35 @@
           }
         }
 
-        var successMessage = '注册成功！请登录您的账户';
-        if (userType === 'institution') {
-          var sel = document.getElementById('institution-type');
-          successMessage = '注册成功！' + sel.options[sel.selectedIndex].text + '账户已创建，请登录您的账户';
-        }
-
-        alert(successMessage);
-        window.location.href = 'login.html';
+        fetch('/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: phone,
+            password: password,
+            userType: userType,
+            institutionType: userType === 'institution' ? document.getElementById('institution-type').value : '',
+            institutionName: userType === 'institution' ? document.getElementById('institution-name').value : '',
+            creditCode: userType === 'institution' ? document.getElementById('credit-code').value : '',
+            contactPerson: userType === 'institution' ? document.getElementById('contact-person').value : ''
+          })
+        }).then(function(resp) {
+          return resp.json();
+        }).then(function(result) {
+          if (!result.success) {
+            alert(result.message || '注册失败');
+            return;
+          }
+          var successMessage = '注册成功！系统已自动为您建立本地数据库，并完成云端备份。';
+          if (userType === 'institution') {
+            var sel = document.getElementById('institution-type');
+            successMessage = '注册成功！' + sel.options[sel.selectedIndex].text + '账户已创建，并已自动建立本地数据库及云端备份。';
+          }
+          alert(successMessage);
+          window.location.href = 'login.html';
+        }).catch(function(err) {
+          alert('注册失败：' + err.message);
+        });
       });
     });
   </script>

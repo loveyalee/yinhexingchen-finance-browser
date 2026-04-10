@@ -9,7 +9,7 @@ echo ========================================
 echo.
 
 set SERVER=root@111.230.36.222
-set PROJECT_DIR=/home/yinhexingchen
+set PROJECT_DIR=/var/www/yinhexingchen
 
 echo [1/6] 测试SSH连接...
 ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 %SERVER% "echo 连接成功" 2>nul

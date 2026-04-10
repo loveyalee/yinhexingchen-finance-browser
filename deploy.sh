@@ -11,7 +11,7 @@ echo -e "${GREEN}=====================================${NC}"
 echo -e "${GREEN}  银河星辰平台部署脚本${NC}"
 echo -e "${GREEN}=====================================${NC}"
 
-PROJECT_DIR="/home/yinhexingchen"
+PROJECT_DIR="/var/www/yinhexingchen"
 
 # 1. 安装 Node.js（如未安装）
 echo -e "${YELLOW}[1/5] 检查 Node.js 环境...${NC}"

@@ -10,7 +10,7 @@ echo ========================================
 echo.
 
 set SERVER=root@111.230.36.222
-set PROJECT_DIR=/home/yinhexingchen
+set PROJECT_DIR=/var/www/yinhexingchen
 
 echo 正在启动实时同步...
 echo 按 Ctrl+C 停止同步

@@ -53,6 +53,7 @@ CHECK_*.ps1
 # Database files
 *.sqlite
 *.db
+db/
 
 # Temporary files
 *.tmp
@@ -61,3 +62,11 @@ CHECK_*.ps1
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Local admin / server helper files
+_*.py
+_*.html
+*.remote.html
+id_rsa*
+*.pem
+*.ppk

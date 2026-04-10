@@ -9,7 +9,7 @@ echo ========================================
 echo.
 
 set SERVER=root@111.230.36.222
-set PROJECT_DIR=/home/yinhexingchen
+set PROJECT_DIR=/var/www/yinhexingchen
 
 if "%~1"=="" (
     echo [Error] Please specify a file

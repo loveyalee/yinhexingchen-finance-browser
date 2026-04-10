@@ -67,33 +67,37 @@ function handleLogin() {
     return;
   }
 
-  // 根据账号类型处理
-  let userInfo = {
-    userType: 'personal',
-    isLoggedIn: true,
-    loginMethod: accountType
-  };
+  fetch('/api/users/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ account: account, password: password })
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(result) {
+    if (!result.success) {
+      alert(result.message || '登录失败');
+      return;
+    }
 
-  switch (accountType) {
-    case 'phone':
-      userInfo.phone = account;
-      break;
-    case 'email':
+    const userInfo = Object.assign({}, result.data, {
+      loginMethod: accountType
+    });
+
+    if (accountType === 'email') {
       userInfo.email = account;
-      break;
-    case 'idcard':
+    }
+    if (accountType === 'idcard') {
       userInfo.idcard = account;
-      // 提取出生日期
-      const birthYear = account.substring(6, 10);
-      const birthMonth = account.substring(10, 12);
-      const birthDay = account.substring(12, 14);
-      userInfo.birthDate = `${birthYear}-${birthMonth}-${birthDay}`;
       userInfo.realNameVerified = true;
-      break;
-  }
+    }
 
-  localStorage.setItem('userInfo', JSON.stringify(userInfo));
-  window.location.href = 'index.html';
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    localStorage.setItem('currentUserId', userInfo.id);
+    localStorage.setItem('currentUserDb', userInfo.currentUserDb || userInfo.localDbFile || '');
+    window.location.href = 'index.html';
+  }).catch(function(err) {
+    alert('登录失败：' + err.message);
+  });
 }
 
 // 显示蜻蜓Chat登录弹窗
@@ -147,16 +151,29 @@ function chatAccountLogin() {
     return;
   }
 
-  localStorage.setItem('userInfo', JSON.stringify({
-    phone: username,
-    userType: 'personal',
-    isLoggedIn: true,
-    chatUser: username,
-    loginMethod: 'chat'
-  }));
-
-  closeChatLoginModal();
-  window.location.href = 'index.html';
+  fetch('/api/users/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ account: username, password: password })
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(result) {
+    if (!result.success) {
+      alert(result.message || '登录失败');
+      return;
+    }
+    const userInfo = Object.assign({}, result.data, {
+      chatUser: username,
+      loginMethod: 'chat'
+    });
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    localStorage.setItem('currentUserId', userInfo.id);
+    localStorage.setItem('currentUserDb', userInfo.currentUserDb || userInfo.localDbFile || '');
+    closeChatLoginModal();
+    window.location.href = 'index.html';
+  }).catch(function(err) {
+    alert('登录失败：' + err.message);
+  });
 }
 
 // 微信登录

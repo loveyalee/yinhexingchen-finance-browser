@@ -342,7 +342,32 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlSn3KRaaFHb2KmF/sAIojWWKeAt9tOY+mwo4
 
 // 订单存储（生产环境建议使用数据库）
 const orders = {};
+const smsCodes = {};
 const orderFile = path.join(__dirname, 'orders.json');
+
+function generateSmsCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function storeSmsCode(phone, purpose) {
+  const code = generateSmsCode();
+  smsCodes[`${purpose}:${phone}`] = {
+    code: code,
+    expiresAt: Date.now() + 5 * 60 * 1000
+  };
+  return code;
+}
+
+function verifySmsCode(phone, purpose, code) {
+  const key = `${purpose}:${phone}`;
+  const item = smsCodes[key];
+  if (!item) return false;
+  if (Date.now() > item.expiresAt) {
+    delete smsCodes[key];
+    return false;
+  }
+  return item.code === String(code || '').trim();
+}
 
 // 加载已保存的订单
 function loadOrders() {
@@ -1054,6 +1079,74 @@ const server = http.createServer((req, res) => {
       success: true,
       message: '征信打印点数据更新成功'
     }));
+
+  } else if (pathname === '/api/sms/send-code' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.phone || !/^1[3-9]\d{9}$/.test(data.phone)) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '手机号格式不正确' }));
+          return;
+        }
+        const purpose = data.purpose || 'register';
+        const code = storeSmsCode(data.phone, purpose);
+        console.log(`短信验证码[${purpose}] ${data.phone}: ${code}`);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          message: '验证码已生成，当前为测试模式，请联系管理员接入真实短信通道',
+          debugCode: code
+        }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '发送验证码失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/users/reset-password' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        if (!usersDb) throw new Error('用户数据库未初始化');
+        const data = JSON.parse(body || '{}');
+        if (!data.phone || !data.code || !data.password) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '手机号、验证码、新密码不能为空' }));
+          return;
+        }
+        if (!verifySmsCode(data.phone, 'reset_password', data.code)) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '验证码错误或已过期' }));
+          return;
+        }
+        const exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
+        if (!exists) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '该手机号未注册' }));
+          return;
+        }
+        usersDb.prepare('UPDATE users SET password = ?, update_time = ? WHERE phone = ?')
+          .run(data.password, new Date().toISOString(), data.phone);
+        delete smsCodes[`reset_password:${data.phone}`];
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '密码重置成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '密码重置失败: ' + e.message }));
+      }
+    });
 
   } else if (pathname === '/api/users/register' && req.method === 'POST') {
     let body = '';

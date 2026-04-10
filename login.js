@@ -263,21 +263,37 @@ function sendResetCode() {
     return;
   }
   const btn = document.getElementById('send-reset-code-btn');
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-  let countdown = 60;
-  btn.textContent = countdown + 's';
-  const timer = setInterval(function() {
-    countdown--;
-    btn.textContent = countdown + 's';
-    if (countdown <= 0) {
-      clearInterval(timer);
-      btn.textContent = '获取验证码';
-      btn.disabled = false;
-      btn.style.opacity = '1';
+  fetch('/api/sms/send-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: phone, purpose: 'reset_password' })
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(result) {
+    if (!result.success) {
+      alert(result.message || '验证码发送失败');
+      return;
     }
-  }, 1000);
-  alert('验证码已发送到您的手机');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    let countdown = 60;
+    btn.textContent = countdown + 's';
+    const timer = setInterval(function() {
+      countdown--;
+      btn.textContent = countdown + 's';
+      if (countdown <= 0) {
+        clearInterval(timer);
+        btn.textContent = '获取验证码';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    }, 1000);
+    let msg = result.message || '验证码已发送';
+    if (result.debugCode) msg += '（测试验证码：' + result.debugCode + '）';
+    alert(msg);
+  }).catch(function(err) {
+    alert('验证码发送失败：' + err.message);
+  });
 }
 
 function validatePassword(password) {
@@ -315,6 +331,20 @@ function resetPassword() {
     return;
   }
 
-  alert('密码重置成功！请使用新密码登录');
-  closeForgotPassword();
+  fetch('/api/users/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: phone, code: code, password: password })
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(result) {
+    if (!result.success) {
+      alert(result.message || '密码重置失败');
+      return;
+    }
+    alert('密码重置成功！请使用新密码登录');
+    closeForgotPassword();
+  }).catch(function(err) {
+    alert('密码重置失败：' + err.message);
+  });
 }

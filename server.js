@@ -8,6 +8,16 @@ const crypto = require('crypto');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+let Dysmsapi;
+let OpenApi;
+let Util;
+try {
+  Dysmsapi = require('@alicloud/dysmsapi20170525');
+  OpenApi = require('@alicloud/openapi-client');
+  Util = require('@alicloud/tea-util');
+} catch (e) {
+  console.warn('阿里云短信 SDK 未安装，短信将保持测试模式:', e.message);
+}
 
 // ============================================================
 // 数据库初始化（SQLite本地数据库 + 云端备份）
@@ -367,6 +377,40 @@ function verifySmsCode(phone, purpose, code) {
     return false;
   }
   return item.code === String(code || '').trim();
+}
+
+function hasAliyunSmsConfig() {
+  return !!(
+    process.env.ALIYUN_SMS_ACCESS_KEY_ID &&
+    process.env.ALIYUN_SMS_ACCESS_KEY_SECRET &&
+    process.env.ALIYUN_SMS_SIGN_NAME &&
+    process.env.ALIYUN_SMS_TEMPLATE_CODE &&
+    Dysmsapi &&
+    OpenApi &&
+    Util
+  );
+}
+
+async function sendAliyunSms(phone, code) {
+  const config = new OpenApi.Config({
+    accessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID,
+    accessKeySecret: process.env.ALIYUN_SMS_ACCESS_KEY_SECRET
+  });
+  config.endpoint = 'dysmsapi.aliyuncs.com';
+  const client = new Dysmsapi.default(config);
+  const request = new Dysmsapi.SendSmsRequest({
+    phoneNumbers: phone,
+    signName: process.env.ALIYUN_SMS_SIGN_NAME,
+    templateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE,
+    templateParam: JSON.stringify({ code: code })
+  });
+  const runtime = new Util.RuntimeOptions({});
+  const response = await client.sendSmsWithOptions(request, runtime);
+  const body = response.body || {};
+  if (body.code !== 'OK') {
+    throw new Error((body.message || '短信发送失败') + (body.code ? ` [${body.code}]` : ''));
+  }
+  return body;
 }
 
 // 加载已保存的订单
@@ -1083,7 +1127,7 @@ const server = http.createServer((req, res) => {
   } else if (pathname === '/api/sms/send-code' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.phone || !/^1[3-9]\d{9}$/.test(data.phone)) {
@@ -1094,12 +1138,19 @@ const server = http.createServer((req, res) => {
         }
         const purpose = data.purpose || 'register';
         const code = storeSmsCode(data.phone, purpose);
+        if (hasAliyunSmsConfig()) {
+          await sendAliyunSms(data.phone, code);
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, message: '验证码已发送到您的手机' }));
+          return;
+        }
         console.log(`短信验证码[${purpose}] ${data.phone}: ${code}`);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
           success: true,
-          message: '验证码已生成，当前为测试模式，请联系管理员接入真实短信通道',
+          message: '验证码已生成，当前为测试模式，请联系管理员接入阿里云短信配置',
           debugCode: code
         }));
       } catch (e) {

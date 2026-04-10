@@ -14,6 +14,9 @@
     "monitor": "pm2 monit"
   },
   "dependencies": {
+    "@alicloud/dysmsapi20170525": "^2.0.24",
+    "@alicloud/openapi-client": "^0.4.12",
+    "@alicloud/tea-util": "^1.4.7",
     "better-sqlite3": "^12.8.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

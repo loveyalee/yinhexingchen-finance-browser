@@ -1378,9 +1378,16 @@ const server = http.createServer((req, res) => {
     }
     try {
       const vouchers = db.prepare('SELECT * FROM vouchers ORDER BY date DESC, id DESC').all();
+      const entryStmt = db.prepare('SELECT summary, account_code, account_name, debit_amount, credit_amount FROM voucher_entries WHERE voucher_id = ? ORDER BY id ASC');
+      const data = vouchers.map(function(voucher) {
+        return {
+          ...voucher,
+          entries: entryStmt.all(voucher.id)
+        };
+      });
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: true, data: vouchers }));
+      res.end(JSON.stringify({ success: true, data: data }));
     } catch (e) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1403,25 +1410,44 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body || '{}');
         const now = new Date().toISOString();
-        const stmt = db.prepare('INSERT INTO vouchers (voucher_no, voucher_type, date, summary, debit_account, credit_account, amount, attachments, creator, auditor, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        const result = stmt.run(
-          data.voucherNo || '',
-          data.voucherType || '记账凭证',
-          data.date || now.slice(0, 10),
-          data.summary || '',
-          data.debitAccount || '',
-          data.creditAccount || '',
-          Number(data.amount || 0),
-          Number(data.attachments || 0),
-          data.creator || '',
-          data.auditor || '',
-          'saved',
-          now,
-          now
-        );
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid }, message: '凭证保存成功' }));
+        const entries = Array.isArray(data.entries) ? data.entries : [];
+        const insertVoucher = db.prepare('INSERT INTO vouchers (voucher_no, voucher_type, date, summary, debit_account, credit_account, amount, attachments, creator, auditor, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        const insertEntry = db.prepare('INSERT INTO voucher_entries (voucher_id, entry_type, account_code, account_name, summary, debit_amount, credit_amount) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        const trx = db.transaction(function() {
+          const result = insertVoucher.run(
+            data.voucherNo || '',
+            data.voucherType || '记账凭证',
+            data.date || now.slice(0, 10),
+            data.summary || '',
+            data.debitAccount || '',
+            data.creditAccount || '',
+            Number(data.amount || 0),
+            Number(data.attachments || 0),
+            data.creator || '',
+            data.auditor || '',
+            'saved',
+            now,
+            now
+          );
+          entries.forEach(function(entry) {
+            const codeAndName = String(entry.account || '').trim().split(/\s+/);
+            const accountCode = codeAndName.shift() || '';
+            const accountName = codeAndName.join(' ') || entry.account || '';
+            insertEntry.run(
+              result.lastInsertRowid,
+              Number(entry.debit || 0) > 0 ? 'debit' : 'credit',
+              accountCode,
+              accountName,
+              entry.summary || '',
+              Number(entry.debit || 0),
+              Number(entry.credit || 0)
+            );
+          });
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid }, message: '凭证保存成功' }));
+        });
+        trx();
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

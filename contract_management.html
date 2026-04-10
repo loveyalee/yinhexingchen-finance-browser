@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -30,7 +31,7 @@
     .service-icon {
       width: 60px;
       height: 60px;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       border-radius: 50%;
       display: flex;
       flex-direction: column;
@@ -84,7 +85,7 @@
     
     .service-header h3 {
       margin: 0;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .service-close {
@@ -103,7 +104,7 @@
     
     .service-item {
       padding: 12px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s;
@@ -132,7 +133,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -168,7 +169,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     .main-content {
@@ -180,7 +183,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -198,7 +201,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -218,7 +221,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -238,7 +241,7 @@
     
     .card h3 {
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .card-content {
@@ -250,7 +253,7 @@
     .feature-item {
       padding: 10px;
       border-left: 3px solid #3498db;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 0 4px 4px 0;
     }
     
@@ -288,7 +291,7 @@
     .overview-card .value {
       font-size: 24px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .overview-card .change {
@@ -321,7 +324,7 @@
     
     .section-header h3 {
       margin: 0;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .section-actions {
@@ -341,13 +344,13 @@
     th, td {
       padding: 12px;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     th {
       background-color: #f8f9fa;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     tr:hover {
@@ -377,19 +380,104 @@
     }
     
     .status-draft {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
@@ -402,6 +490,15 @@
         <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
         <li class="nav-item"><a href="contract_management.html" class="active">合同管理</a></li>
         <li class="nav-item"><a href="seal_management.html">电子印章管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item"><a href="finance_jobs.html">财务快聘</a></li>
@@ -415,11 +512,11 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn">←</button>
-            <button class="btn">→</button>
-            <button class="btn">⟳</button>
+            <button class="btn">/button>
+            <button class="btn">/button>
+            <button class="btn">/button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <input type="text" placeholder="输入网址或搜索财务相关内..">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
@@ -442,7 +539,7 @@
             <div class="change positive">+8%</div>
           </div>
           <div class="overview-card">
-            <h4>待审批合同</h4>
+            <h4>待审批合/h4>
             <div class="value">12</div>
             <div class="change negative">-5%</div>
           </div>
@@ -453,10 +550,10 @@
           </div>
         </div>
         
-        <!-- 最近合同 -->
+        <!-- 最近合-->
         <div class="contract-section">
           <div class="section-header">
-            <h3>最近合同</h3>
+            <h3>最近合/h3>
             <div class="section-actions">
               <button class="btn btn-primary">创建合同</button>
               <button class="btn">导出</button>
@@ -472,7 +569,7 @@
                   <th>合同金额</th>
                   <th>签署日期</th>
                   <th>到期日期</th>
-                  <th>状态</th>
+                  <th>状/th>
                 </tr>
               </thead>
               <tbody>
@@ -497,7 +594,7 @@
                 <tr>
                   <td>HT202603015</td>
                   <td>租赁合同</td>
-                  <td>某物业公司</td>
+                  <td>某物业公/td>
                   <td>¥120,000</td>
                   <td>2026-03-15</td>
                   <td>2027-03-14</td>
@@ -506,7 +603,7 @@
                 <tr>
                   <td>HT202603010</td>
                   <td>合作协议</td>
-                  <td>某合作伙伴</td>
+                  <td>某合作伙/td>
                   <td>¥80,000</td>
                   <td>2026-03-10</td>
                   <td>2026-06-09</td>
@@ -515,7 +612,7 @@
                 <tr>
                   <td>HT202602005</td>
                   <td>咨询合同</td>
-                  <td>某咨询公司</td>
+                  <td>某咨询公/td>
                   <td>¥30,000</td>
                   <td>2026-02-05</td>
                   <td>2026-05-04</td>
@@ -537,19 +634,19 @@
           <div class="card-content">
             <div class="feature-item">
               <h4>合同类型分布</h4>
-              <p>服务类合同占比最高，达45%；采购类合同占25%；租赁类合同占20%；其他占10%</p>
+              <p>服务类合同占比最高，5%；采购类合同5%；租赁类合同0%；其他占10%</p>
             </div>
             <div class="feature-item">
               <h4>合同金额分析</h4>
-              <p>本月新增合同总金额为¥285,000，同比增长18.5%</p>
+              <p>本月新增合同总金额为¥285,000，同比增8.5%</p>
             </div>
             <div class="feature-item">
               <h4>合同到期提醒</h4>
-              <p>未来30天内有5份合同到期，总金额为¥150,000</p>
+              <p>未来30天内份合同到期，总金额为¥150,000</p>
             </div>
             <div class="feature-item">
               <h4>合同执行情况</h4>
-              <p>已完成合同执行率为92%，未完成合同主要集中在服务类</p>
+              <p>已完成合同执行率2%，未完成合同主要集中在服务类</p>
             </div>
           </div>
         </div>
@@ -574,7 +671,7 @@
           <p>专业客服为您解答问题</p>
         </div>
         <div class="service-item">
-          <h4>技术支持</h4>
+          <h4>技术支/h4>
           <p>软件使用问题解决方案</p>
         </div>
         <div class="service-item">
@@ -590,8 +687,7 @@
   </div>
   
   <script>
-    // 浏览器功能实现
-    document.addEventListener('DOMContentLoaded', function() {
+    // 浏览器功能实    document.addEventListener('DOMContentLoaded', function() {
       const searchInput = document.querySelector('.browser-bar input');
       const searchButton = document.querySelector('.browser-bar .btn-primary');
       
@@ -620,14 +716,12 @@
         });
       });
       
-      // 退出登录按钮点击事件
-      const logoutBtn = document.getElementById('logout-btn');
+      // 退出登录按钮点击事      const logoutBtn = document.getElementById('logout-btn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          if (confirm('确定要退出登录吗？')) {
-            // 跳转到登录页面
-            window.location.href = 'login.html';
+          if (confirm('确定要退出登录吗)) {
+            // 跳转到登录页            window.location.href = 'login.html';
           }
         });
       }
@@ -665,7 +759,7 @@
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

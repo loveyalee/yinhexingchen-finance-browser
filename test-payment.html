@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .error { background-color: #ffebee; border-color: #f44336; }
+        .success { background-color: #e8f5e8; border-color: #4caf50; }
+    </style>
+</head>
+<body>
+    <h1>支付API测试</h1>
+    <button onclick="testPayment()">测试支付API</button>
+    <div id="result" class="result"></div>
+
+    <script>
+        function testPayment() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '测试中...';
+            resultDiv.className = 'result';
+
+            const paymentData = {
+                orderId: 'TEST_' + Date.now(),
+                amount: 19900,
+                description: '测试支付',
+                paymentMethod: 'wechat'
+            };
+
+            fetch('https://zonya.work/api/create_payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应错误: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                resultDiv.innerHTML = '测试成功!<br>' + JSON.stringify(data, null, 2);
+                resultDiv.className = 'result success';
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '测试失败!<br>' + error.message;
+                resultDiv.className = 'result error';
+            });
+        }
+    </script>
+</body>
+</html>

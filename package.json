@@ -1,38 +1,43 @@
 {
   "name": "yinhexingchen",
   "version": "1.0.0",
-  "description": "财务专用浏览器",
-  "main": "main.js",
+  "description": "银河星辰平台",
+  "main": "server.js",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "start": "node server.js",
+    "pm2": "pm2 start server.js --name yinhexingchen",
+    "stop": "pm2 stop yinhexingchen",
+    "restart": "pm2 restart yinhexingchen",
+    "status": "pm2 status",
+    "logs": "pm2 logs yinhexingchen",
+    "save": "pm2 save",
+    "monitor": "pm2 monit"
   },
-  "keywords": ["财务", "浏览器", "electron"],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "docx": "^9.6.1",
+    "express": "^4.17.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
+    "path": "^0.12.7"
+  },
+  "keywords": [
+    "yinhexingchen",
+    "payment",
+    "wechat",
+    "alipay"
+  ],
+  "author": "银河星辰",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loveyalee/yinhexingchen-finance-browser.git"
+  },
   "type": "commonjs",
-  "devDependencies": {
-    "electron": "^29.0.0",
-    "electron-builder": "^24.0.0"
+  "bugs": {
+    "url": "https://github.com/loveyalee/yinhexingchen-finance-browser/issues"
   },
-  "build": {
-    "appId": "com.yinhexingchen.app",
-    "productName": "银河星辰财务浏览器",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": ["nsis", "portable"]
-    },
-    "mac": {
-      "target": ["dmg", "zip"]
-    },
-    "linux": {
-      "target": ["AppImage", "deb"]
-    }
-  }
+  "homepage": "https://github.com/loveyalee/yinhexingchen-finance-browser#readme"
 }

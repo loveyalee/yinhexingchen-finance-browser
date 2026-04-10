@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -25,7 +26,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -75,7 +76,7 @@
     .submenu {
       position: relative;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -97,11 +98,18 @@
       padding: 10px 15px;
       color: white;
       text-decoration: none;
+      border-radius: 4px;
       transition: background-color 0.3s;
     }
     
     .submenu-item a:hover {
       background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 三级菜单样式 */
+    .submenu-item .submenu {
+      margin-left: 20px;
+      margin-top: 5px;
     }
     
     .main-content {
@@ -113,7 +121,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -131,7 +139,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -151,7 +159,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -177,7 +185,7 @@
     
     .card h3 {
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .card-content {
@@ -189,7 +197,7 @@
     .feature-item {
       padding: 10px;
       border-left: 3px solid #3498db;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 0 4px 4px 0;
     }
     
@@ -206,7 +214,7 @@
     /* 行业头条样式 */
     .news-item {
       padding: 12px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       cursor: pointer;
       transition: background-color 0.3s;
     }
@@ -223,7 +231,7 @@
       font-size: 14px;
       font-weight: bold;
       margin-bottom: 5px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .news-source {
@@ -247,14 +255,14 @@
       border: 1px solid #3498db;
       border-radius: 4px;
       background-color: white;
-      color: #3498db;
+      color: #1a5fa8;
       cursor: pointer;
       font-size: 12px;
       transition: all 0.3s;
     }
     
     .news-update button:hover {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
 
@@ -263,6 +271,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
+      margin-top: 30px;
       margin-bottom: 20px;
     }
 
@@ -289,9 +298,90 @@
     .quick-feature-item .feature-name {
       font-size: 16px;
       font-weight: 600;
-      color: #2c3e50;
+      color: #1a2d42;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
@@ -300,7 +390,16 @@
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
@@ -309,27 +408,53 @@
         <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">出入库管理</a></li>
             <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('finance-management'); return false;">财务管理</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
+              </ul>
+            </li>
+            <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
-        <li class="nav-item has-submenu">
-          <a href="finance_jobs.html">财务快聘</a>
-          <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
-          </ul>
-        </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
-        <li class="nav-item"><a href="member.html">我的会员</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -468,12 +593,118 @@
         });
       });
       
+      // 切换"我的会员"二级菜单
+      window.toggleMemberSubmenu = function(element) {
+        const navItem = element.closest('.nav-item.has-submenu');
+        if (navItem) {
+          navItem.classList.toggle('active');
+        }
+      }
+      
+      // 处理退出登录
+      window.handleLogout = function() {
+        if (confirm('确定要退出登录吗？')) {
+          // 清除本地存储的登录信息
+          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem('userProfile');
+          localStorage.removeItem('userWallet');
+          localStorage.removeItem('userTransactions');
+
+          // 跳转到登录页面
+          window.location.href = 'login.html';
+        }
+      }
+
+      // 实名认证弹窗
+      window.showRealNameAuth = function() {
+        const existing = document.getElementById('realname-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'realname-modal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        modal.innerHTML = `
+          <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin:0 0 24px 0;color:#1a2332;font-size:22px;text-align:center;">实名认证</h3>
+            <div style="margin-bottom:16px;">
+              <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">真实姓名</label>
+              <input type="text" id="realname-input" placeholder="请输入真实姓名" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">身份证号</label>
+              <input type="text" id="idcard-input" placeholder="请输入18位身份证号" maxlength="18" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:20px;">
+              <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">出生日期</label>
+              <input type="text" id="birthdate-input" placeholder="自动识别" readonly style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;background:#f8fafc;color:#64748b;">
+            </div>
+            <div style="display:flex;gap:12px;">
+              <button id="realname-cancel" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;background:#f1f5f9;color:#64748b;font-weight:500;">取消</button>
+              <button id="realname-confirm" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;">确认认证</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 身份证号输入自动提取出生日期
+        const idcardInput = document.getElementById('idcard-input');
+        const birthdateInput = document.getElementById('birthdate-input');
+        idcardInput.addEventListener('input', function() {
+          const idcard = this.value.trim();
+          if (/^\d{17}[\dXx]$/.test(idcard)) {
+            const year = idcard.substring(6, 10);
+            const month = idcard.substring(10, 12);
+            const day = idcard.substring(12, 14);
+            birthdateInput.value = `${year}-${month}-${day}`;
+          } else {
+            birthdateInput.value = '';
+          }
+        });
+
+        // 取消按钮
+        document.getElementById('realname-cancel').addEventListener('click', function() {
+          modal.remove();
+        });
+
+        // 确认认证
+        document.getElementById('realname-confirm').addEventListener('click', function() {
+          const name = document.getElementById('realname-input').value.trim();
+          const idcard = idcardInput.value.trim();
+          const birthdate = birthdateInput.value;
+
+          if (!name) {
+            alert('请输入真实姓名');
+            return;
+          }
+          if (!/^\d{17}[\dXx]$/.test(idcard)) {
+            alert('请输入正确的18位身份证号');
+            return;
+          }
+
+          // 保存实名认证信息
+          const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+          userInfo.realName = name;
+          userInfo.idcard = idcard;
+          userInfo.birthDate = birthdate;
+          userInfo.realNameVerified = true;
+          localStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+          alert('实名认证成功！');
+          modal.remove();
+        });
+
+        // 点击背景关闭
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) modal.remove();
+        });
+      }
+      
       // 功能配置数据
       const featureConfig = [
         { id: 'accounting', name: '记账凭证', icon: '📊', url: 'accounting.html' },
         { id: 'finance_management', name: '财务报表', icon: '📈', url: 'finance_management.html' },
         { id: 'tax_reporting', name: '一键报税', icon: '💳', url: 'tax_reporting.html' },
-        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'invoice_management.html' },
+        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'accounting.html#invoice-list' },
         { id: 'contract_management', name: '合同管理', icon: '📋', url: 'contract_management.html' },
         { id: 'online_store', name: '在线商城', icon: '🛒', url: 'online_store.html' },
         { id: 'smart_assistant', name: 'AI助手', icon: '🤖', url: 'smart_assistant.html' },
@@ -562,32 +793,20 @@
         }
       }
       
-      // 功能卡片点击事件
+      // 功能卡片点击事件（更多功能区域）
       const featureItems = document.querySelectorAll('.feature-item');
       featureItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const featureName = this.querySelector('h4').textContent;
-          console.log('点击了功能：', featureName);
-          
-          // 根据功能名称跳转到对应页面
-          if (featureName === '财务软件集成') {
-            window.location.href = 'finance_software.html';
-          } else if (featureName === '一键报税') {
-            window.location.href = 'tax_reporting.html';
-          } else if (featureName === '数据分析') {
-            window.location.href = 'data_analysis.html';
-          } else if (featureName === '财务学堂') {
-            window.location.href = 'finance_academy.html';
-          } else if (featureName === '模板专区') {
-            window.location.href = 'templates_tools.html';
-          } else if (featureName === '在线商城') {
-            window.location.href = 'online_store.html';
-          } else if (featureName === 'AI助手') {
-            window.location.href = 'smart_assistant.html';
-          } else if (featureName === '风险预警系统') {
-            window.location.href = 'risk_management.html';
-          }
-        });
+        // 检查是否包含链接，如果包含则让链接自己处理跳转
+        const link = item.querySelector('a');
+        if (link) {
+          // 有链接的项，点击整个区域时模拟点击链接
+          item.addEventListener('click', function(e) {
+            // 如果点击的不是链接本身，则触发链接跳转
+            if (e.target !== link && !link.contains(e.target)) {
+              window.location.href = link.href;
+            }
+          });
+        }
         
         // 添加鼠标悬停效果
         item.style.cursor = 'pointer';
@@ -611,10 +830,14 @@
         });
       }
       
-      // 行业头条功能
+      // 行业头条功能（仅在存在容器时初始化）
       const newsContainer = document.getElementById('news-container');
       const refreshNewsBtn = document.getElementById('refresh-news');
       
+      // 如果页面没有新闻容器，则跳过新闻功能初始化
+      if (!newsContainer) {
+        console.log('页面没有新闻容器，跳过新闻功能初始化');
+      } else {
       // 新闻数据源
       const newsSources = [
         {
@@ -717,14 +940,48 @@
       
       // 初始化新闻
       autoUpdateNews();
+      } // 结束新闻功能初始化
       
-      // 处理二级菜单的点击事件
+      // 处理二级菜单的点击事件（只处理没有onclick属性的元素）
       document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          this.classList.toggle('active');
-        });
+        const link = item.querySelector('a');
+        if (!link.hasAttribute('onclick')) {
+          item.addEventListener('click', function(e) {
+            e.preventDefault();
+            this.classList.toggle('active');
+          });
+        }
       });
+      
+      // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
+      window.toggleSubmenu = function(element) {
+        const navItem = element.closest('.nav-item.has-submenu');
+        if (navItem) {
+          navItem.classList.toggle('active');
+        }
+      };
+      
+      // showModule 函数（用于处理子菜单点击）
+      window.showModule = function(moduleName) {
+        console.log('显示模块：', moduleName);
+        // 根据模块名跳转到相应页面
+        if (moduleName.startsWith('tax-')) {
+          // 税务专区模块
+          window.location.href = 'tax_zone.html';
+        } else if (moduleName.startsWith('financing-')) {
+          // 企业融资模块
+          window.location.href = 'enterprise_management.html';
+        } else if (moduleName === 'company-management' || moduleName === 'bidding') {
+          // 公司管理、招投标管理 → 企业管理页面
+          window.location.href = 'enterprise_management.html';
+        } else if (moduleName === 'finance-management') {
+          // 财务管理
+          window.location.href = 'finance_management.html';
+        } else {
+          // 其他财务管理子模块
+          window.location.href = 'finance_management.html';
+        }
+      };
     });
   </script>
 <!-- 引用蜻蜓聊天器 -->

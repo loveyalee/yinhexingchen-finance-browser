@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>一键报税 - 银河星辰财务专用浏览器</title>
+  <title>一键报税- 银河星辰财务专用浏览器</title>
   <style>
     * {
       margin: 0;
@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -58,7 +59,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -67,7 +70,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -78,7 +81,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -115,7 +118,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -124,7 +127,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .content-area {
@@ -143,7 +146,7 @@
     .tax-tabs {
       display: flex;
       margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .tab {
@@ -154,8 +157,8 @@
     }
     
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -173,7 +176,7 @@
     
     .tax-type-selection h3 {
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .tax-type-grid {
@@ -183,7 +186,7 @@
     }
     
     .tax-type-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       cursor: pointer;
@@ -193,11 +196,11 @@
     
     .tax-type-card:hover {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .tax-type-card.selected {
-      border-color: #3498db;
+      border-color: #1a5fa8;
       background-color: #e3f2fd;
     }
     
@@ -213,7 +216,7 @@
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .form-group input,
@@ -221,7 +224,7 @@
     .form-group textarea {
       width: 100%;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       font-size: 14px;
     }
@@ -241,12 +244,12 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -265,7 +268,7 @@
     }
     
     .status-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 15px;
@@ -280,7 +283,7 @@
     
     .status-title {
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .status-badge {
@@ -318,13 +321,14 @@
     
     .history-table th,
     .history-table td {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       padding: 10px;
       text-align: left;
     }
     
     .history-table th {
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
+      color: #1a2d42;
       font-weight: bold;
     }
     
@@ -333,17 +337,17 @@
     }
     
     .policy-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 10px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .policy-title {
       font-weight: bold;
       margin-bottom: 5px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .policy-date {
@@ -356,30 +360,124 @@
       font-size: 14px;
       color: #333;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html" class="active">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html" class="active">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -387,8 +485,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -400,7 +498,7 @@
     
     <div class="main-content">
       <div class="header">
-        <h1>一键报税系统</h1>
+        <h1>一键报税系/h1>
         <div>
           <button class="btn btn-primary">同步数据</button>
         </div>
@@ -409,16 +507,16 @@
       <div class="content-area">
         <div class="tax-reporting">
           <div class="tax-tabs">
-            <div class="tab active" data-tab="dashboard">报税仪表盘</div>
-            <div class="tab" data-tab="form">填写申报表</div>
-            <div class="tab" data-tab="status">申报状态</div>
+            <div class="tab active" data-tab="dashboard">报税仪表/div>
+            <div class="tab" data-tab="form">填写申报税/div>
+            <div class="tab" data-tab="status">申报状/div>
             <div class="tab" data-tab="history">历史记录</div>
             <div class="tab" data-tab="policy">税务政策</div>
           </div>
           
           <div class="tab-content active" id="dashboard">
             <h3>报税概览</h3>
-            <p>欢迎使用一键报税系统，您可以在这里完成各种税务申报工作。</p>
+            <p>欢迎使用一键报税系统，您可以在这里完成各种税务申报工作/p>
             
             <div class="tax-type-selection">
               <h3>选择税种</h3>
@@ -429,18 +527,18 @@
                 </div>
                 <div class="tax-type-card">
                   <h4>企业所得税</h4>
-                  <p>按季度/年度申报</p>
+                  <p>按季年度申报</p>
                 </div>
                 <div class="tax-type-card">
                   <h4>个人所得税</h4>
                   <p>按月申报</p>
                 </div>
                 <div class="tax-type-card">
-                  <h4>城市维护建设税</h4>
+                  <h4>城市维护建设/h4>
                   <p>按月/季度申报</p>
                 </div>
                 <div class="tax-type-card">
-                  <h4>教育费附加</h4>
+                  <h4>教育费附/h4>
                   <p>按月/季度申报</p>
                 </div>
                 <div class="tax-type-card">
@@ -451,11 +549,11 @@
             </div>
             
             <div class="status-section">
-              <h3>近期申报状态</h3>
+              <h3>近期申报状/h3>
               <div class="status-card">
                 <div class="status-header">
-                  <div class="status-title">增值税 (2024年3月)</div>
-                  <span class="status-badge status-success">已完成</span>
+                  <div class="status-title">增值税 (2024</div>
+                  <span class="status-badge status-success">已完/span>
                 </div>
                 <p>申报日期: 2024-04-10</p>
                 <p>申报金额: ¥12,500.00</p>
@@ -463,7 +561,7 @@
               <div class="status-card">
                 <div class="status-header">
                   <div class="status-title">企业所得税 (2024年第一季度)</div>
-                  <span class="status-badge status-pending">待申报</span>
+                  <span class="status-badge status-pending">待申/span>
                 </div>
                 <p>截止日期: 2024-04-15</p>
                 <p>预计金额: ¥35,000.00</p>
@@ -472,7 +570,7 @@
           </div>
           
           <div class="tab-content" id="form">
-            <h3>填写申报表</h3>
+            <h3>填写申报税/h3>
             <div class="tax-form">
               <div class="form-group">
                 <label for="tax-type">税种</label>
@@ -480,20 +578,20 @@
                   <option value="vat">增值税</option>
                   <option value="corporate-income">企业所得税</option>
                   <option value="personal-income">个人所得税</option>
-                  <option value="城建税">城市维护建设税</option>
+                  <option value="城建>城市维护建设/option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="report-period">申报期间</label>
                 <select id="report-period">
-                  <option value="2024-03">2024年3月</option>
+                  <option value="2024-03">2024/option>
                   <option value="2024-q1">2024年第一季度</option>
                   <option value="2023-annual">2023年度</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="sales-amount">销售收入</label>
-                <input type="number" id="sales-amount" placeholder="请输入销售收入">
+                <label for="sales-amount">销售收/label>
+                <input type="number" id="sales-amount" placeholder="请输入销售收>
               </div>
               <div class="form-group">
                 <label for="taxable-amount">应纳税所得额</label>
@@ -501,15 +599,15 @@
               </div>
               <div class="form-group">
                 <label for="tax-rate">税率</label>
-                <input type="number" id="tax-rate" placeholder="请输入税率" step="0.01">
+                <input type="number" id="tax-rate" placeholder="请输入税 step="0.01">
               </div>
               <div class="form-group">
                 <label for="tax-amount">应纳税额</label>
-                <input type="number" id="tax-amount" placeholder="请输入应纳税额">
+                <input type="number" id="tax-amount" placeholder="请输入应纳税>
               </div>
               <div class="form-group">
                 <label for="notes">备注</label>
-                <textarea id="notes" rows="3" placeholder="请输入备注信息"></textarea>
+                <textarea id="notes" rows="3" placeholder="请输入备注信></textarea>
               </div>
               <div class="form-actions">
                 <button class="btn btn-secondary">自动填充</button>
@@ -520,34 +618,34 @@
           </div>
           
           <div class="tab-content" id="status">
-            <h3>申报状态</h3>
+            <h3>申报状/h3>
             <div class="status-section">
               <div class="status-card">
                 <div class="status-header">
-                  <div class="status-title">增值税 (2024年3月)</div>
-                  <span class="status-badge status-success">已完成</span>
+                  <div class="status-title">增值税 (2024</div>
+                  <span class="status-badge status-success">已完/span>
                 </div>
                 <p>申报日期: 2024-04-10</p>
                 <p>申报金额: ¥12,500.00</p>
-                <p>状态: 税务机关已受理</p>
+                <p>状 税务机关已受/p>
               </div>
               <div class="status-card">
                 <div class="status-header">
                   <div class="status-title">企业所得税 (2024年第一季度)</div>
-                  <span class="status-badge status-pending">待申报</span>
+                  <span class="status-badge status-pending">待申/span>
                 </div>
                 <p>截止日期: 2024-04-15</p>
                 <p>预计金额: ¥35,000.00</p>
-                <p>状态: 尚未申报</p>
+                <p>状 尚未申报</p>
               </div>
               <div class="status-card">
                 <div class="status-header">
-                  <div class="status-title">个人所得税 (2024年3月)</div>
-                  <span class="status-badge status-processing">处理中</span>
+                  <div class="status-title">个人所得税 (2024</div>
+                  <span class="status-badge status-processing">处理/span>
                 </div>
                 <p>申报日期: 2024-04-05</p>
                 <p>申报金额: ¥8,200.00</p>
-                <p>状态: 税务机关审核中</p>
+                <p>状 税务机关审核/p>
               </div>
             </div>
           </div>
@@ -561,47 +659,47 @@
                   <th>申报期间</th>
                   <th>申报日期</th>
                   <th>申报金额</th>
-                  <th>状态</th>
+                  <th>状/th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>增值税</td>
-                  <td>2024年3月</td>
+                  <td>2024/td>
                   <td>2024-04-10</td>
                   <td>¥12,500.00</td>
-                  <td><span class="status-badge status-success">已完成</span></td>
+                  <td><span class="status-badge status-success">已完/span></td>
                   <td>
                     <button class="btn btn-primary">查看</button>
                   </td>
                 </tr>
                 <tr>
                   <td>企业所得税</td>
-                  <td>2023年第四季度</td>
+                  <td>2023年第四季/td>
                   <td>2024-01-15</td>
                   <td>¥42,000.00</td>
-                  <td><span class="status-badge status-success">已完成</span></td>
+                  <td><span class="status-badge status-success">已完/span></td>
                   <td>
                     <button class="btn btn-primary">查看</button>
                   </td>
                 </tr>
                 <tr>
                   <td>个人所得税</td>
-                  <td>2024年2月</td>
+                  <td>2024/td>
                   <td>2024-03-05</td>
                   <td>¥7,800.00</td>
-                  <td><span class="status-badge status-success">已完成</span></td>
+                  <td><span class="status-badge status-success">已完/span></td>
                   <td>
                     <button class="btn btn-primary">查看</button>
                   </td>
                 </tr>
                 <tr>
                   <td>增值税</td>
-                  <td>2024年2月</td>
+                  <td>2024/td>
                   <td>2024-03-10</td>
                   <td>¥10,200.00</td>
-                  <td><span class="status-badge status-success">已完成</span></td>
+                  <td><span class="status-badge status-success">已完/span></td>
                   <td>
                     <button class="btn btn-primary">查看</button>
                   </td>
@@ -617,22 +715,19 @@
                 <div class="policy-title">关于小微企业普惠性税收减免政策的通知</div>
                 <div class="policy-date">2024-03-15</div>
                 <div class="policy-content">
-                  为进一步支持小微企业发展，自2024年1月1日至2027年12月31日，对小型微利企业年应纳税所得额不超过300万元的部分，减按25%计入应纳税所得额，按20%的税率缴纳企业所得税。
-                </div>
+                  为进一步支持小微企业发展，024日至202721日，对小型微利企业年应纳税所得额不超00万元的部分，减按25%计入应纳税所得额，按20%的税率缴纳企业所得税                </div>
               </div>
               <div class="policy-card">
-                <div class="policy-title">关于增值税小规模纳税人减免增值税政策的公告</div>
+                <div class="policy-title">关于增值税小规模纳税人减免增值税政策的公/div>
                 <div class="policy-date">2024-02-20</div>
                 <div class="policy-content">
-                  自2024年1月1日至2027年12月31日，对月销售额10万元以下（含本数）的增值税小规模纳税人，免征增值税。
-                </div>
+                  024日至202721日，对月销售额10万元以下（含本数）的增值税小规模纳税人，免征增值税                </div>
               </div>
               <div class="policy-card">
                 <div class="policy-title">关于个人所得税专项附加扣除标准调整的通知</div>
                 <div class="policy-date">2024-01-10</div>
                 <div class="policy-content">
-                  自2024年1月1日起，提高3岁以下婴幼儿照护、子女教育、继续教育、住房贷款利息或者住房租金、赡养老人等专项附加扣除标准。
-                </div>
+                  024日起，提岁以下婴幼儿照护、子女教育、继续教育、住房贷款利息或者住房租金、赡养老人等专项附加扣除标准                </div>
               </div>
             </div>
           </div>
@@ -642,6 +737,13 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -649,13 +751,10 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
@@ -666,10 +765,8 @@
       const taxTypeCards = document.querySelectorAll('.tax-type-card');
       taxTypeCards.forEach(card => {
         card.addEventListener('click', function() {
-          // 移除所有卡片的selected类
-          taxTypeCards.forEach(c => c.classList.remove('selected'));
-          // 添加当前卡片的selected类
-          this.classList.add('selected');
+          // 移除所有卡片的selected          taxTypeCards.forEach(c => c.classList.remove('selected'));
+          // 添加当前卡片的selected          this.classList.add('selected');
         });
       });
       
@@ -685,7 +782,7 @@
       const submitButton = document.querySelector('.btn-success');
       if (submitButton) {
         submitButton.addEventListener('click', function() {
-          alert('申报提交成功！');
+          alert('申报提交成功);
         });
       }
       
@@ -698,7 +795,7 @@
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

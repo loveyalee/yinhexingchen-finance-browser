@@ -2,7 +2,7 @@
 # 用于将银河星辰财务专用浏览器部署到云服务器
 
 # 服务器配置
-$SERVER_IP = "49.232.63.136"
+$SERVER_IP = "111.230.36.222"
 $SERVER_USER = "root"
 $SERVER_DIR = "/var/www/yinhexingchen"
 

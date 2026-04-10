@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -66,7 +67,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -84,7 +85,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -104,7 +105,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -129,13 +130,13 @@
     
     .invoice-filters select {
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
     }
     
     .invoice-filters input {
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
     }
     
@@ -155,7 +156,7 @@
     
     .invoice-card h3 {
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
       font-size: 16px;
     }
     
@@ -179,7 +180,7 @@
     
     .invoice-table-header {
       padding: 15px 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       background-color: #f8f9fa;
       border-radius: 8px 8px 0 0;
       display: flex;
@@ -189,7 +190,7 @@
     
     .invoice-table-header h3 {
       font-size: 16px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .invoice-table-content {
@@ -204,17 +205,17 @@
     th, td {
       padding: 12px;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     th {
       background-color: #f8f9fa;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     tr:hover {
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .invoice-status {
@@ -275,7 +276,7 @@
     
     .chart-header h3 {
       font-size: 16px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chart-content {
@@ -288,20 +289,105 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 4px;
       color: #999;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
@@ -314,6 +400,15 @@
         <li class="nav-item"><a href="invoice_management.html" class="active">发票管理</a></li>
         <li class="nav-item"><a href="contract_management.html">合同管理</a></li>
         <li class="nav-item"><a href="seal_management.html">电子印章管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item"><a href="finance_jobs.html">财务快聘</a></li>
@@ -327,11 +422,11 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn" onclick="window.history.back()">←</button>
-            <button class="btn" onclick="window.history.forward()">→</button>
-            <button class="btn" onclick="location.reload()">⟳</button>
+            <button class="btn" onclick="window.history.back()">/button>
+            <button class="btn" onclick="window.history.forward()">/button>
+            <button class="btn" onclick="location.reload()">/button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <input type="text" placeholder="输入网址或搜索财务相关内..">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
@@ -343,15 +438,15 @@
         <div class="invoice-header">
           <div class="invoice-filters">
             <select>
-              <option>全部状态</option>
-              <option>已支付</option>
-              <option>未支付</option>
-              <option>待处理</option>
+              <option>全部状/option>
+              <option>已支/option>
+              <option>未支/option>
+              <option>待处/option>
             </select>
-            <input type="date" placeholder="开始日期">
+            <input type="date" placeholder="开始日>
             <input type="date" placeholder="结束日期">
-            <input type="text" placeholder="搜索发票号">
-            <button class="btn btn-primary">筛选</button>
+            <input type="text" placeholder="搜索发票>
+            <button class="btn btn-primary">筛/button>
             <button class="btn btn-success">新增发票</button>
           </div>
         </div>
@@ -360,25 +455,25 @@
           <div class="invoice-card">
             <h3>本月发票总额</h3>
             <div class="invoice-amount">¥125,000</div>
-            <div class="invoice-count">共 50 张发票</div>
+            <div class="invoice-count">50 张发/div>
           </div>
           
           <div class="invoice-card">
-            <h3>已支付发票</h3>
+            <h3>已支付发/h3>
             <div class="invoice-amount">¥95,000</div>
-            <div class="invoice-count">共 35 张发票</div>
+            <div class="invoice-count">35 张发/div>
           </div>
           
           <div class="invoice-card">
-            <h3>未支付发票</h3>
+            <h3>未支付发/h3>
             <div class="invoice-amount">¥30,000</div>
-            <div class="invoice-count">共 15 张发票</div>
+            <div class="invoice-count">15 张发/div>
           </div>
           
           <div class="invoice-card">
             <h3>平均发票金额</h3>
             <div class="invoice-amount">¥2,500</div>
-            <div class="invoice-count">本月平均值</div>
+            <div class="invoice-count">本月平均/div>
           </div>
         </div>
         
@@ -391,11 +486,11 @@
             <table>
               <thead>
                 <tr>
-                  <th>发票号</th>
+                  <th>发票/th>
                   <th>客户名称</th>
                   <th>金额</th>
                   <th>日期</th>
-                  <th>状态</th>
+                  <th>状/th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -405,7 +500,7 @@
                   <td>北京科技有限公司</td>
                   <td>¥15,000</td>
                   <td>2024-01-15</td>
-                  <td><span class="invoice-status paid">已支付</span></td>
+                  <td><span class="invoice-status paid">已支/span></td>
                   <td class="invoice-actions">
                     <button class="btn btn-success">查看</button>
                     <button class="btn btn-warning">编辑</button>
@@ -416,7 +511,7 @@
                   <td>上海贸易公司</td>
                   <td>¥10,000</td>
                   <td>2024-01-14</td>
-                  <td><span class="invoice-status unpaid">未支付</span></td>
+                  <td><span class="invoice-status unpaid">未支/span></td>
                   <td class="invoice-actions">
                     <button class="btn btn-success">查看</button>
                     <button class="btn btn-warning">编辑</button>
@@ -424,10 +519,10 @@
                 </tr>
                 <tr>
                   <td>INV-2024-003</td>
-                  <td>广州制造企业</td>
+                  <td>广州制造企/td>
                   <td>¥8,500</td>
                   <td>2024-01-13</td>
-                  <td><span class="invoice-status pending">待处理</span></td>
+                  <td><span class="invoice-status pending">待处/span></td>
                   <td class="invoice-actions">
                     <button class="btn btn-success">查看</button>
                     <button class="btn btn-warning">编辑</button>
@@ -438,7 +533,7 @@
                   <td>深圳科技公司</td>
                   <td>¥12,000</td>
                   <td>2024-01-12</td>
-                  <td><span class="invoice-status paid">已支付</span></td>
+                  <td><span class="invoice-status paid">已支/span></td>
                   <td class="invoice-actions">
                     <button class="btn btn-success">查看</button>
                     <button class="btn btn-warning">编辑</button>
@@ -449,7 +544,7 @@
                   <td>杭州电商平台</td>
                   <td>¥9,500</td>
                   <td>2024-01-11</td>
-                  <td><span class="invoice-status unpaid">未支付</span></td>
+                  <td><span class="invoice-status unpaid">未支/span></td>
                   <td class="invoice-actions">
                     <button class="btn btn-success">查看</button>
                     <button class="btn btn-warning">编辑</button>
@@ -483,11 +578,11 @@
     document.addEventListener('DOMContentLoaded', function() {
       // 模拟发票数据更新
       setInterval(function() {
-        console.log('发票数据更新中...');
+        console.log('发票数据更新..');
       }, 60000);
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

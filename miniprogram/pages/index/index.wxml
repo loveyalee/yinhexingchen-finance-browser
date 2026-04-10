@@ -1,0 +1,90 @@
+<!-- 银河星辰小程序首页 -->
+<view class="container">
+  <!-- 顶部欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-header">
+      <view class="user-info" wx:if="{{userInfo}}">
+        <image class="avatar" src="{{userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-text">
+          <view class="user-name">{{userInfo.nickname || '用户'}}</view>
+          <view class="user-level">
+            <text class="badge badge-primary">{{userInfo.memberLevel || '普通会员'}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="user-info" wx:else bindtap="goToLogin">
+        <image class="avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
+        <view class="user-text">
+          <view class="user-name">点击登录</view>
+          <view class="user-desc">登录享受更多功能</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="quick-actions">
+    <view class="action-item" bindtap="goToMember">
+      <view class="action-icon">👤</view>
+      <view class="action-text">会员中心</view>
+    </view>
+    <view class="action-item" bindtap="goToPayment">
+      <view class="action-icon">💳</view>
+      <view class="action-text">充值续费</view>
+    </view>
+    <view class="action-item" bindtap="goToOrders">
+      <view class="action-icon">📋</view>
+      <view class="action-text">我的订单</view>
+    </view>
+    <view class="action-item" bindtap="goToService">
+      <view class="action-icon">💬</view>
+      <view class="action-text">联系客服</view>
+    </view>
+  </view>
+
+  <!-- 功能模块 -->
+  <view class="features-section">
+    <view class="section-header">
+      <view class="section-title">全部功能</view>
+      <view class="section-more">更多 ></view>
+    </view>
+    
+    <view class="features-grid">
+      <view 
+        class="feature-item" 
+        wx:for="{{features}}" 
+        wx:key="id"
+        data-feature="{{item}}"
+        bindtap="onFeatureTap"
+      >
+        <view class="feature-icon">{{item.icon}}</view>
+        <view class="feature-name">{{item.name}}</view>
+        <view class="feature-desc">{{item.description}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热门推荐 -->
+  <view class="recommend-section">
+    <view class="section-header">
+      <view class="section-title">热门推荐</view>
+    </view>
+    
+    <view class="recommend-card">
+      <view class="recommend-icon">🔥</view>
+      <view class="recommend-content">
+        <view class="recommend-title">黄金会员限时优惠</view>
+        <view class="recommend-desc">开通即享50G云盘空间</view>
+        <view class="recommend-price">
+          <text class="price-symbol">¥</text>
+          <text class="price-value">199</text>
+          <text class="price-unit">/年</text>
+        </view>
+      </view>
+      <view class="recommend-btn" bindtap="goToPayment">立即开通</view>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+</view>

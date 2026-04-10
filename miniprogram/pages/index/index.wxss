@@ -1,0 +1,227 @@
+/* 银河星辰小程序首页样式 */
+
+.container {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  padding-bottom: 20rpx;
+}
+
+/* 欢迎区域 */
+.welcome-section {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+  padding: 40rpx 30rpx 60rpx;
+  border-radius: 0 0 40rpx 40rpx;
+  margin-bottom: -40rpx;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.user-text {
+  margin-left: 24rpx;
+  flex: 1;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 8rpx;
+}
+
+.user-desc {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-level {
+  margin-top: 12rpx;
+}
+
+/* 快捷入口 */
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 30rpx 20rpx;
+  background-color: white;
+  margin: 0 30rpx 30rpx;
+  border-radius: 24rpx;
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 10;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10rpx 20rpx;
+}
+
+.action-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: var(--text-color);
+}
+
+/* 功能模块 */
+.features-section {
+  padding: 0 30rpx 30rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.section-more {
+  font-size: 24rpx;
+  color: var(--text-light);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 10rpx;
+  background-color: white;
+  border-radius: 16rpx;
+  transition: all 0.3s;
+}
+
+.feature-item:active {
+  transform: scale(0.95);
+  background-color: #f0f0f0;
+}
+
+.feature-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.feature-name {
+  font-size: 24rpx;
+  color: var(--text-color);
+  margin-bottom: 4rpx;
+  text-align: center;
+  font-weight: 500;
+}
+
+.feature-desc {
+  font-size: 20rpx;
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* 热门推荐 */
+.recommend-section {
+  padding: 0 30rpx 30rpx;
+}
+
+.recommend-card {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+  border-radius: 20rpx;
+  border: 2rpx solid #ffecec;
+}
+
+.recommend-icon {
+  font-size: 64rpx;
+  margin-right: 24rpx;
+}
+
+.recommend-content {
+  flex: 1;
+}
+
+.recommend-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 8rpx;
+}
+
+.recommend-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+}
+
+.recommend-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+  color: var(--danger-color);
+  font-weight: bold;
+  margin-right: 4rpx;
+}
+
+.price-value {
+  font-size: 40rpx;
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.price-unit {
+  font-size: 20rpx;
+  color: var(--text-light);
+  margin-left: 4rpx;
+}
+
+.recommend-btn {
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, var(--danger-color) 0%, #c0392b 100%);
+  color: white;
+  font-size: 24rpx;
+  font-weight: 500;
+  border-radius: 40rpx;
+  white-space: nowrap;
+}
+
+.recommend-btn:active {
+  opacity: 0.8;
+}
+
+/* 底部留白 */
+.bottom-space {
+  height: 40rpx;
+}

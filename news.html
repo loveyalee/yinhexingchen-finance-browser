@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -30,7 +31,7 @@
     .service-icon {
       width: 60px;
       height: 60px;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       border-radius: 50%;
       display: flex;
       flex-direction: column;
@@ -84,7 +85,7 @@
     
     .service-header h3 {
       margin: 0;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .service-close {
@@ -103,7 +104,7 @@
     
     .service-item {
       padding: 12px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s;
@@ -132,7 +133,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -184,7 +185,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -221,7 +222,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -239,7 +240,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -259,7 +260,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -282,7 +283,7 @@
     }
     
     .news-header h2 {
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .news-filters {
@@ -292,7 +293,7 @@
     
     .filter-btn {
       padding: 8px 16px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       background-color: white;
       cursor: pointer;
@@ -300,9 +301,9 @@
     }
     
     .filter-btn.active {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .news-list {
@@ -326,7 +327,7 @@
     
     .news-card h3 {
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
       font-size: 18px;
     }
     
@@ -351,7 +352,7 @@
     
     .action-btn {
       padding: 6px 12px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       background-color: white;
       cursor: pointer;
@@ -372,7 +373,7 @@
     
     .page-btn {
       padding: 8px 16px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       background-color: white;
       cursor: pointer;
@@ -380,9 +381,9 @@
     }
     
     .page-btn.active {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .news-update {
@@ -395,17 +396,98 @@
       border: 1px solid #3498db;
       border-radius: 4px;
       background-color: white;
-      color: #3498db;
+      color: #1a5fa8;
       cursor: pointer;
       font-size: 14px;
       transition: all 0.3s;
     }
     
     .news-update button:hover {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
@@ -431,14 +513,29 @@
             <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
           </ul>
         </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item"><a href="finance_jobs.html">财务快聘</a></li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html" class="active">行业头条</a></li>
-        <li class="nav-item"><a href="member.html">我的会员</a></li>
-        <li class="nav-item"><a href="admin.html">管理后台</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -524,6 +621,94 @@
   </div>
   
   <script>
+    // 切换"我的会员"二级菜单并跳转到个人中心
+    function toggleMemberSubmenu(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+      // 跳转到个人中心页面
+      window.location.href = 'member.html';
+    }
+    
+    // 处理退出登录
+    function handleLogout() {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+
+        // 跳转到登录页面
+        window.location.href = 'login.html';
+      }
+    }
+
+    // 实名认证弹窗
+    function showRealNameAuth() {
+      const existing = document.getElementById('realname-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'realname-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <h3 style="margin:0 0 24px 0;color:#1a2332;font-size:22px;text-align:center;">实名认证</h3>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">真实姓名</label>
+            <input type="text" id="realname-input" placeholder="请输入真实姓名" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">身份证号</label>
+            <input type="text" id="idcard-input" placeholder="请输入18位身份证号" maxlength="18" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">出生日期</label>
+            <input type="text" id="birthdate-input" placeholder="自动识别" readonly style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;background:#f8fafc;color:#64748b;">
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button id="realname-cancel" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;background:#f1f5f9;color:#64748b;font-weight:500;">取消</button>
+            <button id="realname-confirm" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;">确认认证</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const idcardInput = document.getElementById('idcard-input');
+      const birthdateInput = document.getElementById('birthdate-input');
+      idcardInput.addEventListener('input', function() {
+        const idcard = this.value.trim();
+        if (/^\d{17}[\dXx]$/.test(idcard)) {
+          const year = idcard.substring(6, 10);
+          const month = idcard.substring(10, 12);
+          const day = idcard.substring(12, 14);
+          birthdateInput.value = `${year}-${month}-${day}`;
+        } else {
+          birthdateInput.value = '';
+        }
+      });
+
+      document.getElementById('realname-cancel').addEventListener('click', function() { modal.remove(); });
+      document.getElementById('realname-confirm').addEventListener('click', function() {
+        const name = document.getElementById('realname-input').value.trim();
+        const idcard = idcardInput.value.trim();
+        const birthdate = birthdateInput.value;
+        if (!name) { alert('请输入真实姓名'); return; }
+        if (!/^\d{17}[\dXx]$/.test(idcard)) { alert('请输入正确的18位身份证号'); return; }
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        userInfo.realName = name;
+        userInfo.idcard = idcard;
+        userInfo.birthDate = birthdate;
+        userInfo.realNameVerified = true;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        alert('实名认证成功！');
+        modal.remove();
+      });
+      modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 浏览器功能实现
       const searchInput = document.querySelector('.browser-bar input');

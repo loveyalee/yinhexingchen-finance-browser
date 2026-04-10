@@ -61,6 +61,50 @@
       background-color: #3498db;
     }
     
+    /* 二级菜单样式 */
+    .nav-item.has-submenu {
+      position: relative;
+    }
+    
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .submenu {
+      position: relative;
+      width: 100%;
+      background-color: #2c3e50;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      list-style: none;
+      margin-top: 5px;
+    }
+    
+    .nav-item.has-submenu.active .submenu {
+      display: block;
+    }
+    
+    .submenu-item {
+      margin: 0;
+    }
+    
+    .submenu-item a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .submenu-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
     .main-content {
       flex: 1;
       display: flex;
@@ -136,6 +180,92 @@
     
     .info-value {
       font-weight: 500;
+    }
+    
+    .membership-select {
+      margin-bottom: 30px;
+    }
+    
+    .membership-select h3 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .membership-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+    }
+    
+    .membership-item {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background-color: white;
+    }
+    
+    .membership-item:hover {
+      border-color: #3498db;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+    }
+    
+    .membership-item.active {
+      border-color: #3498db;
+      background-color: rgba(52, 152, 219, 0.05);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    }
+    
+    .membership-item.featured {
+      border-color: #f39c12;
+      position: relative;
+    }
+    
+    .membership-item.featured::before {
+      content: '推荐';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f39c12;
+      color: white;
+      padding: 3px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .membership-item.featured.active {
+      border-color: #f39c12;
+      background-color: rgba(243, 156, 18, 0.05);
+    }
+    
+    .membership-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    
+    .membership-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .membership-price {
+      font-size: 18px;
+      font-weight: bold;
+      color: #e74c3c;
+    }
+    
+    .membership-price span {
+      font-size: 12px;
+      color: #999;
+      font-weight: normal;
     }
     
     .payment-methods {
@@ -256,9 +386,25 @@
         <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
-        <li class="nav-item"><a href="member.html">我的会员</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -289,6 +435,33 @@
             </div>
           </div>
           
+          <!-- 会员等级选择区域 -->
+          <div class="membership-select" id="membership-select" style="display: none;">
+            <h3>选择会员等级</h3>
+            <div class="membership-list" id="membership-list">
+              <div class="membership-item" data-price="0" data-name="普通会员">
+                <div class="membership-icon">🥉</div>
+                <div class="membership-name">普通会员</div>
+                <div class="membership-price">¥0<span>/年</span></div>
+              </div>
+              <div class="membership-item featured" data-price="199" data-name="黄金会员">
+                <div class="membership-icon">🥈</div>
+                <div class="membership-name">黄金会员</div>
+                <div class="membership-price">¥199<span>/年</span></div>
+              </div>
+              <div class="membership-item" data-price="399" data-name="钻石会员">
+                <div class="membership-icon">🥇</div>
+                <div class="membership-name">钻石会员</div>
+                <div class="membership-price">¥399<span>/年</span></div>
+              </div>
+              <div class="membership-item" data-price="599" data-name="VIP会员">
+                <div class="membership-icon">👑</div>
+                <div class="membership-name">VIP会员</div>
+                <div class="membership-price">¥599<span>/年</span></div>
+              </div>
+            </div>
+          </div>
+          
           <div class="payment-methods">
             <h3>选择支付方式</h3>
             <div class="method-list" id="method-list">
@@ -307,6 +480,8 @@
             <div class="status-icon" id="status-icon">⏳</div>
             <h3 class="status-title" id="status-title">处理中</h3>
             <p class="status-message" id="status-message">正在处理您的支付请求...</p>
+            <div id="payment-extra-info" style="display:none; margin:15px 0;"></div>
+            <button class="btn btn-secondary" id="confirm-paid-button" style="display:none; margin:0 0 15px 0;">我已完成支付</button>
             <div class="payment-actions">
               <button class="btn btn-primary" id="back-button">返回</button>
             </div>
@@ -319,21 +494,152 @@
   <script src="payment-config.js"></script>
   <script src="payment.js"></script>
   <script>
+    // 切换"我的会员"二级菜单并跳转到个人中心
+    function toggleMemberSubmenu(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+      // 跳转到个人中心页面
+      window.location.href = 'member.html';
+    }
+    
+    // 处理退出登录
+    function handleLogout() {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+
+        // 跳转到登录页面
+        window.location.href = 'login.html';
+      }
+    }
+
+    // 实名认证弹窗
+    function showRealNameAuth() {
+      const existing = document.getElementById('realname-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'realname-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <h3 style="margin:0 0 24px 0;color:#1a2332;font-size:22px;text-align:center;">实名认证</h3>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">真实姓名</label>
+            <input type="text" id="realname-input" placeholder="请输入真实姓名" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">身份证号</label>
+            <input type="text" id="idcard-input" placeholder="请输入18位身份证号" maxlength="18" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">出生日期</label>
+            <input type="text" id="birthdate-input" placeholder="自动识别" readonly style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;background:#f8fafc;color:#64748b;">
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button id="realname-cancel" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;background:#f1f5f9;color:#64748b;font-weight:500;">取消</button>
+            <button id="realname-confirm" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;">确认认证</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const idcardInput = document.getElementById('idcard-input');
+      const birthdateInput = document.getElementById('birthdate-input');
+      idcardInput.addEventListener('input', function() {
+        const idcard = this.value.trim();
+        if (/^\d{17}[\dXx]$/.test(idcard)) {
+          birthdateInput.value = idcard.substring(6,10)+'-'+idcard.substring(10,12)+'-'+idcard.substring(12,14);
+        } else { birthdateInput.value = ''; }
+      });
+
+      document.getElementById('realname-cancel').addEventListener('click', function() { modal.remove(); });
+      document.getElementById('realname-confirm').addEventListener('click', function() {
+        const name = document.getElementById('realname-input').value.trim();
+        const idcard = idcardInput.value.trim();
+        if (!name) { alert('请输入真实姓名'); return; }
+        if (!/^\d{17}[\dXx]$/.test(idcard)) { alert('请输入正确的18位身份证号'); return; }
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        userInfo.realName = name; userInfo.idcard = idcard; userInfo.birthDate = birthdateInput.value; userInfo.realNameVerified = true;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        alert('实名认证成功！'); modal.remove();
+      });
+      modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 获取URL参数
       const urlParams = new URLSearchParams(window.location.search);
-      const amount = parseFloat(urlParams.get('amount') || '0');
-      const orderId = urlParams.get('orderId') || 'ORDER_' + Date.now();
-      const productName = urlParams.get('productName') || '商品';
+
+      // 处理从支付宝跳回的情况
+      if (urlParams.get('status') === 'alipay_return') {
+        document.getElementById('payment-form').style.display = 'none';
+        document.getElementById('payment-status').style.display = 'block';
+        document.getElementById('status-icon').textContent = '✅';
+        document.getElementById('status-title').textContent = '支付完成';
+        document.getElementById('status-message').textContent = '支付宝支付已提交，订单将自动确认。如有疑问请联系客服。';
+        document.getElementById('back-button').addEventListener('click', function() {
+          window.location.href = 'member.html';
+        });
+        return;
+      }
+
+      let amount = parseFloat(urlParams.get('amount') || '0');
+      let orderId = urlParams.get('orderId') || 'ORDER_' + Date.now();
+      let productName = urlParams.get('productName') || '商品';
       const type = urlParams.get('type') || 'product'; // product 或 membership
       
       // 初始化支付配置
-      if (window.paymentConfig) {
-        PaymentProcessor.init({
+      if (window.paymentConfig && window.paymentProcessor) {
+        paymentProcessor.init({
           wechat: window.paymentConfig.wechat,
           alipay: window.paymentConfig.alipay,
           serverUrl: window.paymentConfig.server.url
         });
+      }
+      
+      // 如果是会员类型，显示会员等级选择区域
+      const membershipSelect = document.getElementById('membership-select');
+      console.log('Type:', type);
+      console.log('Membership select element:', membershipSelect);
+      if (type === 'membership') {
+        membershipSelect.style.display = 'block';
+        console.log('显示会员等级选择区域');
+        
+        // 绑定会员等级选择事件
+        const membershipItems = document.querySelectorAll('.membership-item');
+        membershipItems.forEach(item => {
+          item.addEventListener('click', function() {
+            // 移除所有选中状态
+            membershipItems.forEach(i => i.classList.remove('active'));
+            // 添加当前选中状态
+            this.classList.add('active');
+            
+            // 更新金额和商品名称
+            const price = parseFloat(this.dataset.price);
+            const name = this.dataset.name;
+            amount = price;
+            productName = name;
+            
+            // 更新显示
+            document.getElementById('payment-amount').textContent = '¥' + amount.toFixed(2);
+            document.getElementById('product-name').textContent = productName;
+          });
+        });
+        
+        // 如果URL中有金额，尝试自动选中对应的会员等级
+        if (amount > 0) {
+          membershipItems.forEach(item => {
+            if (parseFloat(item.dataset.price) === amount) {
+              item.classList.add('active');
+            }
+          });
+        }
       }
       
       // 填充支付信息
@@ -385,7 +691,7 @@
         
         try {
           // 发起支付
-          const result = await PaymentProcessor.createPayment({
+          const result = await paymentProcessor.createPayment({
             amount: amount,
             orderId: orderId,
             paymentMethod: paymentMethod,
@@ -394,17 +700,23 @@
           
           if (result.success) {
             // 支付成功
+            document.getElementById('payment-extra-info').style.display = 'none';
+            document.getElementById('confirm-paid-button').style.display = 'none';
             document.getElementById('status-icon').textContent = '✅';
             document.getElementById('status-title').textContent = '支付成功';
             document.getElementById('status-message').textContent = '您的支付已成功完成！';
           } else {
             // 支付失败
+            document.getElementById('payment-extra-info').style.display = 'none';
+            document.getElementById('confirm-paid-button').style.display = 'none';
             document.getElementById('status-icon').textContent = '❌';
             document.getElementById('status-title').textContent = '支付失败';
             document.getElementById('status-message').textContent = '支付过程中出现错误，请重试。';
           }
         } catch (error) {
           // 支付异常
+          document.getElementById('payment-extra-info').style.display = 'none';
+          document.getElementById('confirm-paid-button').style.display = 'none';
           document.getElementById('status-icon').textContent = '❌';
           document.getElementById('status-title').textContent = '支付失败';
           document.getElementById('status-message').textContent = '支付过程中出现错误：' + error.message;

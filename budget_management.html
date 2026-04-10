@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -63,7 +64,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -74,7 +75,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -111,7 +112,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -129,7 +130,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -149,7 +150,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -174,7 +175,7 @@
     
     .budget-period select {
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
     }
     
@@ -194,7 +195,7 @@
     
     .budget-card h3 {
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
       font-size: 16px;
     }
     
@@ -245,7 +246,7 @@
     
     .budget-table-header {
       padding: 15px 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       background-color: #f8f9fa;
       border-radius: 8px 8px 0 0;
       display: flex;
@@ -255,7 +256,7 @@
     
     .budget-table-header h3 {
       font-size: 16px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .budget-table-content {
@@ -270,17 +271,17 @@
     th, td {
       padding: 12px;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     th {
       background-color: #f8f9fa;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     tr:hover {
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .budget-actions {
@@ -319,7 +320,7 @@
     
     .chart-header h3 {
       font-size: 16px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chart-content {
@@ -332,34 +333,128 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 4px;
       color: #999;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html" class="active">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -367,8 +462,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -382,11 +477,11 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn" onclick="window.history.back()">←</button>
-            <button class="btn" onclick="window.history.forward()">→</button>
-            <button class="btn" onclick="location.reload()">⟳</button>
+            <button class="btn" onclick="window.history.back()">/button>
+            <button class="btn" onclick="window.history.forward()">/button>
+            <button class="btn" onclick="location.reload()">/button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <input type="text" placeholder="输入网址或搜索财务相关内..">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
@@ -399,12 +494,12 @@
           <h2>预算管理</h2>
           <div class="budget-period">
             <select>
-              <option>2024年</option>
-              <option>2023年</option>
-              <option>2022年</option>
+              <option>2024/option>
+              <option>2023/option>
+              <option>2022/option>
             </select>
             <select>
-              <option>全年度</option>
+              <option>全年/option>
               <option>第一季度</option>
               <option>第二季度</option>
               <option>第三季度</option>
@@ -417,12 +512,12 @@
         
         <div class="budget-dashboard">
           <div class="budget-card">
-            <h3>总预算</h3>
+            <h3>总预/h3>
             <div class="budget-amount">¥1,000,000</div>
             <div class="budget-progress">
               <div class="budget-progress-bar green" style="width: 60%"></div>
             </div>
-            <div class="budget-percentage">已使用 60% (¥600,000)</div>
+            <div class="budget-percentage">已使60% (¥600,000)</div>
           </div>
           
           <div class="budget-card">
@@ -431,7 +526,7 @@
             <div class="budget-progress">
               <div class="budget-progress-bar yellow" style="width: 75%"></div>
             </div>
-            <div class="budget-percentage">已使用 75% (¥375,000)</div>
+            <div class="budget-percentage">已使75% (¥375,000)</div>
           </div>
           
           <div class="budget-card">
@@ -440,7 +535,7 @@
             <div class="budget-progress">
               <div class="budget-progress-bar green" style="width: 45%"></div>
             </div>
-            <div class="budget-percentage">已使用 45% (¥90,000)</div>
+            <div class="budget-percentage">已使45% (¥90,000)</div>
           </div>
           
           <div class="budget-card">
@@ -449,7 +544,7 @@
             <div class="budget-progress">
               <div class="budget-progress-bar red" style="width: 85%"></div>
             </div>
-            <div class="budget-percentage">已使用 85% (¥255,000)</div>
+            <div class="budget-percentage">已使85% (¥255,000)</div>
           </div>
         </div>
         
@@ -466,7 +561,7 @@
                   <th>预算金额</th>
                   <th>实际支出</th>
                   <th>差异</th>
-                  <th>执行率</th>
+                  <th>执行/th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -483,7 +578,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>市场部</td>
+                  <td>市场/td>
                   <td>¥200,000</td>
                   <td>¥90,000</td>
                   <td>¥110,000</td>
@@ -494,7 +589,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>研发部</td>
+                  <td>研发/td>
                   <td>¥300,000</td>
                   <td>¥255,000</td>
                   <td>¥45,000</td>
@@ -505,7 +600,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>行政部</td>
+                  <td>行政/td>
                   <td>¥100,000</td>
                   <td>¥75,000</td>
                   <td>¥25,000</td>
@@ -516,7 +611,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>财务部</td>
+                  <td>财务/td>
                   <td>¥100,000</td>
                   <td>¥60,000</td>
                   <td>¥40,000</td>
@@ -551,14 +646,21 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 模拟预算数据更新
       setInterval(function() {
-        console.log('预算数据更新中...');
+        console.log('预算数据更新..');
       }, 60000);
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

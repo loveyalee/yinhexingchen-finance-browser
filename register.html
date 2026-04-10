@@ -10,312 +10,758 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
       color: #333;
       display: flex;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    }
+
+    /* 左侧品牌区域 */
+    .brand-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
     }
-    
-    .register-container {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 40px;
-      width: 400px;
-      max-width: 90%;
+
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(56, 139, 253, 0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+      animation: bgFloat 20s ease-in-out infinite;
     }
-    
-    .register-header {
-      text-align: center;
+
+    @keyframes bgFloat {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-20px, 20px) rotate(2deg); }
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #388bfd, #8b5cf6);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(56, 139, 253, 0.3);
     }
-    
-    .register-header h2 {
-      color: #2c3e50;
-      font-size: 24px;
-      margin-bottom: 10px;
+
+    .brand-logo svg {
+      width: 44px;
+      height: 44px;
+      fill: white;
     }
-    
-    .register-header p {
-      color: #666;
+
+    .brand-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 2px;
+    }
+
+    .brand-subtitle {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 50px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-features {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-feature {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: rgba(255, 255, 255, 0.75);
       font-size: 14px;
     }
-    
-    .form-group {
-      margin-bottom: 20px;
+
+    .brand-feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
     }
-    
+
+    .brand-feature-icon.blue { background: rgba(56, 139, 253, 0.15); }
+    .brand-feature-icon.purple { background: rgba(139, 92, 246, 0.15); }
+    .brand-feature-icon.green { background: rgba(45, 164, 78, 0.15); }
+    .brand-feature-icon.orange { background: rgba(227, 149, 0, 0.15); }
+
+    /* 右侧注册区域 */
+    .register-panel {
+      width: 520px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .register-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 50px 45px;
+    }
+
+    .register-header {
+      margin-bottom: 32px;
+    }
+
+    .register-header h2 {
+      color: #1a2332;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .register-header p {
+      color: #8b95a1;
+      font-size: 14px;
+    }
+
+    /* 用户类型选择卡片 */
+    .user-type-cards {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .user-type-card {
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid #e8ecf0;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .user-type-card:hover {
+      border-color: #388bfd;
+      background: #f0f7ff;
+    }
+
+    .user-type-card.active {
+      border-color: #388bfd;
+      background: #f0f7ff;
+      box-shadow: 0 2px 8px rgba(56, 139, 253, 0.15);
+    }
+
+    .user-type-card input[type="radio"] {
+      display: none;
+    }
+
+    .user-type-card .type-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .user-type-card .type-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3a4654;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
     .form-group label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-weight: 500;
-      color: #333;
+      color: #3a4654;
+      font-size: 13px;
     }
-    
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #b0b8c4;
       font-size: 16px;
-      transition: border-color 0.3s;
+      pointer-events: none;
     }
-    
-    .form-group input:focus {
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1px solid #e0e4e8;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: #f8f9fb;
+    }
+
+    .input-wrapper input:focus {
       outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      border-color: #388bfd;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.1);
     }
-    
-    .form-group .verification-code {
+
+    .input-wrapper select {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1px solid #e0e4e8;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #f8f9fb;
+      transition: all 0.2s;
+    }
+
+    .input-wrapper select:focus {
+      outline: none;
+      border-color: #388bfd;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.1);
+    }
+
+    .verification-code {
       display: flex;
       gap: 10px;
     }
-    
-    .form-group .verification-code input {
+
+    .verification-code input {
       flex: 1;
     }
-    
-    .form-group .verification-code button {
-      padding: 0 15px;
-      background-color: #f5f5f5;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
+
+    .verification-code button {
+      padding: 0 20px;
+      background: linear-gradient(135deg, #388bfd, #5b9ef5);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
     }
-    
-    .form-group .verification-code button:hover {
-      background-color: #e0e0e0;
+
+    .verification-code button:hover {
+      box-shadow: 0 4px 12px rgba(56, 139, 253, 0.3);
     }
-    
+
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .password-strength .bar {
+      flex: 1;
+      height: 3px;
+      border-radius: 2px;
+      background: #e0e4e8;
+      transition: background 0.3s;
+    }
+
+    .password-strength .bar.weak { background: #e74c3c; }
+    .password-strength .bar.medium { background: #f39c12; }
+    .password-strength .bar.strong { background: #27ae60; }
+
     .form-actions {
       margin-bottom: 20px;
     }
-    
+
     .form-actions label {
       display: flex;
       align-items: center;
-      font-size: 14px;
-      color: #666;
+      font-size: 13px;
+      color: #8b95a1;
+      cursor: pointer;
     }
-    
+
     .form-actions input[type="checkbox"] {
       margin-right: 8px;
+      accent-color: #388bfd;
     }
-    
+
     .form-actions a {
-      color: #3498db;
+      color: #388bfd;
       text-decoration: none;
     }
-    
+
     .form-actions a:hover {
       text-decoration: underline;
     }
-    
-    .btn {
+
+    .btn-register {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      font-weight: 500;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    
-    .btn-primary {
-      background-color: #3498db;
+      transition: all 0.2s;
+      background: linear-gradient(135deg, #388bfd, #5b6ef5);
       color: white;
+      letter-spacing: 1px;
     }
-    
-    .btn-primary:hover {
-      background-color: #2980b9;
+
+    .btn-register:hover {
+      box-shadow: 0 4px 16px rgba(56, 139, 253, 0.4);
+      transform: translateY(-1px);
     }
-    
+
+    .btn-register:active {
+      transform: translateY(0);
+    }
+
     .login-link {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #8b95a1;
     }
-    
+
     .login-link a {
-      color: #3498db;
+      color: #388bfd;
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
     }
-    
+
     .login-link a:hover {
       text-decoration: underline;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #c8ced6;
+      font-size: 12px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e8ecf0;
+    }
+
+    .divider span {
+      padding: 0 12px;
+    }
+
+    .social-login {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .social-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid #e8ecf0;
+      background: #f8f9fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 20px;
+    }
+
+    .social-btn:hover {
+      border-color: #388bfd;
+      background: #f0f7ff;
+    }
+
+    /* 蜻蜓Chat登录区 */
+    .chat-login-box {
+      background: linear-gradient(135deg, #f0f7ff, #f5f0ff);
+      border: 1px solid #e0e8f5;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .chat-login-logo {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .chat-login-desc {
+      color: #7a8fa8;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .chat-login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-login-form input:focus {
+      border-color: #388bfd;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.1);
+    }
+
+    .btn-chat-login {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: linear-gradient(135deg, #388bfd, #8b5cf6);
+      color: white;
+    }
+
+    .btn-chat-login:hover {
+      box-shadow: 0 4px 12px rgba(56, 139, 253, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* 第三方机构字段 */
+    #institution-fields {
+      background: #f8f9fb;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 18px;
+      border: 1px solid #e8ecf0;
+    }
+
+    #institution-fields .form-group {
+      margin-bottom: 14px;
+    }
+
+    #institution-fields .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 响应式 */
+    @media (max-width: 900px) {
+      .brand-panel { display: none; }
+      .register-panel { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="register-container">
-    <div class="register-header">
-      <h2>注册银河星辰财务专用浏览器</h2>
-      <p>创建账户以访问全部功能</p>
+  <!-- 左侧品牌展示区 -->
+  <div class="brand-panel">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
     </div>
-    
-    <form id="register-form">
-      <div class="form-group">
-        <label for="phone">手机号</label>
-        <input type="tel" id="phone" placeholder="请输入手机号码" required>
+    <div class="brand-title">银河星辰</div>
+    <div class="brand-subtitle">专业财务 · 智慧管理 · 高效协同</div>
+    <div class="brand-features">
+      <div class="brand-feature">
+        <div class="brand-feature-icon blue">&#128179;</div>
+        <span>智能凭证录入，自动借贷平衡</span>
       </div>
-      
-      <div class="form-group">
-        <label for="verification-code">验证码</label>
-        <div class="verification-code">
-          <input type="text" id="verification-code" placeholder="请输入验证码" required>
-          <button type="button" onclick="sendVerificationCode()">获取验证码</button>
-        </div>
+      <div class="brand-feature">
+        <div class="brand-feature-icon purple">&#128200;</div>
+        <span>多维度报表分析，实时掌握财务状况</span>
       </div>
-      
-      <div class="form-group">
-        <label for="password">密码</label>
-        <input type="password" id="password" placeholder="请设置密码" required>
+      <div class="brand-feature">
+        <div class="brand-feature-icon green">&#128274;</div>
+        <span>银行级数据加密，安全可靠</span>
       </div>
-      
-      <div class="form-group">
-        <label for="confirm-password">确认密码</label>
-        <input type="password" id="confirm-password" placeholder="请确认密码" required>
+      <div class="brand-feature">
+        <div class="brand-feature-icon orange">&#127891;</div>
+        <span>专业财税知识库，持续学习成长</span>
       </div>
-      
-      <div class="form-group">
-        <label>用户类型</label>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="radio" name="user-type" value="personal" checked onclick="toggleUserType()">
-            <span>个人用户</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="radio" name="user-type" value="enterprise" onclick="toggleUserType()">
-            <span>企业用户</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="radio" name="user-type" value="institution" onclick="toggleUserType()">
-            <span>第三方机构</span>
-          </label>
-        </div>
-      </div>
-      
-      <!-- 第三方机构注册字段 -->
-      <div id="institution-fields" style="display: none;">
-        <div class="form-group">
-          <label>机构类型</label>
-          <select id="institution-type" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 16px;">
-            <option value="">请选择机构类型</option>
-            <option value="accounting">会计师事务所</option>
-            <option value="lawyer">律师事务所</option>
-            <option value="valuation">资产评估机构</option>
-            <option value="trademark">商标专利代理机构</option>
-            <option value="tech">高新科小代理机构</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="institution-name">机构名称</label>
-          <input type="text" id="institution-name" placeholder="请输入机构名称">
-        </div>
-        
-        <div class="form-group">
-          <label for="credit-code">统一社会信用代码</label>
-          <input type="text" id="credit-code" placeholder="请输入统一社会信用代码">
-        </div>
-        
-        <div class="form-group">
-          <label for="contact-person">联系人</label>
-          <input type="text" id="contact-person" placeholder="请输入联系人姓名">
-        </div>
-      </div>
-      
-      <div class="form-actions">
-        <label>
-          <input type="checkbox" required> 我已阅读并同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a>
-        </label>
-      </div>
-      
-      <button type="submit" class="btn btn-primary">注册</button>
-    </form>
-    
-    <div class="login-link">
-      已有账户？<a href="login.html">立即登录</a>
     </div>
   </div>
-  
+
+  <!-- 右侧注册表单 -->
+  <div class="register-panel">
+    <div class="register-inner">
+      <div class="register-header">
+        <h2>创建账户</h2>
+        <p>注册后即可体验全部专业财务功能</p>
+      </div>
+
+      <!-- 用户类型卡片选择 -->
+      <div class="user-type-cards">
+        <div class="user-type-card active" onclick="selectUserType(this, 'personal')">
+          <input type="radio" name="user-type" value="personal" checked>
+          <div class="type-icon">&#128100;</div>
+          <div class="type-name">个人用户</div>
+        </div>
+        <div class="user-type-card" onclick="selectUserType(this, 'enterprise')">
+          <input type="radio" name="user-type" value="enterprise">
+          <div class="type-icon">&#127970;</div>
+          <div class="type-name">企业用户</div>
+        </div>
+        <div class="user-type-card" onclick="selectUserType(this, 'institution')">
+          <input type="radio" name="user-type" value="institution">
+          <div class="type-icon">&#127963;</div>
+          <div class="type-name">第三方机构</div>
+        </div>
+      </div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="phone">手机号</label>
+          <div class="input-wrapper">
+            <span class="input-icon">&#128241;</span>
+            <input type="tel" id="phone" placeholder="请输入手机号码" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="verification-code">验证码</label>
+          <div class="verification-code">
+            <div class="input-wrapper" style="flex:1;">
+              <span class="input-icon">&#128274;</span>
+              <input type="text" id="verification-code" placeholder="请输入验证码" required>
+            </div>
+            <button type="button" id="send-code-btn" onclick="sendVerificationCode()">获取验证码</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">密码</label>
+          <div class="input-wrapper">
+            <span class="input-icon">&#128272;</span>
+            <input type="password" id="password" placeholder="请设置密码（至少6位）" required oninput="checkPasswordStrength()">
+          </div>
+          <div class="password-strength" id="password-strength">
+            <div class="bar" id="str-bar-1"></div>
+            <div class="bar" id="str-bar-2"></div>
+            <div class="bar" id="str-bar-3"></div>
+            <div class="bar" id="str-bar-4"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">确认密码</label>
+          <div class="input-wrapper">
+            <span class="input-icon">&#128272;</span>
+            <input type="password" id="confirm-password" placeholder="请再次输入密码" required>
+          </div>
+        </div>
+
+        <!-- 第三方机构注册字段 -->
+        <div id="institution-fields" style="display: none;">
+          <div class="form-group">
+            <label>机构类型</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#127963;</span>
+              <select id="institution-type">
+                <option value="">请选择机构类型</option>
+                <option value="accounting">会计师事务所</option>
+                <option value="lawyer">律师事务所</option>
+                <option value="valuation">资产评估机构</option>
+                <option value="trademark">商标专利代理机构</option>
+                <option value="tech">高新科小代理机构</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="institution-name">机构名称</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#127970;</span>
+              <input type="text" id="institution-name" placeholder="请输入机构名称">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="credit-code">统一社会信用代码</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#128196;</span>
+              <input type="text" id="credit-code" placeholder="请输入统一社会信用代码">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="contact-person">联系人</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#128100;</span>
+              <input type="text" id="contact-person" placeholder="请输入联系人姓名">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <label>
+            <input type="checkbox" required> 我已阅读并同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-register">注 册</button>
+      </form>
+
+      <div class="divider"><span>蜻蜓Chat 登录</span></div>
+
+      <div class="chat-login-box">
+        <div class="chat-login-logo">&#129412;</div>
+        <p class="chat-login-desc">使用蜻蜓Chat账号快捷登录</p>
+        <div class="chat-login-form">
+          <input type="text" id="chat-username" placeholder="蜻蜓Chat用户名" style="width:100%;padding:11px 14px;border:1px solid #e0e4e8;border-radius:8px;font-size:14px;background:#f8f9fb;outline:none;transition:all 0.2s;">
+          <input type="password" id="chat-password" placeholder="密码" style="width:100%;padding:11px 14px;border:1px solid #e0e4e8;border-radius:8px;font-size:14px;background:#f8f9fb;outline:none;transition:all 0.2s;">
+          <button type="button" class="btn-chat-login" onclick="chatLogin()">登录蜻蜓Chat</button>
+        </div>
+      </div>
+
+      <div class="login-link">
+        已有账户？<a href="login.html">立即登录</a>
+      </div>
+    </div>
+  </div>
+
   <script>
+    function selectUserType(el, type) {
+      document.querySelectorAll('.user-type-card').forEach(function(card) {
+        card.classList.remove('active');
+      });
+      el.classList.add('active');
+      el.querySelector('input[type="radio"]').checked = true;
+
+      var institutionFields = document.getElementById('institution-fields');
+      institutionFields.style.display = type === 'institution' ? 'block' : 'none';
+    }
+
+    function checkPasswordStrength() {
+      var pwd = document.getElementById('password').value;
+      var strength = 0;
+      if (pwd.length >= 6) strength++;
+      if (pwd.length >= 10) strength++;
+      if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) strength++;
+      if (/[0-9]/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) strength++;
+
+      for (var i = 1; i <= 4; i++) {
+        var bar = document.getElementById('str-bar-' + i);
+        bar.className = 'bar';
+        if (i <= strength) {
+          if (strength <= 1) bar.classList.add('weak');
+          else if (strength <= 2) bar.classList.add('medium');
+          else bar.classList.add('strong');
+        }
+      }
+    }
+
+    function sendVerificationCode() {
+      var phone = document.getElementById('phone').value;
+      if (!phone) {
+        alert('请输入手机号');
+        return;
+      }
+      var btn = document.getElementById('send-code-btn');
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      var countdown = 60;
+      btn.textContent = countdown + 's';
+      var timer = setInterval(function() {
+        countdown--;
+        btn.textContent = countdown + 's';
+        if (countdown <= 0) {
+          clearInterval(timer);
+          btn.textContent = '获取验证码';
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        }
+      }, 1000);
+      alert('验证码已发送到您的手机');
+    }
+
+    function chatLogin() {
+      var username = document.getElementById('chat-username').value;
+      var password = document.getElementById('chat-password').value;
+      if (!username || !password) {
+        alert('请输入蜻蜓Chat用户名和密码');
+        return;
+      }
+      alert('蜻蜓Chat登录成功！正在同步账户信息...');
+      // 自动填充手机号
+      if (!document.getElementById('phone').value) {
+        document.getElementById('phone').value = username;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      const registerForm = document.getElementById('register-form');
-      
+      var registerForm = document.getElementById('register-form');
+
       registerForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const phone = document.getElementById('phone').value;
-        const verificationCode = document.getElementById('verification-code').value;
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const userType = document.querySelector('input[name="user-type"]:checked').value;
-        
-        // 简单验证
+        var phone = document.getElementById('phone').value;
+        var verificationCode = document.getElementById('verification-code').value;
+        var password = document.getElementById('password').value;
+        var confirmPassword = document.getElementById('confirm-password').value;
+        var userType = document.querySelector('input[name="user-type"]:checked').value;
+
         if (!phone || !verificationCode || !password || !confirmPassword) {
           alert('请填写所有必填字段');
           return;
         }
-        
+
         if (password !== confirmPassword) {
           alert('两次输入的密码不一致');
           return;
         }
-        
-        // 验证第三方机构字段
+
         if (userType === 'institution') {
-          const institutionType = document.getElementById('institution-type').value;
-          const institutionName = document.getElementById('institution-name').value;
-          const creditCode = document.getElementById('credit-code').value;
-          const contactPerson = document.getElementById('contact-person').value;
-          
+          var institutionType = document.getElementById('institution-type').value;
+          var institutionName = document.getElementById('institution-name').value;
+          var creditCode = document.getElementById('credit-code').value;
+          var contactPerson = document.getElementById('contact-person').value;
+
           if (!institutionType || !institutionName || !creditCode || !contactPerson) {
             alert('请填写所有机构信息');
             return;
           }
         }
-        
-        // 模拟注册验证
-        let successMessage = '注册成功！请登录您的账户';
+
+        var successMessage = '注册成功！请登录您的账户';
         if (userType === 'institution') {
-          const institutionType = document.getElementById('institution-type').options[document.getElementById('institution-type').selectedIndex].text;
-          successMessage = `注册成功！${institutionType}账户已创建，请登录您的账户`;
+          var sel = document.getElementById('institution-type');
+          successMessage = '注册成功！' + sel.options[sel.selectedIndex].text + '账户已创建，请登录您的账户';
         }
-        
+
         alert(successMessage);
         window.location.href = 'login.html';
       });
     });
-    
-    function toggleUserType() {
-      const userType = document.querySelector('input[name="user-type"]:checked').value;
-      const institutionFields = document.getElementById('institution-fields');
-      
-      if (userType === 'institution') {
-        institutionFields.style.display = 'block';
-      } else {
-        institutionFields.style.display = 'none';
-      }
-    }
-    
-    function sendVerificationCode() {
-      const phone = document.getElementById('phone').value;
-      if (!phone) {
-        alert('请输入手机号');
-        return;
-      }
-      
-      // 模拟发送验证码
-      alert('验证码已发送到您的手机');
-    }
   </script>
 <!-- 引用蜻蜓聊天器 -->
   <script src="chat_float.js"></script>

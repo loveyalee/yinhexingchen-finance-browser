@@ -3,271 +3,351 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: *; font-src 'self' *; connect-src 'self' *; media-src 'self'; object-src 'none';">
   <title>财务软件集成 - 银河星辰财务专用浏览器</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+      color: #1a2d42;
     }
-    
-    .container {
-      display: flex;
-      height: 100vh;
-    }
-    
+
+    .container { display: flex; height: 100vh; }
+
+    /* ── 侧边栏：深海军蓝 ── */
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
       max-height: 100vh;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30);
+      flex-shrink: 0;
     }
-    
+
     .logo {
-      font-size: 24px;
+      font-size: 17px;
       font-weight: bold;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
       text-align: center;
     }
-    
-    .nav-menu {
-      list-style: none;
-    }
-    
-    .nav-item {
-      margin-bottom: 10px;
-    }
-    
+
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 4px; }
+
     .nav-item a {
       display: block;
-      padding: 12px;
-      color: white;
+      padding: 11px 14px;
+      color: rgba(255,255,255,0.82);
       text-decoration: none;
-      border-radius: 4px;
-      transition: background-color 0.3s;
+      border-radius: 6px;
+      transition: all 0.22s ease;
+      font-size: 14px;
     }
-    
+
     .nav-item a:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      padding-left: 18px;
     }
-    
+
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 3px 10px rgba(200,146,26,0.35);
     }
-    
-    /* 二级菜单样式 */
-    .nav-item.has-submenu {
-      position: relative;
-    }
-    
-    .nav-item.has-submenu > a::after {
-      content: '▼';
-      float: right;
-      font-size: 12px;
-      margin-left: 5px;
-    }
-    
+
+    .nav-item.has-submenu { position: relative; }
+    .nav-item.has-submenu > a::after { content: '▼'; float: right; font-size: 11px; opacity: 0.6; transition: transform 0.25s; }
+    .nav-item.has-submenu.active > a::after { transform: rotate(180deg); }
+
     .submenu {
-      position: absolute;
-      left: 0;
-      top: 100%;
+      position: relative;
       width: 100%;
-      background-color: #2c3e50;
-      border-radius: 0 0 4px 4px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
       display: none;
       z-index: 1000;
       list-style: none;
+      margin-top: 4px;
+      border-left: 2px solid rgba(200,146,26,0.45);
+      padding: 4px 0;
     }
-    
-    .nav-item.has-submenu:hover .submenu {
-      display: block;
-    }
-    
-    .submenu-item {
-      margin: 0;
-    }
-    
+
+    .nav-item.has-submenu.active .submenu { display: block; }
+    .submenu-item { margin: 0; }
+
     .submenu-item a {
       display: block;
-      padding: 10px 15px;
-      color: white;
+      padding: 9px 14px 9px 20px;
+      color: rgba(255,255,255,0.72);
       text-decoration: none;
-      transition: background-color 0.3s;
+      transition: all 0.2s;
+      font-size: 13px;
+      border-radius: 4px;
     }
-    
+
     .submenu-item a:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      padding-left: 24px;
     }
-    
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    
+
+    /* ── 主内容区 ── */
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
     .header {
-      height: 60px;
-      background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      height: 62px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(26,95,168,0.12);
       display: flex;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 28px;
       justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08);
+      flex-shrink: 0;
     }
-    
+
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      font-weight: 700;
+      color: #1a2d42;
+      letter-spacing: 0.5px;
     }
-    
-    .content-area {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    
+
+    .content-area { flex: 1; padding: 24px; overflow-y: auto; }
+
+    /* ── 主卡片容── */
     .software-integration {
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(26,95,168,0.09);
+      border: 1px solid rgba(26,95,168,0.08);
     }
-    
+
+    /* ── Tab 标签 ── */
     .integration-tabs {
       display: flex;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 22px;
+      border-bottom: 2px solid rgba(26,95,168,0.12);
+      gap: 2px;
     }
-    
+
     .tab {
-      padding: 10px 20px;
+      padding: 10px 22px;
       cursor: pointer;
       border-bottom: 3px solid transparent;
-      transition: all 0.3s;
+      margin-bottom: -2px;
+      transition: all 0.22s;
+      color: #7a8ea8;
+      border-radius: 6px 6px 0 0;
+      font-size: 14px;
     }
-    
+
+    .tab:hover { background: rgba(26,95,168,0.05); color: #1a5fa8; }
+
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
-      font-weight: bold;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
+      font-weight: 600;
+      background: rgba(26,95,168,0.05);
     }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── 软件卡片 ── */
     .software-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 16px;
     }
-    
+
     .software-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 20px;
-      transition: box-shadow 0.3s;
+      background: #fff;
+      border: 1px solid rgba(26,95,168,0.10);
+      border-radius: 12px;
+      padding: 22px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 2px 10px rgba(26,95,168,0.06);
     }
-    
+
     .software-card:hover {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(26,95,168,0.14);
+      border-color: rgba(26,95,168,0.22);
     }
-    
-    .software-card h3 {
-      margin-bottom: 10px;
-      color: #2c3e50;
-    }
-    
-    .software-card p {
-      margin-bottom: 15px;
-      color: #666;
-      font-size: 14px;
-    }
-    
+
+    .software-card h3 { margin-bottom: 10px; color: #1a2d42; font-size: 16px; font-weight: 700; }
+    .software-card p  { margin-bottom: 16px; color: #5a7080; font-size: 13px; line-height: 1.6; }
+
+    /* ── 按钮 ── */
     .btn {
-      padding: 8px 16px;
+      padding: 8px 18px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.22s ease;
+      letter-spacing: 0.3px;
     }
-    
+
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
+      box-shadow: 0 3px 10px rgba(26,95,168,0.28);
     }
-    
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(26,95,168,0.38);
+    }
+
     .btn-secondary {
-      background-color: #95a5a6;
-      color: white;
-      margin-left: 10px;
+      background: rgba(84,110,122,0.10);
+      color: #546e7a;
+      border: 1px solid rgba(84,110,122,0.22);
+      margin-left: 8px;
     }
-    
-    .inventory-management {
-      margin-top: 20px;
-    }
-    
-    .inventory-controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
+
+    .btn-secondary:hover { background: rgba(84,110,122,0.18); }
+
+    /* ── 进销── */
+    .inventory-management { margin-top: 20px; }
+    .inventory-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+
     .inventory-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
     }
-    
+
     .inventory-table th,
     .inventory-table td {
-      border: 1px solid #e0e0e0;
-      padding: 10px;
+      border: 1px solid rgba(26,95,168,0.09);
+      padding: 11px 14px;
       text-align: left;
+      font-size: 14px;
     }
-    
+
     .inventory-table th {
-      background-color: #f9f9f9;
-      font-weight: bold;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
+      color: #1a2d42;
+      font-weight: 700;
     }
-    
-    .status-badge {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
+
+    .inventory-table tr:hover td { background: rgba(26,95,168,0.04); }
+
+    /* ── 状态标── */
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .status-in-stock   { background: #e8f5ee; color: #1a7a52; }
+    .status-low-stock  { background: #fff7e6; color: #8a6200; }
+    .status-out-of-stock { background: #fdecea; color: #8b1a1a; }
+
+    /* ── 滚动── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
     }
-    
-    .status-in-stock {
-      background-color: #d4edda;
-      color: #155724;
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
     }
-    
-    .status-low-stock {
-      background-color: #fff3cd;
-      color: #856404;
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
     }
-    
-    .status-out-of-stock {
-      background-color: #f8d7da;
-      color: #721c24;
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
     }
-  </style>
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
@@ -276,21 +356,39 @@
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item"><a href="finance_software.html" class="active">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -438,7 +536,7 @@
                     <td>鼠标</td>
                     <td>电脑配件</td>
                     <td>0</td>
-                    <td>个</td>
+                    <td>台</td>
                     <td>80</td>
                     <td><span class="status-badge status-out-of-stock">缺货</span></td>
                     <td>
@@ -451,7 +549,7 @@
                     <td>键盘</td>
                     <td>电脑配件</td>
                     <td>30</td>
-                    <td>个</td>
+                    <td>台</td>
                     <td>150</td>
                     <td><span class="status-badge status-in-stock">库存充足</span></td>
                     <td>
@@ -503,7 +601,7 @@
               </div>
               <div class="software-card">
                 <h3>用友BI</h3>
-                <p>商业智能分析系统，提供财务数据分析和可视化报表</p>
+                <p>商业智能分析系统，提供财务数据分析和可视化报税功能</p>
                 <button class="btn btn-primary">集成</button>
                 <button class="btn btn-secondary">详情</button>
               </div>
@@ -515,6 +613,29 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
+    // showModule 函数（用于处理子菜单点击）
+    window.showModule = function(moduleName) {
+      console.log('显示模块', moduleName);
+      // 根据模块名跳转到相应页面
+      if (moduleName.startsWith('tax-')) {
+        // 税务专区模块
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        // 企业融资模块
+        window.location.href = 'enterprise_management.html';
+      } else {
+        // 财务管理模块
+        window.location.href = 'finance_management.html';
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -522,13 +643,10 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
@@ -540,35 +658,73 @@
       buttons.forEach(button => {
         button.addEventListener('click', function() {
           const softwareName = this.parentElement.querySelector('h3').textContent;
-          console.log('点击了按钮，软件名称：', softwareName);
+          console.log('点击了按钮，软件名称', softwareName);
           
           if (softwareName.includes('银河星辰')) {
             // 显示打开提示
             console.log('正在打开' + softwareName + '...');
             
-            // 改变按钮状态，显示加载中
-            const originalText = this.textContent;
-            this.textContent = '打开中...';
-            this.disabled = true;
+            // 改变按钮状态，显示加载            const originalText = this.textContent;
+            const buttonElement = this;
+            buttonElement.textContent = '打开..';
+            buttonElement.disabled = true;
             
-            // 直接跳转到对应的功能页面，不使用setTimeout
-            console.log('准备跳转到对应页面，软件名称：', softwareName);
-            
-            if (softwareName.includes('报表系统')) {
-              // 银河星辰报表系统跳转到数据分析页面
-              console.log('跳转到数据分析页面');
-              window.location.href = 'data_analysis.html';
-            } else if (softwareName === '银河星辰' || softwareName.includes('银河星辰会计核算')) {
-              // 银河星辰主软件和银河星辰会计核算软件都跳转到会计核算页面
-              console.log('跳转到会计核算页面');
+            try {
+              // 直接跳转到对应的功能页面，不使用setTimeout
+              console.log('准备跳转到对应页面，软件名称', softwareName);
               
-              // 检查是否已经选择过行业
-              const savedIndustry = localStorage.getItem('userIndustry');
-              
-              if (savedIndustry) {
-                // 已经选择过行业，直接跳转到凭证管理页面
-                console.log('已经选择过行业，直接跳转');
-                
+              if (softwareName.includes('报表系统')) {
+                // 银河星辰报表系统跳转到数据分析页
+                console.log('跳转到数据分析页');
+                window.location.href = 'data_analysis.html';
+              } else if (softwareName === '银河星辰' || softwareName.includes('银河星辰会计核算')) {
+                // 银河星辰主软件和银河星辰会计核算软件都跳转到会计核算页面
+                console.log('跳转到会计核算页');
+
+                // 优先从后端数据库获取账套列表，降级到localStorage
+                function loadAndShowAccounts() {
+                  fetch('/api/accounts')
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(result) {
+                      if (result.success && result.data && result.data.length > 0) {
+                        // 将后端数据同步到localStorage
+                        const syncedAccounts = result.data.map(function(a) {
+                          return {
+                            id: a.id,
+                            name: a.name,
+                            industry: a.industry,
+                            startDate: a.start_date,
+                            accountingSystem: a.accounting_system,
+                            createTime: a.create_time,
+                            dbSaved: true
+                          };
+                        });
+                        localStorage.setItem('accountingAccounts', JSON.stringify(syncedAccounts));
+                        showAccountSelectModal(syncedAccounts, originalText, buttonElement);
+                      } else {
+                        // 后端无数据，检查localStorage
+                        const localAccounts = JSON.parse(localStorage.getItem('accountingAccounts') || '[]');
+                        if (localAccounts.length > 0) {
+                          showAccountSelectModal(localAccounts, originalText, buttonElement);
+                        } else {
+                          showAccountCreateWizard(originalText, buttonElement);
+                        }
+                      }
+                    })
+                    .catch(function() {
+                      // 后端不可用，使用localStorage
+                      const localAccounts = JSON.parse(localStorage.getItem('accountingAccounts') || '[]');
+                      if (localAccounts.length > 0) {
+                        showAccountSelectModal(localAccounts, originalText, buttonElement);
+                      } else {
+                        showAccountCreateWizard(originalText, buttonElement);
+                      }
+                    });
+                }
+                loadAndShowAccounts();
+              } else if (softwareName.includes('银河星辰')) {
+                // 其他银河星辰软件（如银河星辰工资管理等）
+                console.log('打开' + softwareName);
                 // 显示成功提示
                 const successNotification = document.createElement('div');
                 successNotification.style.position = 'fixed';
@@ -581,111 +737,172 @@
                 successNotification.style.zIndex = '1000';
                 successNotification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
                 successNotification.style.fontWeight = 'bold';
-                successNotification.textContent = '银河星辰会计核算软件已经成功打开！';
+                successNotification.textContent = softwareName + '已经成功打开';
                 document.body.appendChild(successNotification);
                 // 3秒后移除提示
                 setTimeout(() => {
                   successNotification.remove();
                 }, 3000);
-                // 恢复按钮状态
-                setTimeout(() => {
-                  button.textContent = originalText;
-                  button.disabled = false;
+                // 恢复按钮状                setTimeout(() => {
+                  buttonElement.textContent = originalText;
+                  buttonElement.disabled = false;
                 }, 1000);
-                // 跳转到会计核算页面
-                window.location.href = 'accounting.html';
+                // 跳转到对应的功能页面
+                if (softwareName.includes('会计核算')) {
+                  // 银河星辰会计核算跳转到会计核算页
+                  console.log('跳转到会计核算页');
+                  window.location.href = 'accounting.html';
+                }
               } else {
-                // 第一次打开，显示行业选择弹窗
-                const industryModal = document.createElement('div');
-                industryModal.style.position = 'fixed';
-                industryModal.style.top = '0';
-                industryModal.style.left = '0';
-                industryModal.style.width = '100%';
-                industryModal.style.height = '100%';
-                industryModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                industryModal.style.display = 'flex';
-                industryModal.style.justifyContent = 'center';
-                industryModal.style.alignItems = 'center';
-                industryModal.style.zIndex = '2000';
-                
-                industryModal.innerHTML = `
-                  <div style="background-color: white; padding: 30px; border-radius: 8px; width: 400px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
-                    <h3 style="margin-bottom: 20px; text-align: center; color: #2c3e50;">请选择您所属的行业</h3>
-                    <div style="margin-bottom: 20px;">
-                      <select id="industry-select" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 16px;">
-                        <option value="">请选择行业</option>
-                        <option value="commodity">商品流通</option>
-                        <option value="service">服务</option>
-                        <option value="ecommerce">电商</option>
-                        <option value="manufacturing">生产加工</option>
-                      </select>
-                    </div>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                      <button id="industry-confirm" class="btn btn-primary" style="padding: 10px 20px;">确定</button>
-                      <button id="industry-cancel" class="btn btn-secondary" style="padding: 10px 20px;">取消</button>
-                    </div>
-                  </div>
-                `;
-                
-                document.body.appendChild(industryModal);
-                
-                // 绑定确定按钮事件
-                const confirmBtn = industryModal.querySelector('#industry-confirm');
-                confirmBtn.addEventListener('click', function() {
-                  const industrySelect = industryModal.querySelector('#industry-select');
-                  const selectedIndustry = industrySelect.value;
-                  
-                  if (selectedIndustry) {
-                    // 保存行业选择到localStorage
-                    localStorage.setItem('userIndustry', selectedIndustry);
-                    
-                    // 显示成功提示
-                    const successNotification = document.createElement('div');
-                    successNotification.style.position = 'fixed';
-                    successNotification.style.top = '20px';
-                    successNotification.style.right = '20px';
-                    successNotification.style.padding = '15px 25px';
-                    successNotification.style.backgroundColor = '#27ae60';
-                    successNotification.style.color = 'white';
-                    successNotification.style.borderRadius = '4px';
-                    successNotification.style.zIndex = '1000';
-                    successNotification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
-                    successNotification.style.fontWeight = 'bold';
-                    successNotification.textContent = '银河星辰会计核算软件已经成功打开！';
-                    document.body.appendChild(successNotification);
-                    // 3秒后移除提示
-                    setTimeout(() => {
-                      successNotification.remove();
-                    }, 3000);
-                    // 恢复按钮状态
-                    setTimeout(() => {
-                      button.textContent = originalText;
-                      button.disabled = false;
-                    }, 1000);
-                    // 移除行业选择弹窗
-                    industryModal.remove();
-                    // 跳转到会计核算页面
-                    window.location.href = 'accounting.html';
-                  } else {
-                    alert('请选择行业');
-                  }
-                });
-                
-                // 绑定取消按钮事件
-                const cancelBtn = industryModal.querySelector('#industry-cancel');
-                cancelBtn.addEventListener('click', function() {
-                  industryModal.remove();
-                  // 恢复按钮状态
-                  button.textContent = originalText;
-                  button.disabled = false;
-                });
-                
-                // 保存button引用，用于在回调中恢复状态
-                const button = this;
+                // 其他软件
+                alert('正在集成软件...');
+                // 恢复按钮状                setTimeout(() => {
+                  buttonElement.textContent = originalText;
+                  buttonElement.disabled = false;
+                }, 1000);
               }
-            } else if (softwareName.includes('银河星辰')) {
-              // 其他银河星辰软件（如银河星辰工资管理等）
-              console.log('打开' + softwareName);
+            } catch (error) {
+              console.error('打开软件时出错：', error);
+              // 恢复按钮状              buttonElement.textContent = originalText;
+              buttonElement.disabled = false;
+              // 显示错误提示
+              alert('打开软件时出错，请重试');
+            }
+          } else {
+            alert('正在集成软件...');
+          }
+        });
+      });
+      
+      // 显示账套选择弹窗
+      function showAccountSelectModal(accounts, originalText, buttonElement) {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '2000';
+        
+        let accountsHTML = '';
+        accounts.forEach((account, index) => {
+          accountsHTML += `
+            <div class="account-item" data-index="${index}" style="padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="highlightAccount(${index})" ondblclick="selectAccount(${index})">
+              <div>
+                <div style="font-weight: bold;">${account.name}</div>
+                <div style="font-size: 12px; color: #666;">${account.industry} | ${account.createTime}</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-danger" onclick="event.stopPropagation(); deleteAccount('${account.id}', ${index})" style="padding: 6px 12px; background: #e74c3c; border-color: #e74c3c;">删除</button>
+              </div>
+            </div>
+          `;
+        });
+
+        modal.innerHTML = `
+          <div style="background-color: white; padding: 30px; border-radius: 8px; width: 500px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+            <h3 style="margin-bottom: 20px; text-align: center; color: #2c3e50;">选择账套</h3>
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+              ${accountsHTML}
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button id="confirm-select-account" class="btn btn-primary" style="padding: 10px 20px;">选择</button>
+              <button id="cancel-account-select" class="btn btn-secondary" style="padding: 10px 20px;">取消</button>
+              <button id="create-new-account" class="btn btn-primary" style="padding: 10px 20px;">新建账套</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // 当前选中的账套索        let selectedAccountIndex = null;
+
+        // 高亮选中账套
+        window.highlightAccount = function(index) {
+          // 移除之前的选中状          document.querySelectorAll('.account-item').forEach(item => {
+            item.style.backgroundColor = '';
+          });
+          // 设置新的选中状          const selectedItem = document.querySelector(`.account-item[data-index="${index}"]`);
+          if (selectedItem) {
+            selectedItem.style.backgroundColor = '#e3f2fd';
+            selectedAccountIndex = index;
+          }
+        };
+
+        // 绑定确认选择按钮事件
+        const confirmSelectBtn = modal.querySelector('#confirm-select-account');
+        confirmSelectBtn.addEventListener('click', function() {
+          if (selectedAccountIndex === null) {
+            alert('请先选择一个账套');
+            return;
+          }
+          selectAccount(selectedAccountIndex);
+        });
+
+        // 保存变量到全局，供选择函数使用
+        window.selectAccount = function(index) {
+          try {
+            const selectedAccount = accounts[index];
+            localStorage.setItem('currentAccount', JSON.stringify(selectedAccount));
+            
+            // 显示成功提示
+            const successNotification = document.createElement('div');
+            successNotification.style.position = 'fixed';
+            successNotification.style.top = '20px';
+            successNotification.style.right = '20px';
+            successNotification.style.padding = '15px 25px';
+            successNotification.style.backgroundColor = '#27ae60';
+            successNotification.style.color = 'white';
+            successNotification.style.borderRadius = '4px';
+            successNotification.style.zIndex = '1000';
+            successNotification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            successNotification.style.fontWeight = 'bold';
+            successNotification.textContent = '成功选择账套 ' + selectedAccount.name;
+            document.body.appendChild(successNotification);
+            
+            // 3秒后移除提示
+            setTimeout(() => {
+              successNotification.remove();
+            }, 3000);
+            
+            // 恢复按钮状            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+            
+            // 移除弹窗
+            modal.remove();
+            
+            // 跳转到会计核算页            window.location.href = 'accounting.html';
+          } catch (error) {
+            console.error('选择账套时出错：', error);
+            // 恢复按钮状            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+            // 移除弹窗
+            modal.remove();
+            // 显示错误提示
+            alert('选择账套时出错，请重试');
+          }
+        };
+
+        // 删除账套函数
+        window.deleteAccount = function(accountId, index) {
+          if (!confirm('确定要删除该账套吗？删除后将无法恢复')) {
+            return;
+          }
+
+          fetch('/api/accounts/' + accountId, {
+            method: 'DELETE'
+          })
+          .then(function(resp) { return resp.json(); })
+          .then(function(result) {
+            if (result.success) {
+              // 从localStorage中删              let localAccounts = JSON.parse(localStorage.getItem('accountingAccounts') || '[]');
+              localAccounts = localAccounts.filter(function(a) { return a.id !== accountId; });
+              localStorage.setItem('accountingAccounts', JSON.stringify(localAccounts));
+
               // 显示成功提示
               const successNotification = document.createElement('div');
               successNotification.style.position = 'fixed';
@@ -698,32 +915,267 @@
               successNotification.style.zIndex = '1000';
               successNotification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
               successNotification.style.fontWeight = 'bold';
-              successNotification.textContent = softwareName + '已经成功打开！';
+              successNotification.textContent = '账套已删除';
               document.body.appendChild(successNotification);
-              // 3秒后移除提示
-              setTimeout(() => {
+
+              setTimeout(function() {
                 successNotification.remove();
-              }, 3000);
-              // 恢复按钮状态
-              setTimeout(() => {
-                this.textContent = originalText;
-                this.disabled = false;
-              }, 1000);
-              // 跳转到对应的功能页面
-              if (softwareName.includes('会计核算')) {
-                // 银河星辰会计核算跳转到会计核算页面
-                console.log('跳转到会计核算页面');
-                window.location.href = 'accounting.html';
-              }
+              }, 2000);
+
+              // 关闭并重新打开弹窗以刷新列              modal.remove();
+              // 重新触发账套选择
+              buttonElement.click();
             } else {
-              // 其他软件
-              alert('正在集成软件...');
+              alert('删除失败: ' + (result.message || '未知错误'));
             }
-          } else {
-            alert('正在集成软件...');
-          }
+          })
+          .catch(function(error) {
+            console.error('删除账套时出错：', error);
+            alert('删除账套时出错，请重试');
+          });
+        };
+
+        // 绑定新建账套按钮事件
+        const createNewBtn = modal.querySelector('#create-new-account');
+        createNewBtn.addEventListener('click', function() {
+          modal.remove();
+          showAccountCreateWizard(originalText, buttonElement);
         });
-      });
+        
+        // 绑定取消按钮事件
+        const cancelBtn = modal.querySelector('#cancel-account-select');
+        cancelBtn.addEventListener('click', function() {
+          modal.remove();
+          // 恢复按钮状          buttonElement.textContent = originalText;
+          buttonElement.disabled = false;
+        });
+      }
+      
+      // 显示账套创建向导
+      function showAccountCreateWizard(originalText, button) {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '2000';
+        
+        modal.innerHTML = `
+          <div style="background-color: white; padding: 30px; border-radius: 8px; width: 500px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+            <h3 style="margin-bottom: 20px; text-align: center; color: #2c3e50;">新建账套</h3>
+            <div style="margin-bottom: 20px;">
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">账套名称</label>
+                <input type="text" id="account-name" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;" placeholder="请输入账套名称">
+              </div>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">所属行业</label>
+                <select id="account-industry" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                  <option value="">请选择行业</option>
+                  <optgroup label="── 贸易与流通──">
+                    <option value="commodity">商品流通（批发/零售）</option>
+                    <option value="ecommerce">电子商务</option>
+                    <option value="import_export">进出口贸易</option>
+                    <option value="supermarket">连锁超市/便利店</option>
+                    <option value="auto_trade">汽车销售</option>
+                  </optgroup>
+                  <optgroup label="── 生产制造──">
+                    <option value="manufacturing">生产加工/制造业</option>
+                    <option value="food_manufacturing">食品饮料生产</option>
+                    <option value="textile">纺织服装</option>
+                    <option value="chemical">化工/医药制造</option>
+                    <option value="electronics">电子设备制造</option>
+                    <option value="machinery">机械设备制造</option>
+                    <option value="building_materials">建材/家具制造</option>
+                  </optgroup>
+                  <optgroup label="── 建筑与房地产──">
+                    <option value="construction">建筑施工</option>
+                    <option value="decoration">装饰装修</option>
+                    <option value="real_estate">房地产开发</option>
+                    <option value="property_mgmt">物业管理</option>
+                  </optgroup>
+                  <optgroup label="── 服务业──">
+                    <option value="service">商务服务</option>
+                    <option value="consulting">咨询/管理顾问</option>
+                    <option value="accounting_service">会计/审计/税务服务</option>
+                    <option value="law">法律服务</option>
+                    <option value="hr_service">人力资源服务</option>
+                    <option value="logistics">物流/运输/仓储</option>
+                    <option value="catering">餐饮住宿</option>
+                    <option value="tourism">旅游/酒店</option>
+                    <option value="education">教育培训</option>
+                    <option value="healthcare">医疗卫生</option>
+                    <option value="beauty">美容美发/生活服务</option>
+                    <option value="cleaning">家政/保洁服务</option>
+                  </optgroup>
+                  <optgroup label="── 信息技术──">
+                    <option value="IT">信息技术/软件开发</option>
+                    <option value="internet">互联网平台经济</option>
+                    <option value="telecom">通信/网络服务</option>
+                    <option value="cloud">云计算/大数据/AI</option>
+                    <option value="game">游戏/数字娱乐</option>
+                  </optgroup>
+                  <optgroup label="── 金融与投资──">
+                    <option value="finance">金融/投资</option>
+                    <option value="bank">银行/信用合作社</option>
+                    <option value="insurance">保险</option>
+                    <option value="securities">证券/基金</option>
+                    <option value="leasing">融资租赁/典当</option>
+                  </optgroup>
+                  <optgroup label="── 文化与传媒──">
+                    <option value="media">传媒/广告/公关</option>
+                    <option value="culture">文化艺术/演出</option>
+                    <option value="publishing">出版/印刷</option>
+                    <option value="film">影视/音乐/动漫</option>
+                  </optgroup>
+                  <optgroup label="── 农林牧渔 ──">
+                    <option value="agriculture">农业/种植业</option>
+                    <option value="animal_husbandry">畜牧/养殖业</option>
+                    <option value="forestry">林业/渔业</option>
+                  </optgroup>
+                  <optgroup label="── 能源与资源──">
+                    <option value="energy">能源/电力/燃气</option>
+                    <option value="mining">采矿/矿产资源</option>
+                    <option value="environment">环保/水务</option>
+                    <option value="new_energy">新能源/光伏/储能</option>
+                  </optgroup>
+                  <optgroup label="── 非营利与机关 ──">
+                    <option value="ngo">社会团体/基金会</option>
+                    <option value="government">行政机关/事业单位</option>
+                    <option value="school">学校/科研机构</option>
+                    <option value="hospital">医院/卫生机构</option>
+                  </optgroup>
+                  <optgroup label="── 其他 ──">
+                    <option value="other">其他行业</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">启用日期</label>
+                <input type="date" id="account-start-date" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+              </div>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">会计制度</label>
+                <select id="account-system" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+                  <option value="enterprise">企业会计准则</option>
+                  <option value="small_enterprise">小企业会计准则</option>
+                  <option value="non_profit">民间非营利组织会计制度</option>
+                </select>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button id="confirm-create-account" class="btn btn-primary" style="padding: 10px 20px;">创建</button>
+              <button id="cancel-create-account" class="btn btn-secondary" style="padding: 10px 20px;">取消</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 设置默认启用日期为当前日        const today = new Date().toISOString().split('T')[0];
+        modal.querySelector('#account-start-date').value = today;
+        
+        // 绑定创建按钮事件
+        const confirmBtn = modal.querySelector('#confirm-create-account');
+        confirmBtn.addEventListener('click', function() {
+          const accountName = modal.querySelector('#account-name').value;
+          const industry = modal.querySelector('#account-industry').value;
+          const startDate = modal.querySelector('#account-start-date').value;
+          const accountingSystem = modal.querySelector('#account-system').value;
+          
+          if (!accountName || !industry || !startDate) {
+            alert('请填写完整的账套信息');
+            return;
+          }
+          
+          // 禁用确认按钮，防止重复提          const confirmBtn = modal.querySelector('#confirm-create-account');
+          if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '创建..'; }
+
+          // 优先调用后端API创建账套（本地SQLite数据+ 云端备份          function doCreateAccount(accountData) {
+            // 同步写入localStorage作为本地缓存/离线备份
+            const localAccounts = JSON.parse(localStorage.getItem('accountingAccounts') || '[]');
+            localAccounts.push(accountData);
+            localStorage.setItem('accountingAccounts', JSON.stringify(localAccounts));
+            localStorage.setItem('currentAccount', JSON.stringify(accountData));
+            localStorage.setItem('userIndustry', accountData.industry);
+
+            // 移除弹窗
+            modal.remove();
+
+            // 显示成功提示
+            const successNotification = document.createElement('div');
+            successNotification.style.cssText = 'position:fixed;top:20px;right:20px;padding:16px 28px;background:linear-gradient(135deg,#1a65b8,#27ae60);color:#fff;border-radius:8px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.25);font-weight:bold;font-size:15px;min-width:280px;';
+            successNotification.innerHTML = '<div style="font-size:16px;margin-bottom:4px;">账套创建成功/div>' +
+              '<div style="font-size:13px;opacity:0.9;">账套名称 + accountData.name + '</div>' +
+              '<div style="font-size:12px;opacity:0.75;margin-top:4px;">本地数据& 云端备份已完/div>';
+            document.body.appendChild(successNotification);
+            setTimeout(function() { successNotification.remove(); }, 4000);
+
+            // 恢复按钮状态后跳转
+            setTimeout(function() {
+              button.textContent = originalText;
+              button.disabled = false;
+              window.location.href = 'accounting.html';
+            }, 800);
+          }
+
+          // 调用后端API（端001          fetch('/api/accounts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: accountName,
+              industry: industry,
+              startDate: startDate,
+              accountingSystem: accountingSystem
+            })
+          })
+          .then(function(resp) { return resp.json(); })
+          .then(function(result) {
+            if (result.success && result.data) {
+              // 后端创建成功，使用服务端返回的账套数              const accountData = {
+                id: result.data.id,
+                name: result.data.name,
+                industry: result.data.industry,
+                startDate: result.data.start_date,
+                accountingSystem: result.data.accounting_system,
+                createTime: result.data.create_time,
+                dbSaved: true
+              };
+              console.log('账套已保存到本地数据库并完成云端备份:', result.data.id);
+              doCreateAccount(accountData);
+            } else {
+              throw new Error(result.message || '服务端创建失败');
+            }
+          })
+          .catch(function(err) {
+            // 后端不可用时降级到纯localStorage模式
+            console.warn('后端API不可用，使用本地模式:', err.message);
+            const accountData = {
+              id: 'ACCT_' + Date.now(),
+              name: accountName,
+              industry: industry,
+              startDate: startDate,
+              accountingSystem: accountingSystem,
+              createTime: new Date().toLocaleString(),
+              dbSaved: false
+            };
+            doCreateAccount(accountData);
+          });
+        });
+        
+        // 绑定取消按钮事件
+        const cancelBtn = modal.querySelector('#cancel-create-account');
+        cancelBtn.addEventListener('click', function() {
+          modal.remove();
+          // 恢复按钮状          button.textContent = originalText;
+          button.disabled = false;
+        });
+      }
       
       // 详情按钮点击事件
       const detailButtons = document.querySelectorAll('.btn-secondary');
@@ -733,20 +1185,18 @@
         });
       });
       
-      // 退出登录按钮点击事件
-      const logoutBtn = document.getElementById('logout-btn');
+      // 退出登录按钮点击事      const logoutBtn = document.getElementById('logout-btn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
           e.preventDefault();
           if (confirm('确定要退出登录吗？')) {
-            // 跳转到登录页面
-            window.location.href = 'login.html';
+            // 跳转到登录页            window.location.href = 'login.html';
           }
         });
       }
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

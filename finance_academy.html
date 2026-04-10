@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -58,7 +59,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -67,7 +70,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -78,7 +81,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -115,7 +118,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -124,7 +127,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .content-area {
@@ -143,7 +146,7 @@
     .academy-tabs {
       display: flex;
       margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .tab {
@@ -154,8 +157,8 @@
     }
     
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -175,7 +178,7 @@
     }
     
     .course-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       overflow: hidden;
       transition: box-shadow 0.3s;
@@ -192,7 +195,7 @@
       align-items: center;
       justify-content: center;
       font-size: 48px;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .course-content {
@@ -203,7 +206,7 @@
       font-size: 16px;
       font-weight: bold;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .course-description {
@@ -236,12 +239,12 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -260,7 +263,7 @@
     }
     
     .exam-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 15px;
@@ -281,7 +284,7 @@
     .exam-title {
       font-size: 16px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .exam-meta {
@@ -295,7 +298,7 @@
     }
     
     .expert-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 15px;
@@ -317,7 +320,7 @@
       align-items: center;
       justify-content: center;
       font-size: 32px;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .expert-info {
@@ -327,7 +330,7 @@
     .expert-name {
       font-size: 16px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 5px;
     }
     
@@ -349,7 +352,7 @@
     }
     
     .progress-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 15px;
@@ -365,7 +368,7 @@
     .progress-title {
       font-size: 16px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .progress-bar {
@@ -379,7 +382,7 @@
     
     .progress-fill {
       height: 100%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       border-radius: 5px;
       transition: width 0.3s;
     }
@@ -403,7 +406,7 @@
     
     .category-tag {
       padding: 6px 12px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 16px;
       font-size: 14px;
       cursor: pointer;
@@ -411,15 +414,15 @@
     }
     
     .category-tag:hover {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .category-tag.active {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .article-list {
@@ -427,7 +430,7 @@
     }
     
     .article-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 10px;
@@ -441,7 +444,7 @@
     .article-title {
       font-size: 16px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 5px;
     }
     
@@ -456,30 +459,133 @@
       color: #666;
       line-height: 1.4;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税/a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html" class="active">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -487,8 +593,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -513,7 +619,7 @@
             <div class="tab" data-tab="exams">考试认证</div>
             <div class="tab" data-tab="experts">专家咨询</div>
             <div class="tab" data-tab="progress">学习进度</div>
-            <div class="tab" data-tab="knowledge">知识库</div>
+            <div class="tab" data-tab="knowledge">知识/div>
           </div>
           
           <div class="tab-content active" id="courses">
@@ -522,11 +628,11 @@
               <div class="course-card">
                 <div class="course-image">📊</div>
                 <div class="course-content">
-                  <div class="course-title">财务分析与决策</div>
+                  <div class="course-title">财务分析与决/div>
                   <div class="course-description">掌握财务分析的核心方法，提升企业决策能力</div>
                   <div class="course-meta">
                     <span>8课时</span>
-                    <span>4.9分</span>
+                    <span>4.9/span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <span class="course-price">¥299</span>
@@ -541,7 +647,7 @@
                   <div class="course-description">学习企业税务筹划的实用技巧，合法节税</div>
                   <div class="course-meta">
                     <span>6课时</span>
-                    <span>4.8分</span>
+                    <span>4.8/span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <span class="course-price">¥199</span>
@@ -556,7 +662,7 @@
                   <div class="course-description">适合初学者的财务管理入门课程</div>
                   <div class="course-meta">
                     <span>10课时</span>
-                    <span>4.7分</span>
+                    <span>4.7/span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <span class="course-price">¥149</span>
@@ -567,11 +673,11 @@
               <div class="course-card">
                 <div class="course-image">💰</div>
                 <div class="course-content">
-                  <div class="course-title">企业估值方法</div>
-                  <div class="course-description">学习企业价值评估的主流方法与应用</div>
+                  <div class="course-title">企业估值方/div>
+                  <div class="course-description">学习企业价值评估的主流方法与应/div>
                   <div class="course-meta">
                     <span>7课时</span>
-                    <span>4.9分</span>
+                    <span>4.9/span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <span class="course-price">¥249</span>
@@ -587,7 +693,7 @@
             <div class="exam-list">
               <div class="exam-card">
                 <div class="exam-header">
-                  <div class="exam-title">初级会计师认证</div>
+                  <div class="exam-title">初级会计师认/div>
                   <button class="btn btn-primary">报名考试</button>
                 </div>
                 <div class="exam-meta">
@@ -595,11 +701,11 @@
                   <span>报名截止: 2024-04-30</span>
                   <span>考试费用: ¥120</span>
                 </div>
-                <p>初级会计师认证是财务行业的入门证书，考查基础会计知识和实务操作能力。</p>
+                <p>初级会计师认证是财务行业的入门证书，考查基础会计知识和实务操作能力/p>
               </div>
               <div class="exam-card">
                 <div class="exam-header">
-                  <div class="exam-title">中级会计师认证</div>
+                  <div class="exam-title">中级会计师认/div>
                   <button class="btn btn-primary">报名考试</button>
                 </div>
                 <div class="exam-meta">
@@ -607,19 +713,19 @@
                   <span>报名截止: 2024-08-15</span>
                   <span>考试费用: ¥180</span>
                 </div>
-                <p>中级会计师认证要求具备一定的工作经验，考查更深入的会计专业知识和管理能力。</p>
+                <p>中级会计师认证要求具备一定的工作经验，考查更深入的会计专业知识和管理能力/p>
               </div>
               <div class="exam-card">
                 <div class="exam-header">
-                  <div class="exam-title">注册会计师(CPA)考试</div>
+                  <div class="exam-title">注册会计CPA)考试</div>
                   <button class="btn btn-primary">报名考试</button>
                 </div>
                 <div class="exam-meta">
                   <span>考试时间: 2024-10-12</span>
                   <span>报名截止: 2024-06-30</span>
-                  <span>考试费用: ¥200/科</span>
+                  <span>考试费用: ¥200//span>
                 </div>
-                <p>注册会计师是财务行业的高级认证，考查专业知识、实务能力和职业道德。</p>
+                <p>注册会计师是财务行业的高级认证，考查专业知识、实务能力和职业道德/p>
               </div>
             </div>
           </div>
@@ -630,18 +736,18 @@
               <div class="expert-card">
                 <div class="expert-avatar">👤</div>
                 <div class="expert-info">
-                  <div class="expert-name">张教授</div>
+                  <div class="expert-name">张教/div>
                   <div class="expert-title">注册会计师、财务总监</div>
-                  <div class="expert-bio">拥有20年财务工作经验，曾在多家上市公司担任财务总监，擅长企业财务管理和税务筹划。</div>
+                  <div class="expert-bio">拥有20年财务工作经验，曾在多家上市公司担任财务总监，擅长企业财务管理和税务筹划/div>
                   <button class="btn btn-primary">预约咨询</button>
                 </div>
               </div>
               <div class="expert-card">
                 <div class="expert-avatar">👤</div>
                 <div class="expert-info">
-                  <div class="expert-name">李博士</div>
-                  <div class="expert-title">财务分析师、投资顾问</div>
-                  <div class="expert-bio">金融学博士，专注于企业财务分析和投资决策，为多家企业提供财务咨询服务。</div>
+                  <div class="expert-name">李博/div>
+                  <div class="expert-title">财务分析师、投资顾/div>
+                  <div class="expert-bio">金融学博士，专注于企业财务分析和投资决策，为多家企业提供财务咨询服务/div>
                   <button class="btn btn-primary">预约咨询</button>
                 </div>
               </div>
@@ -649,8 +755,8 @@
                 <div class="expert-avatar">👤</div>
                 <div class="expert-info">
                   <div class="expert-name">王老师</div>
-                  <div class="expert-title">税务专家、律师</div>
-                  <div class="expert-bio">税务律师，擅长企业税务筹划和税务争议解决，为企业提供税务合规和节税方案。</div>
+                  <div class="expert-title">税务专家、律/div>
+                  <div class="expert-bio">税务律师，擅长企业税务筹划和税务争议解决，为企业提供税务合规和节税方案/div>
                   <button class="btn btn-primary">预约咨询</button>
                 </div>
               </div>
@@ -662,39 +768,39 @@
             <div class="progress-section">
               <div class="progress-card">
                 <div class="progress-header">
-                  <div class="progress-title">财务分析与决策</div>
-                  <span>进行中</span>
+                  <div class="progress-title">财务分析与决/div>
+                  <span>进行/span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill" style="width: 60%"></div>
                 </div>
-                <div class="progress-text">已完成 6/8 课时</div>
+                <div class="progress-text">已完6/8 课时</div>
               </div>
               <div class="progress-card">
                 <div class="progress-header">
                   <div class="progress-title">税务筹划实战</div>
-                  <span>未开始</span>
+                  <span>未开/span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill" style="width: 0%"></div>
                 </div>
-                <div class="progress-text">已完成 0/6 课时</div>
+                <div class="progress-text">已完0/6 课时</div>
               </div>
               <div class="progress-card">
                 <div class="progress-header">
                   <div class="progress-title">财务管理基础</div>
-                  <span>已完成</span>
+                  <span>已完/span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill" style="width: 100%"></div>
                 </div>
-                <div class="progress-text">已完成 10/10 课时</div>
+                <div class="progress-text">已完10/10 课时</div>
               </div>
             </div>
           </div>
           
           <div class="tab-content" id="knowledge">
-            <h3>知识库</h3>
+            <h3>知识/h3>
             <div class="knowledge-base">
               <div class="knowledge-categories">
                 <div class="category-tag active">全部</div>
@@ -707,22 +813,22 @@
                 <div class="article-card">
                   <div class="article-title">2024年最新增值税政策解读</div>
                   <div class="article-meta">2024-03-15 | 税务政策</div>
-                  <div class="article-excerpt">本文详细解读了2024年增值税的最新政策变化，包括税率调整、减免政策等内容，帮助企业及时了解并适应新政策。</div>
+                  <div class="article-excerpt">本文详细解读024年增值税的最新政策变化，包括税率调整、减免政策等内容，帮助企业及时了解并适应新政策/div>
                 </div>
                 <div class="article-card">
                   <div class="article-title">企业所得税汇算清缴指南</div>
                   <div class="article-meta">2024-02-20 | 财务法规</div>
-                  <div class="article-excerpt">本文提供了企业所得税汇算清缴的详细步骤和注意事项，帮助企业顺利完成年度汇算清缴工作。</div>
+                  <div class="article-excerpt">本文提供了企业所得税汇算清缴的详细步骤和注意事项，帮助企业顺利完成年度汇算清缴工作/div>
                 </div>
                 <div class="article-card">
                   <div class="article-title">财务报表分析案例：某上市公司财务状况分析</div>
                   <div class="article-meta">2024-01-10 | 财务案例</div>
-                  <div class="article-excerpt">本文通过分析某上市公司的财务报表，展示了如何运用财务分析方法评估企业的财务状况和经营成果。</div>
+                  <div class="article-excerpt">本文通过分析某上市公司的财务报表，展示了如何运用财务分析方法评估企业的财务状况和经营成果/div>
                 </div>
                 <div class="article-card">
-                  <div class="article-title">常见财务问题解答：如何合理避税</div>
+                  <div class="article-title">常见财务问题解答：如何合理避/div>
                   <div class="article-meta">2023-12-05 | 常见问题</div>
-                  <div class="article-excerpt">本文解答了企业和个人在税务筹划中常见的问题，提供了合法合理的避税方法和建议。</div>
+                  <div class="article-excerpt">本文解答了企业和个人在税务筹划中常见的问题，提供了合法合理的避税方法和建议/div>
                 </div>
               </div>
             </div>
@@ -733,6 +839,28 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
+    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
+      console.log('显示模块, moduleName);
+      // 根据模块名跳转到相应页面
+      if (moduleName.startsWith('tax-')) {
+        // 税务专区模块
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        // 企业融资模块
+        window.location.href = 'enterprise_management.html';
+      } else {
+        // 财务管理模块
+        window.location.href = 'finance_management.html';
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -740,13 +868,10 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
@@ -757,10 +882,8 @@
       const categoryTags = document.querySelectorAll('.category-tag');
       categoryTags.forEach(tag => {
         tag.addEventListener('click', function() {
-          // 移除所有标签的active类
-          categoryTags.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          categoryTags.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
         });
       });
       
@@ -768,7 +891,7 @@
       const enrollButtons = document.querySelectorAll('.course-card .btn-primary');
       enrollButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('报名成功！');
+          alert('报名成功);
         });
       });
       
@@ -776,7 +899,7 @@
       const consultButtons = document.querySelectorAll('.expert-card .btn-primary');
       consultButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('预约成功！专家将在24小时内与您联系。');
+          alert('预约成功！专家将4小时内与您联系);
         });
       });
       
@@ -784,12 +907,12 @@
       const examButtons = document.querySelectorAll('.exam-card .btn-primary');
       examButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('报名成功！请及时缴纳考试费用。');
+          alert('报名成功！请及时缴纳考试费用);
         });
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

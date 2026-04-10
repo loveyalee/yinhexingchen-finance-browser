@@ -1,7 +1,7 @@
 # 在服务器上安装Node.js
 
 ## 连接服务器
-ssh -o StrictHostKeyChecking=no root@49.232.63.136
+ssh -o StrictHostKeyChecking=no root@111.230.36.222
 密码: 3452572Ab!
 
 ## 安装Node.js
@@ -19,6 +19,6 @@ node -v
 npm -v
 
 ## 安装完成后继续
-1. 上传项目文件: scp -o StrictHostKeyChecking=no -r * root@49.232.63.136:/var/www/yinhexingchen/
+1. 上传项目文件: scp -o StrictHostKeyChecking=no -r * root@111.230.36.222:/var/www/yinhexingchen/
 2. 安装依赖: cd /var/www/yinhexingchen && npm install
 3. 启动服务器: cd /var/www/yinhexingchen && nohup node server.js > server.log 2>&1 &

@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -58,7 +59,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -67,7 +70,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -78,7 +81,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -115,7 +118,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -124,7 +127,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .header-actions {
@@ -142,12 +145,12 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -170,7 +173,7 @@
     .section-tabs {
       display: flex;
       width: 100%;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       background-color: white;
     }
     
@@ -182,8 +185,8 @@
     }
     
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -234,7 +237,7 @@
     
     .file-nav-item a.active {
       background-color: #e3f2fd;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .file-content {
@@ -249,7 +252,7 @@
     }
     
     .file-header h3 {
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .file-actions {
@@ -264,7 +267,7 @@
     }
     
     .file-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       text-align: center;
@@ -279,14 +282,14 @@
     .file-icon {
       font-size: 48px;
       margin-bottom: 10px;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .file-name {
       font-size: 14px;
       font-weight: bold;
       margin-bottom: 5px;
-      color: #2c3e50;
+      color: #1a2d42;
       word-break: break-all;
     }
     
@@ -311,13 +314,13 @@
     
     .chat-search {
       padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .chat-search input {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -335,7 +338,8 @@
     }
     
     .chat-item:hover {
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
     }
     
     .chat-item.active {
@@ -351,7 +355,7 @@
     
     .chat-name {
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chat-time {
@@ -376,7 +380,7 @@
     
     .chat-header {
       padding: 15px 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -384,7 +388,7 @@
     
     .chat-title {
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chat-actions {
@@ -396,7 +400,7 @@
       flex: 1;
       padding: 20px;
       overflow-y: auto;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .message {
@@ -417,7 +421,7 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -438,7 +442,7 @@
     }
     
     .message.sent .message-content {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       border-bottom-right-radius: 4px;
     }
@@ -461,7 +465,7 @@
     .chat-input textarea {
       flex: 1;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       resize: none;
       min-height: 40px;
@@ -523,7 +527,7 @@
     .modal-title {
       font-size: 18px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .modal-close {
@@ -540,7 +544,7 @@
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .form-group input,
@@ -548,7 +552,7 @@
     .form-group textarea {
       width: 100%;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       font-size: 14px;
     }
@@ -560,7 +564,7 @@
       margin-top: 20px;
     }
     
-    /* 悬浮聊天器样式 */
+    /* 悬浮聊天器样*/
     .chat-float {
       position: fixed;
       bottom: 30px;
@@ -572,7 +576,7 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       border: none;
       font-size: 24px;
@@ -607,7 +611,7 @@
     }
     
     .chat-panel-header {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       padding: 15px;
       display: flex;
@@ -627,7 +631,7 @@
     
     .chat-panel-tabs {
       display: flex;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .chat-panel-tab {
@@ -639,8 +643,8 @@
     }
     
     .chat-panel-tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -667,14 +671,15 @@
     }
     
     .chat-item:hover {
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
     }
     
     .chat-item-avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -689,7 +694,7 @@
     .chat-item-name {
       font-weight: bold;
       font-size: 14px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chat-item-preview {
@@ -729,7 +734,7 @@
       flex: 1;
       padding: 15px;
       overflow-y: auto;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .message {
@@ -750,7 +755,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -772,7 +777,7 @@
     }
     
     .message.sent .message-content {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       border-bottom-right-radius: 4px;
     }
@@ -795,7 +800,7 @@
     .chat-input textarea {
       flex: 1;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       resize: none;
       min-height: 40px;
@@ -808,7 +813,7 @@
       height: 40px;
       border: none;
       border-radius: 4px;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       cursor: pointer;
       display: flex;
@@ -839,30 +844,124 @@
     .add-friend-btn:hover {
       background-color: #e0e0e0;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html" class="active">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -870,8 +969,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -886,7 +985,7 @@
         <h1>云盘</h1>
         <div class="header-actions">
           <button class="btn btn-primary">上传文件</button>
-          <button class="btn btn-secondary">新建文件夹</button>
+          <button class="btn btn-secondary">新建文件/button>
         </div>
       </div>
       
@@ -895,10 +994,10 @@
           <div class="file-sidebar">
             <ul class="file-nav">
               <li class="file-nav-item"><a href="#" class="active">全部文件</a></li>
-              <li class="file-nav-item"><a href="#">最近文件</a></li>
+              <li class="file-nav-item"><a href="#">最近文/a></li>
               <li class="file-nav-item"><a href="#">共享文件</a></li>
               <li class="file-nav-item"><a href="#">我的收藏</a></li>
-              <li class="file-nav-item"><a href="#">回收站</a></li>
+              <li class="file-nav-item"><a href="#">回收/a></li>
               <li class="file-nav-item"><a href="#">财务报表</a></li>
               <li class="file-nav-item"><a href="#">税务资料</a></li>
               <li class="file-nav-item"><a href="#">合同文档</a></li>
@@ -911,7 +1010,7 @@
               <h3>全部文件</h3>
               <div class="file-actions">
                 <button class="btn btn-secondary">排序</button>
-                <button class="btn btn-secondary">筛选</button>
+                <button class="btn btn-secondary">筛/button>
               </div>
             </div>
             
@@ -919,32 +1018,32 @@
               <div class="file-card">
                 <div class="file-icon">📊</div>
                 <div class="file-name">2024年第一季度财务报表.xlsx</div>
-                <div class="file-meta">2024-03-31 • 2.5MB</div>
+                <div class="file-meta">2024-03-31 2.5MB</div>
               </div>
               <div class="file-card">
                 <div class="file-icon">📄</div>
-                <div class="file-name">增值税申报表.pdf</div>
-                <div class="file-meta">2024-04-10 • 1.2MB</div>
+                <div class="file-name">增值税申报税pdf</div>
+                <div class="file-meta">2024-04-10 1.2MB</div>
               </div>
               <div class="file-card">
                 <div class="file-icon">📁</div>
                 <div class="file-name">合同文档</div>
-                <div class="file-meta">2024-03-15 • 包含15个文件</div>
+                <div class="file-meta">2024-03-15 包含15个文/div>
               </div>
               <div class="file-card">
                 <div class="file-icon">📊</div>
                 <div class="file-name">2023年度财务报告.xlsx</div>
-                <div class="file-meta">2024-01-15 • 5.8MB</div>
+                <div class="file-meta">2024-01-15 5.8MB</div>
               </div>
               <div class="file-card">
                 <div class="file-icon">📄</div>
                 <div class="file-name">企业所得税汇算清缴报告.pdf</div>
-                <div class="file-meta">2024-02-28 • 2.1MB</div>
+                <div class="file-meta">2024-02-28 2.1MB</div>
               </div>
               <div class="file-card">
                 <div class="file-icon">📁</div>
                 <div class="file-name">税务资料</div>
-                <div class="file-meta">2024-03-01 • 包含8个文件</div>
+                <div class="file-meta">2024-03-01 包含8个文/div>
               </div>
             </div>
           </div>
@@ -953,7 +1052,7 @@
     </div>
   </div>
   
-  <!-- 引用蜻蜓聊天器 -->
+  <!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>
@@ -989,11 +1088,11 @@
   <div class="modal" id="folderModal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">新建文件夹</div>
+        <div class="modal-title">新建文件/div>
         <div class="modal-close" onclick="closeModal('folderModal')">&times;</div>
       </div>
       <div class="form-group">
-        <label>文件夹名称</label>
+        <label>文件夹名/label>
         <input type="text" placeholder="请输入文件夹名称">
       </div>
       <div class="form-group">
@@ -1013,6 +1112,13 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -1020,39 +1126,30 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
         });
       });
       
-      // 文件导航项点击事件
-      const fileNavItems = document.querySelectorAll('.file-nav-item a');
+      // 文件导航项点击事      const fileNavItems = document.querySelectorAll('.file-nav-item a');
       fileNavItems.forEach(item => {
         item.addEventListener('click', function(e) {
           e.preventDefault();
-          // 移除所有导航项的active类
-          fileNavItems.forEach(i => i.classList.remove('active'));
-          // 添加当前导航项的active类
-          this.classList.add('active');
+          // 移除所有导航项的active          fileNavItems.forEach(i => i.classList.remove('active'));
+          // 添加当前导航项的active          this.classList.add('active');
         });
       });
       
-      // 聊天项点击事件
-      const chatItems = document.querySelectorAll('.chat-item');
+      // 聊天项点击事      const chatItems = document.querySelectorAll('.chat-item');
       chatItems.forEach(item => {
         item.addEventListener('click', function() {
-          // 移除所有聊天项的active类
-          chatItems.forEach(i => i.classList.remove('active'));
-          // 添加当前聊天项的active类
-          this.classList.add('active');
+          // 移除所有聊天项的active          chatItems.forEach(i => i.classList.remove('active'));
+          // 添加当前聊天项的active          this.classList.add('active');
         });
       });
       
@@ -1062,13 +1159,12 @@
         openModal('uploadModal');
       });
       
-      // 新建文件夹按钮点击事件
-      const newFolderButton = document.querySelector('.header-actions .btn-secondary');
+      // 新建文件夹按钮点击事      const newFolderButton = document.querySelector('.header-actions .btn-secondary');
       newFolderButton.addEventListener('click', function() {
         openModal('folderModal');
       });
       
-      // 发送消息按钮点击事件 - 已移至chat_float.js
+      // 发送消息按钮点击事- 已移至chat_float.js
       /*
       const sendButton = document.querySelector('.chat-input-actions button:last-child');
       if (sendButton) {
@@ -1076,10 +1172,9 @@
           const textarea = document.querySelector('.chat-input textarea');
           const message = textarea.value.trim();
           if (message) {
-            // 模拟发送消息
-            const chatMessages = document.querySelector('.chat-messages');
+            // 模拟发送消            const chatMessages = document.querySelector('.chat-messages');
             const now = new Date();
-            const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+            const time = now.getHours() + ':' + (now.getMinutes() < 10  '0' : '') + now.getMinutes();
             
             const messageElement = document.createElement('div');
             messageElement.className = 'message sent';
@@ -1088,7 +1183,7 @@
                 <div>${message}</div>
                 <div class="message-time">${time}</div>
               </div>
-              <div class="message-avatar">我</div>
+              <div class="message-avatar">/div>
             `;
             
             chatMessages.appendChild(messageElement);
@@ -1097,8 +1192,7 @@
           }
         });
         
-        // 按Enter发送消息
-        const textarea = document.querySelector('.chat-input textarea');
+        // 按Enter发送消        const textarea = document.querySelector('.chat-input textarea');
         if (textarea) {
           textarea.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {

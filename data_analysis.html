@@ -15,7 +15,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -26,7 +27,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -60,7 +61,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -69,7 +72,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -80,7 +83,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -117,7 +120,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -126,7 +129,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .content-area {
@@ -145,7 +148,7 @@
     .analysis-tabs {
       display: flex;
       margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .tab {
@@ -156,8 +159,8 @@
     }
     
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -184,13 +187,13 @@
     
     .control-group label {
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .control-group select,
     .control-group input {
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       font-size: 14px;
     }
@@ -204,12 +207,12 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -221,13 +224,13 @@
       font-size: 18px;
       font-weight: bold;
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .chart-wrapper {
       width: 100%;
       height: 400px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 10px;
     }
@@ -240,7 +243,7 @@
     }
     
     .metric-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       text-align: center;
@@ -254,7 +257,7 @@
     .metric-value {
       font-size: 24px;
       font-weight: bold;
-      color: #3498db;
+      color: #1a5fa8;
       margin-bottom: 5px;
     }
     
@@ -287,58 +290,162 @@
     
     .data-table th,
     .data-table td {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       padding: 10px;
       text-align: left;
     }
     
     .data-table th {
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
+      color: #1a2d42;
       font-weight: bold;
     }
     
     .insight-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 15px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .insight-title {
       font-weight: bold;
       margin-bottom: 5px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .insight-content {
       font-size: 14px;
       color: #333;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税/a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="data_analysis.html" class="active">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -346,8 +453,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -372,7 +479,7 @@
             <div class="tab" data-tab="financial">财务指标</div>
             <div class="tab" data-tab="trend">趋势分析</div>
             <div class="tab" data-tab="cost">成本分析</div>
-            <div class="tab" data-tab="cashflow">现金流分析</div>
+            <div class="tab" data-tab="cashflow">现金流分/div>
             <div class="tab" data-tab="insights">智能洞察</div>
           </div>
           
@@ -381,10 +488,10 @@
               <div class="control-group">
                 <label>时间范围:</label>
                 <select>
-                  <option>最近30天</option>
-                  <option>最近90天</option>
-                  <option>最近1年</option>
-                  <option>自定义</option>
+                  <option>最0/option>
+                  <option>最0/option>
+                  <option>最/option>
+                  <option>自定/option>
                 </select>
               </div>
               <div class="control-group">
@@ -392,12 +499,12 @@
                 <select>
                   <option>全部</option>
                   <option>销售部</option>
-                  <option>财务部</option>
-                  <option>运营部</option>
+                  <option>财务/option>
+                  <option>运营/option>
                 </select>
               </div>
               <div class="control-group">
-                <label>业务线:</label>
+                <label>业务</label>
                 <select>
                   <option>全部</option>
                   <option>产品A</option>
@@ -411,28 +518,28 @@
             <div class="metrics-grid">
               <div class="metric-card">
                 <div class="metric-value">¥1,250,000</div>
-                <div class="metric-label">总收入</div>
-                <div class="metric-change change-positive">↑ 12.5% 较上月</div>
+                <div class="metric-label">总收/div>
+                <div class="metric-change change-positive">12.5% 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">¥850,000</div>
-                <div class="metric-label">总支出</div>
-                <div class="metric-change change-positive">↑ 8.3% 较上月</div>
+                <div class="metric-label">总支/div>
+                <div class="metric-change change-positive">8.3% 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">¥400,000</div>
                 <div class="metric-label">净利润</div>
-                <div class="metric-change change-positive">↑ 25.0% 较上月</div>
+                <div class="metric-change change-positive">25.0% 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">32.0%</div>
-                <div class="metric-label">利润率</div>
-                <div class="metric-change change-positive">↑ 3.5% 较上月</div>
+                <div class="metric-label">利润/div>
+                <div class="metric-change change-positive">3.5% 较上/div>
               </div>
             </div>
             
             <div class="chart-container">
-              <div class="chart-title">收入与支出趋势</div>
+              <div class="chart-title">收入与支出趋/div>
               <div class="chart-wrapper" id="revenueChart"></div>
             </div>
             
@@ -448,22 +555,22 @@
               <div class="metric-card">
                 <div class="metric-value">2.4</div>
                 <div class="metric-label">流动比率</div>
-                <div class="metric-change change-positive">↑ 0.3 较上期</div>
+                <div class="metric-change change-positive">0.3 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">1.2</div>
                 <div class="metric-label">速动比率</div>
-                <div class="metric-change change-positive">↑ 0.1 较上期</div>
+                <div class="metric-change change-positive">0.1 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">0.6</div>
                 <div class="metric-label">资产负债率</div>
-                <div class="metric-change change-negative">↓ 0.05 较上期</div>
+                <div class="metric-change change-negative">0.05 较上/div>
               </div>
               <div class="metric-card">
                 <div class="metric-value">18.5%</div>
                 <div class="metric-label">ROE</div>
-                <div class="metric-change change-positive">↑ 2.3% 较上期</div>
+                <div class="metric-change change-positive">2.3% 较上/div>
               </div>
             </div>
             
@@ -476,7 +583,7 @@
           <div class="tab-content" id="trend">
             <h3>趋势分析</h3>
             <div class="chart-container">
-              <div class="chart-title">销售收入趋势</div>
+              <div class="chart-title">销售收入趋/div>
               <div class="chart-wrapper" id="salesTrendChart"></div>
             </div>
             
@@ -500,9 +607,9 @@
           </div>
           
           <div class="tab-content" id="cashflow">
-            <h3>现金流分析</h3>
+            <h3>现金流分/h3>
             <div class="chart-container">
-              <div class="chart-title">现金流量表</div>
+              <div class="chart-title">现金流量/div>
               <div class="chart-wrapper" id="cashflowChart"></div>
             </div>
             
@@ -517,26 +624,22 @@
             <div class="insight-card">
               <div class="insight-title">收入增长分析</div>
               <div class="insight-content">
-                本月销售收入较上月增长12.5%，主要来自产品A的销售增长，增长率达到18.3%。建议加大产品A的市场推广力度，同时关注产品B的销售下滑趋势。
-              </div>
+                本月销售收入较上月增长12.5%，主要来自产品A的销售增长，增长率达8.3%。建议加大产品A的市场推广力度，同时关注产品B的销售下滑趋势              </div>
             </div>
             <div class="insight-card">
               <div class="insight-title">成本优化建议</div>
               <div class="insight-content">
-                运营成本较上月增长15.2%，高于收入增长率。建议审查运营费用结构，特别是营销费用和行政管理费用，寻找优化空间。
-              </div>
+                运营成本较上月增5.2%，高于收入增长率。建议审查运营费用结构，特别是营销费用和行政管理费用，寻找优化空间              </div>
             </div>
             <div class="insight-card">
-              <div class="insight-title">现金流预警</div>
+              <div class="insight-title">现金流预/div>
               <div class="insight-content">
-                本月经营活动现金净流量为负，主要由于应收账款周转天数延长。建议加强应收账款管理，缩短回款周期，避免现金流紧张。
-              </div>
+                本月经营活动现金净流量为负，主要由于应收账款周转天数延长。建议加强应收账款管理，缩短回款周期，避免现金流紧张              </div>
             </div>
             <div class="insight-card">
               <div class="insight-title">盈利能力分析</div>
               <div class="insight-content">
-                利润率较上月提升3.5个百分点，达到32.0%，高于行业平均水平。建议保持现有成本控制策略，同时探索新的 revenue streams。
-              </div>
+                利润率较上月提升3.5个百分点，达2.0%，高于行业平均水平。建议保持现有成本控制策略，同时探索新的 revenue streams              </div>
             </div>
           </div>
         </div>
@@ -545,6 +648,28 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
+    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
+      console.log('显示模块, moduleName);
+      // 根据模块名跳转到相应页面
+      if (moduleName.startsWith('tax-')) {
+        // 税务专区模块
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        // 企业融资模块
+        window.location.href = 'enterprise_management.html';
+      } else {
+        // 财务管理模块
+        window.location.href = 'finance_management.html';
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -552,19 +677,15 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
           
-          // 初始化对应标签页的图表
-          if (tabId === 'dashboard') {
+          // 初始化对应标签页的图          if (tabId === 'dashboard') {
             initRevenueChart();
             initRevenueCompositionChart();
           } else if (tabId === 'financial') {
@@ -582,12 +703,10 @@
         });
       });
       
-      // 初始化默认图表
-      initRevenueChart();
+      // 初始化默认图      initRevenueChart();
       initRevenueCompositionChart();
       
-      // 收入与支出趋势图表
-      function initRevenueChart() {
+      // 收入与支出趋势图      function initRevenueChart() {
         const chart = echarts.init(document.getElementById('revenueChart'));
         const option = {
           tooltip: {
@@ -598,7 +717,7 @@
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -676,7 +795,7 @@
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: [
             {
@@ -717,8 +836,7 @@
         chart.setOption(option);
       }
       
-      // 销售收入趋势图表
-      function initSalesTrendChart() {
+      // 销售收入趋势图      function initSalesTrendChart() {
         const chart = echarts.init(document.getElementById('salesTrendChart'));
         const option = {
           tooltip: {
@@ -729,7 +847,7 @@
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -766,11 +884,11 @@
             trigger: 'axis'
           },
           legend: {
-            data: ['毛利润', '净利润']
+            data: ['毛利, '净利润']
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -780,7 +898,7 @@
           },
           series: [
             {
-              name: '毛利润',
+              name: '毛利,
               type: 'line',
               data: [285000, 306000, 330000, 345000, 360000, 375000],
               smooth: true
@@ -813,7 +931,7 @@
               type: 'pie',
               radius: '60%',
               data: [
-                { value: 425000, name: '原材料' },
+                { value: 425000, name: '原材 },
                 { value: 170000, name: '人工' },
                 { value: 127500, name: '运营费用' },
                 { value: 68000, name: '其他' }
@@ -839,11 +957,11 @@
             trigger: 'axis'
           },
           legend: {
-            data: ['原材料', '人工', '运营费用', '其他']
+            data: ['原材, '人工', '运营费用', '其他']
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -853,7 +971,7 @@
           },
           series: [
             {
-              name: '原材料',
+              name: '原材,
               type: 'bar',
               data: [340000, 360000, 380000, 400000, 410000, 425000]
             },
@@ -877,8 +995,7 @@
         chart.setOption(option);
       }
       
-      // 现金流量表图表
-      function initCashflowChart() {
+      // 现金流量表图      function initCashflowChart() {
         const chart = echarts.init(document.getElementById('cashflowChart'));
         const option = {
           tooltip: {
@@ -889,7 +1006,7 @@
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -930,7 +1047,7 @@
           },
           xAxis: {
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月']
+            data: ['1, '2, '3, '4, '5, '6]
           },
           yAxis: {
             type: 'value',
@@ -951,8 +1068,7 @@
         chart.setOption(option);
       }
       
-      // 窗口大小变化时重新调整图表大小
-      window.addEventListener('resize', function() {
+      // 窗口大小变化时重新调整图表大      window.addEventListener('resize', function() {
         const charts = [
           'revenueChart', 'revenueCompositionChart', 'financialIndicatorsChart',
           'salesTrendChart', 'profitTrendChart', 'costCompositionChart',
@@ -970,7 +1086,7 @@
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

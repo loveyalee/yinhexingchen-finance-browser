@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,7 +25,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
     }
@@ -58,7 +59,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -67,7 +70,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -78,7 +81,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -115,7 +118,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -124,7 +127,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .content-area {
@@ -143,7 +146,7 @@
     .section-tabs {
       display: flex;
       margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
     
     .tab {
@@ -154,8 +157,8 @@
     }
     
     .tab.active {
-      border-bottom-color: #3498db;
-      color: #3498db;
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
       font-weight: bold;
     }
     
@@ -176,7 +179,7 @@
     
     .category-btn {
       padding: 8px 16px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       background-color: white;
       cursor: pointer;
@@ -184,15 +187,15 @@
     }
     
     .category-btn:hover {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .category-btn.active {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .template-grid {
@@ -203,7 +206,7 @@
     }
     
     .template-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 15px;
       transition: box-shadow 0.3s;
@@ -217,7 +220,7 @@
       font-size: 16px;
       font-weight: bold;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .template-description {
@@ -245,12 +248,12 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
       margin-left: 10px;
     }
@@ -273,7 +276,7 @@
     }
     
     .tool-card {
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       padding: 20px;
       text-align: center;
@@ -287,14 +290,14 @@
     .tool-icon {
       font-size: 48px;
       margin-bottom: 15px;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .tool-title {
       font-size: 16px;
       font-weight: bold;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .tool-description {
@@ -307,9 +310,9 @@
     .tool-content {
       margin-top: 20px;
       padding: 20px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .form-group {
@@ -320,7 +323,7 @@
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .form-group input,
@@ -328,7 +331,7 @@
     .form-group textarea {
       width: 100%;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       font-size: 14px;
     }
@@ -336,46 +339,149 @@
     .calculator-result {
       margin-top: 20px;
       padding: 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       background-color: #e3f2fd;
     }
     
     .result-label {
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .result-value {
       font-size: 18px;
       font-weight: bold;
-      color: #3498db;
+      color: #1a5fa8;
       margin-top: 5px;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税/a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html" class="active">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="finance_management.html">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('contract-management'); }, 100); return false;">合同管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('invoice-management'); }, 100); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -383,8 +489,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -431,7 +537,7 @@
                 <button class="btn btn-secondary">预览</button>
               </div>
               <div class="template-card">
-                <div class="template-title">利润表模板</div>
+                <div class="template-title">利润表模/div>
                 <div class="template-description">企业利润表模板，自动计算营业收入、成本和利润</div>
                 <div class="template-meta">
                   <span>Excel格式</span>
@@ -441,8 +547,8 @@
                 <button class="btn btn-secondary">预览</button>
               </div>
               <div class="template-card">
-                <div class="template-title">现金流量表模板</div>
-                <div class="template-description">企业现金流量表模板，包含经营、投资和筹资活动现金流</div>
+                <div class="template-title">现金流量表模/div>
+                <div class="template-description">企业现金流量表模板，包含经营、投资和筹资活动现金/div>
                 <div class="template-meta">
                   <span>Excel格式</span>
                   <span>下载次数: 865</span>
@@ -451,7 +557,7 @@
                 <button class="btn btn-secondary">预览</button>
               </div>
               <div class="template-card">
-                <div class="template-title">增值税申报表模板</div>
+                <div class="template-title">增值税申报表模/div>
                 <div class="template-description">增值税一般纳税人申报表模板，自动计算应纳税额</div>
                 <div class="template-meta">
                   <span>Excel格式</span>
@@ -461,7 +567,7 @@
                 <button class="btn btn-secondary">预览</button>
               </div>
               <div class="template-card">
-                <div class="template-title">企业所得税申报表模板</div>
+                <div class="template-title">企业所得税申报表模/div>
                 <div class="template-description">企业所得税年度申报表模板，包含收入、成本、费用等项目</div>
                 <div class="template-meta">
                   <span>Excel格式</span>
@@ -522,42 +628,42 @@
               <div class="tool-card">
                 <div class="tool-icon">🏦</div>
                 <div class="tool-title">银行对账</div>
-                <div class="tool-description">上传银行对账单，自动与企业账务进行对账</div>
+                <div class="tool-description">上传银行对账单，自动与企业账务进行对/div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
-                    <label>上传银行对账单</label>
+                    <label>上传银行对账/label>
                     <input type="file" accept=".csv,.xlsx">
                   </div>
-                  <button class="btn btn-success">开始对账</button>
+                  <button class="btn btn-success">开始对/button>
                 </div>
               </div>
               <div class="tool-card">
                 <div class="tool-icon">🧮</div>
-                <div class="tool-title">财务计算器</div>
+                <div class="tool-title">财务计算/div>
                 <div class="tool-description">提供各种财务计算功能，如现值、终值、年金等</div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
                     <label>计算类型</label>
                     <select>
-                      <option>现值计算</option>
-                      <option>终值计算</option>
+                      <option>现值计/option>
+                      <option>终值计/option>
                       <option>年金计算</option>
-                      <option>内部收益率</option>
+                      <option>内部收益/option>
                     </select>
                   </div>
                   <div class="form-group">
                     <label>本金</label>
-                    <input type="number" placeholder="请输入本金">
+                    <input type="number" placeholder="请输入本>
                   </div>
                   <div class="form-group">
                     <label>利率(%)</label>
-                    <input type="number" placeholder="请输入利率" step="0.01">
+                    <input type="number" placeholder="请输入利 step="0.01">
                   </div>
                   <div class="form-group">
                     <label>期数</label>
-                    <input type="number" placeholder="请输入期数">
+                    <input type="number" placeholder="请输入期>
                   </div>
                   <button class="btn btn-success">计算</button>
                   <div class="calculator-result" style="display: none;">
@@ -569,13 +675,13 @@
               <div class="tool-card">
                 <div class="tool-icon">💱</div>
                 <div class="tool-title">汇率转换</div>
-                <div class="tool-description">实时汇率查询和货币转换工具</div>
+                <div class="tool-description">实时汇率查询和货币转换工/div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
-                    <label>从货币</label>
+                    <label>从货/label>
                     <select>
-                      <option>CNY - 人民币</option>
+                      <option>CNY - 人民/option>
                       <option>USD - 美元</option>
                       <option>EUR - 欧元</option>
                       <option>JPY - 日元</option>
@@ -583,10 +689,10 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label>到货币</label>
+                    <label>到货/label>
                     <select>
                       <option>USD - 美元</option>
-                      <option>CNY - 人民币</option>
+                      <option>CNY - 人民/option>
                       <option>EUR - 欧元</option>
                       <option>JPY - 日元</option>
                       <option>GBP - 英镑</option>
@@ -594,7 +700,7 @@
                   </div>
                   <div class="form-group">
                     <label>金额</label>
-                    <input type="number" placeholder="请输入金额" step="0.01">
+                    <input type="number" placeholder="请输入金 step="0.01">
                   </div>
                   <button class="btn btn-success">转换</button>
                   <div class="calculator-result" style="display: none;">
@@ -613,18 +719,18 @@
                     <label>票据类型</label>
                     <select>
                       <option>增值税发票</option>
-                      <option>普通发票</option>
+                      <option>普通发/option>
                       <option>收据</option>
                       <option>支票</option>
                     </select>
                   </div>
                   <div class="form-group">
                     <label>票据号码</label>
-                    <input type="text" placeholder="请输入票据号码">
+                    <input type="text" placeholder="请输入票据号>
                   </div>
                   <div class="form-group">
                     <label>金额</label>
-                    <input type="number" placeholder="请输入金额" step="0.01">
+                    <input type="number" placeholder="请输入金 step="0.01">
                   </div>
                   <div class="form-group">
                     <label>日期</label>
@@ -641,6 +747,28 @@
   </div>
   
   <script>
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+    
+    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
+      console.log('显示模块, moduleName);
+      // 根据模块名跳转到相应页面
+      if (moduleName.startsWith('tax-')) {
+        // 税务专区模块
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        // 企业融资模块
+        window.location.href = 'enterprise_management.html';
+      } else {
+        // 财务管理模块
+        window.location.href = 'finance_management.html';
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
@@ -648,13 +776,10 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active类
-          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active类
-          this.classList.add('active');
+          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active          this.classList.add('active');
           
-          // 隐藏所有内容
-          tabContents.forEach(content => content.classList.remove('active'));
+          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
@@ -665,10 +790,8 @@
       const categoryBtns = document.querySelectorAll('.category-btn');
       categoryBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-          // 移除所有按钮的active类
-          categoryBtns.forEach(b => b.classList.remove('active'));
-          // 添加当前按钮的active类
-          this.classList.add('active');
+          // 移除所有按钮的active          categoryBtns.forEach(b => b.classList.remove('active'));
+          // 添加当前按钮的active          this.classList.add('active');
         });
       });
       
@@ -676,7 +799,7 @@
       const downloadButtons = document.querySelectorAll('.template-card .btn-primary');
       downloadButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('模板下载中...');
+          alert('模板下载..');
         });
       });
       
@@ -684,7 +807,7 @@
       const previewButtons = document.querySelectorAll('.template-card .btn-secondary');
       previewButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('模板预览中...');
+          alert('模板预览..');
         });
       });
       
@@ -719,13 +842,13 @@
               resultValue.textContent = '$1,750.00';
             }
           } else {
-            alert('操作成功！');
+            alert('操作成功);
           }
         });
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

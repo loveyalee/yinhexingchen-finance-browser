@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -25,7 +26,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -61,7 +62,9 @@
     }
     
     .nav-item a.active {
-      background-color: #3498db;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
     }
     
     /* 二级菜单样式 */
@@ -81,7 +84,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -118,7 +121,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -127,7 +130,7 @@
     
     .header h1 {
       font-size: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .content-area {
@@ -154,7 +157,7 @@
       width: 100px;
       height: 100px;
       border-radius: 50%;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -171,7 +174,7 @@
     .member-info h2 {
       font-size: 24px;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .member-level {
@@ -199,7 +202,7 @@
     .stat-value {
       font-size: 24px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .stat-label {
@@ -210,6 +213,247 @@
     .member-actions {
       display: flex;
       gap: 10px;
+    }
+    
+    /* 头像上传样式 */
+    .avatar-upload {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .avatar-upload input[type="file"] {
+      display: none;
+    }
+    
+    .avatar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .avatar-upload:hover .avatar-overlay {
+      opacity: 1;
+    }
+    
+    .member-avatar {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .member-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* 个人空间样式 */
+    .personal-space {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    
+    .personal-space h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #1a2d42;
+    }
+    
+    .space-header {
+      position: relative;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      margin-bottom: 60px;
+    }
+    
+    .space-avatar {
+      position: absolute;
+      bottom: -50px;
+      left: 30px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid white;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+    
+    .space-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .space-info {
+      padding: 20px;
+      padding-top: 60px;
+    }
+    
+    .space-nickname {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a2d42;
+      margin-bottom: 10px;
+    }
+    
+    .space-bio {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    
+    .space-stats {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .space-stat {
+      text-align: center;
+    }
+    
+    .space-stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a2d42;
+    }
+    
+    .space-stat-label {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .space-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    /* 编辑资料模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      width: 500px;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a2d42;
+    }
+    
+    .modal-close {
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+    
+    .modal-close:hover {
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #1a2d42;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(26, 95, 168, 0.10);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .upload-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .upload-btn:hover {
+      background-color: #2980b9;
     }
     
     .btn {
@@ -223,7 +467,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -232,7 +476,7 @@
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -251,7 +495,7 @@
     .member-benefits h3 {
       font-size: 18px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .benefits-list {
@@ -262,7 +506,7 @@
     
     .benefit-item {
       padding: 20px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       transition: box-shadow 0.3s;
     }
@@ -274,7 +518,7 @@
     .benefit-item h4 {
       font-size: 16px;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .benefit-item p {
@@ -293,7 +537,7 @@
     .membership-plans h3 {
       font-size: 18px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .plans-list {
@@ -304,14 +548,14 @@
     
     .plan-item {
       padding: 20px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       transition: all 0.3s;
       position: relative;
     }
     
     .plan-item.featured {
-      border-color: #3498db;
+      border-color: #1a5fa8;
       box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
     }
     
@@ -335,13 +579,13 @@
     .plan-item h4 {
       font-size: 16px;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .plan-price {
       font-size: 24px;
       font-weight: bold;
-      color: #3498db;
+      color: #1a5fa8;
       margin-bottom: 15px;
     }
     
@@ -368,7 +612,7 @@
     .feedback-item {
       grid-column: 1 / -1;
       padding: 20px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       transition: box-shadow 0.3s;
     }
@@ -384,7 +628,7 @@
     .member-wallet h3 {
       font-size: 18px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .wallet-content {
@@ -413,6 +657,32 @@
       gap: 10px;
     }
     
+    .wallet-tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      margin: 20px 0;
+    }
+    
+    .wallet-tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .wallet-tab:hover {
+      color: #1a5fa8;
+    }
+    
+    .wallet-tab.active {
+      color: #1a5fa8;
+      border-bottom-color: #1a5fa8;
+      font-weight: bold;
+    }
+    
     .btn-success {
       background-color: #27ae60;
       color: white;
@@ -425,13 +695,13 @@
     .wallet-transactions h4 {
       font-size: 16px;
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .transaction-list {
       max-height: 300px;
       overflow-y: auto;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
     }
     
@@ -458,7 +728,7 @@
     .transaction-desc {
       font-size: 14px;
       font-weight: 500;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 5px;
     }
     
@@ -491,7 +761,7 @@
     .member-credit h3 {
       font-size: 18px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .credit-content {
@@ -525,7 +795,7 @@
     .score-level {
       font-size: 18px;
       font-weight: 500;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .credit-progress {
@@ -557,7 +827,7 @@
     .credit-details h4 {
       font-size: 16px;
       margin-bottom: 15px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .credit-factors {
@@ -578,13 +848,13 @@
     
     .factor-name {
       font-size: 14px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .factor-value {
       font-size: 14px;
       font-weight: 500;
-      color: #3498db;
+      color: #1a5fa8;
     }
     
     .credit-levels {
@@ -595,13 +865,13 @@
     
     .level-item {
       padding: 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 8px;
       transition: all 0.3s;
     }
     
     .level-item.active {
-      border-color: #3498db;
+      border-color: #1a5fa8;
       background-color: #e3f2fd;
       box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
     }
@@ -614,7 +884,7 @@
       font-size: 14px;
       font-weight: 500;
       margin-bottom: 10px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .level-benefits {
@@ -653,12 +923,12 @@
     .form-group label {
       font-size: 12px;
       font-weight: 500;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .form-control {
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       font-size: 13px;
       outline: none;
@@ -666,7 +936,7 @@
     }
     
     .form-control:focus {
-      border-color: #3498db;
+      border-color: #1a5fa8;
       box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
     }
     
@@ -680,7 +950,464 @@
       gap: 8px;
       margin-top: 5px;
     }
-  </style>
+    
+    /* 照片墙样式 */
+    .photo-wall {
+      margin-top: 30px;
+    }
+    
+    .photo-wall h4 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #1a2d42;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    
+    .photo-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .photo-item:hover {
+      transform: scale(1.05);
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .photo-item .photo-delete {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 24px;
+      height: 24px;
+      background-color: rgba(231, 76, 60, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .photo-item:hover .photo-delete {
+      opacity: 1;
+    }
+    
+    .photo-upload-btn {
+      aspect-ratio: 1;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: #666;
+    }
+    
+    .photo-upload-btn:hover {
+      border-color: #1a5fa8;
+      color: #1a5fa8;
+    }
+    
+    .photo-upload-btn span {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .photo-upload-btn small {
+      font-size: 12px;
+    }
+    
+    /* 视频墙样式 */
+    .video-wall {
+      margin-top: 30px;
+    }
+    
+    .video-wall h4 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #1a2d42;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .video-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s;
+      background-color: #000;
+    }
+    
+    .video-item:hover {
+      transform: scale(1.05);
+    }
+    
+    .video-item video {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    
+    .video-item .video-play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+    
+    .video-item .video-delete {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 24px;
+      height: 24px;
+      background-color: rgba(231, 76, 60, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 10;
+    }
+    
+    .video-item:hover .video-delete {
+      opacity: 1;
+    }
+    
+    .video-item .video-date {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      font-size: 11px;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .video-upload-btn {
+      aspect-ratio: 16/9;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: #666;
+      min-height: 150px;
+    }
+    
+    .video-upload-btn:hover {
+      border-color: #1a5fa8;
+      color: #1a5fa8;
+    }
+    
+    .video-upload-btn span {
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+    
+    .video-upload-btn small {
+      font-size: 12px;
+    }
+    
+    /* 视频预览模态框 */
+    .video-preview-modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.95);
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .video-preview-modal.active {
+      display: flex;
+    }
+    
+    .video-preview-modal video {
+      max-width: 90%;
+      max-height: 90%;
+    }
+    
+    .video-preview-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      z-index: 2001;
+    }
+    
+    /* 日记样式 */
+    .diary-section {
+      margin-top: 30px;
+    }
+    
+    .diary-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
+    }
+    
+    .diary-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+      color: #666;
+    }
+    
+    .diary-tab.active {
+      color: #1a5fa8;
+      border-bottom-color: #1a5fa8;
+    }
+    
+    .diary-tab:hover {
+      color: #1a5fa8;
+    }
+    
+    .diary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .diary-item {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      transition: box-shadow 0.3s;
+    }
+    
+    .diary-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .diary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .diary-title {
+      font-weight: bold;
+      color: #1a2d42;
+    }
+    
+    .diary-date {
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .diary-content {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    
+    .diary-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .diary-actions button {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    
+    .diary-form {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .diary-form h4 {
+      margin-bottom: 15px;
+      color: #1a2d42;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    
+    .empty-state span {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    
+    /* 图片预览模态框 */
+    .image-preview-modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .image-preview-modal.active {
+      display: flex;
+    }
+    
+    .image-preview-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
+    
+    .image-preview-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+    }
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
@@ -706,6 +1433,15 @@
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
           </ul>
         </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item has-submenu">
@@ -718,7 +1454,14 @@
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
-        <li class="nav-item"><a href="member.html" class="active">我的会员</a></li>
+        <li class="nav-item has-submenu active">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html" class="active">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -726,16 +1469,22 @@
       <div class="header">
         <h1>我的会员</h1>
         <div>
-          <button class="btn btn-primary">升级会员</button>
+          <button class="btn btn-primary" onclick="toggleMembershipPlans()">升级会员</button>
         </div>
       </div>
       
       <div class="content-area">
         <div class="member-profile">
           <div class="member-header">
-            <div class="member-avatar">张</div>
+            <div class="avatar-upload" onclick="document.getElementById('avatar-input').click()">
+              <div class="member-avatar" id="member-avatar">
+                <span id="avatar-text">张</span>
+              </div>
+              <div class="avatar-overlay">点击修改头像</div>
+              <input type="file" id="avatar-input" accept="image/*" onchange="handleAvatarUpload(event)">
+            </div>
             <div class="member-info">
-              <h2>张三</h2>
+              <h2 id="member-nickname">张三</h2>
               <div class="member-level">黄金会员</div>
               <div class="member-stats">
                 <div class="stat-item">
@@ -760,11 +1509,146 @@
                 </div>
               </div>
               <div class="member-actions">
-                <button class="btn btn-primary">编辑资料</button>
-                <button class="btn btn-secondary">查看账单</button>
+                <button class="btn btn-primary" onclick="openEditModal()">编辑资料</button>
+                <button class="btn btn-secondary" onclick="viewPersonalSpace()">个人空间</button>
                 <button class="btn btn-success" id="wallet-btn">我的钱包</button>
-                <button class="btn btn-secondary" id="logout-btn">退出登录</button>
               </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 个人空间 -->
+        <div class="personal-space" id="personal-space" style="display: none;">
+          <h3>个人空间</h3>
+          <div class="space-header">
+            <div class="space-avatar" id="space-avatar">
+              <span id="space-avatar-text">张</span>
+            </div>
+          </div>
+          <div class="space-info">
+            <div class="space-nickname" id="space-nickname">张三</div>
+            <div class="space-bio" id="space-bio">暂无个人简介</div>
+            <div class="space-stats">
+              <div class="space-stat">
+                <div class="space-stat-value">128</div>
+                <div class="space-stat-label">积分</div>
+              </div>
+              <div class="space-stat">
+                <div class="space-stat-value">85</div>
+                <div class="space-stat-label">信用分</div>
+              </div>
+              <div class="space-stat">
+                <div class="space-stat-value">30</div>
+                <div class="space-stat-label">登录天数</div>
+              </div>
+              <div class="space-stat">
+                <div class="space-stat-value">15</div>
+                <div class="space-stat-label">回答数</div>
+              </div>
+            </div>
+            <div class="space-actions">
+              <button class="btn btn-primary" onclick="openEditModal()">编辑资料</button>
+              <button class="btn btn-secondary" onclick="hidePersonalSpace()">返回会员中心</button>
+            </div>
+          </div>
+          
+          <!-- 照片墙 -->
+          <div class="photo-wall">
+            <h4>
+              我的相册
+              <button class="btn btn-primary" style="font-size: 12px; padding: 5px 10px;" onclick="document.getElementById('photo-upload-input').click()">+ 上传照片</button>
+            </h4>
+            <input type="file" id="photo-upload-input" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event)">
+            <div class="photo-grid" id="photo-grid">
+              <div class="photo-upload-btn" onclick="document.getElementById('photo-upload-input').click()">
+                <span>+</span>
+                <small>上传照片</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 视频墙 -->
+          <div class="video-wall">
+            <h4>
+              我的视频
+              <button class="btn btn-primary" style="font-size: 12px; padding: 5px 10px;" onclick="document.getElementById('video-upload-input').click()">+ 上传视频</button>
+            </h4>
+            <input type="file" id="video-upload-input" accept="video/*" multiple style="display: none;" onchange="handleVideoUpload(event)">
+            <div class="video-grid" id="video-grid">
+              <div class="video-upload-btn" onclick="document.getElementById('video-upload-input').click()">
+                <span>▶</span>
+                <small>上传视频</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 日记区域 -->
+          <div class="diary-section">
+            <div class="diary-tabs">
+              <div class="diary-tab active" onclick="switchDiaryTab('life')">生活日记</div>
+              <div class="diary-tab" onclick="switchDiaryTab('work')">工作日记</div>
+            </div>
+            
+            <!-- 日记表单 -->
+            <div class="diary-form">
+              <h4 id="diary-form-title">写生活日记</h4>
+              <div class="form-group">
+                <input type="text" id="diary-title" placeholder="标题" style="margin-bottom: 10px;">
+                <textarea id="diary-content" placeholder="记录今天的心情..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="saveDiary()">保存日记</button>
+            </div>
+            
+            <!-- 日记列表 -->
+            <div class="diary-list" id="diary-list">
+              <div class="empty-state">
+                <span>📝</span>
+                <p>还没有日记，开始记录吧！</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 图片预览模态框 -->
+        <div class="image-preview-modal" id="image-preview-modal" onclick="closeImagePreview()">
+          <div class="image-preview-close">&times;</div>
+          <img id="preview-image" src="" alt="预览">
+        </div>
+        
+        <!-- 视频预览模态框 -->
+        <div class="video-preview-modal" id="video-preview-modal">
+          <div class="video-preview-close" onclick="closeVideoPreview()">&times;</div>
+          <video id="preview-video" controls></video>
+        </div>
+        
+        <!-- 编辑资料模态框 -->
+        <div class="modal" id="edit-modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div class="modal-title">编辑个人资料</div>
+              <div class="modal-close" onclick="closeEditModal()">&times;</div>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label>头像</label>
+                <div class="avatar-preview" id="modal-avatar-preview">
+                  <span id="modal-avatar-text">张</span>
+                </div>
+                <label class="upload-btn" onclick="document.getElementById('modal-avatar-input').click()">上传新头像</label>
+                <input type="file" id="modal-avatar-input" accept="image/*" style="display: none;" onchange="handleModalAvatarUpload(event)">
+              </div>
+              <div class="form-group">
+                <label for="edit-nickname">昵称</label>
+                <input type="text" id="edit-nickname" placeholder="请输入昵称" value="张三">
+              </div>
+              <div class="form-group">
+                <label for="edit-bio">个人简介</label>
+                <textarea id="edit-bio" placeholder="介绍一下自己..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+              <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+              <button class="btn btn-primary" onclick="saveProfile()">保存</button>
             </div>
           </div>
         </div>
@@ -919,12 +1803,21 @@
             <div class="wallet-balance-section">
               <div class="wallet-balance" id="wallet-balance">¥0.00</div>
               <div class="wallet-actions">
-                <button class="btn btn-success" id="recharge-btn">充值</button>
-                <button class="btn btn-secondary" id="withdraw-btn">提现</button>
+                <button class="btn btn-success" id="recharge-btn" onclick="handleRecharge()">充值</button>
+                <button class="btn btn-secondary" id="withdraw-btn" onclick="handleWithdraw()">提现</button>
               </div>
             </div>
+            
+            <!-- 钱包标签页 -->
+            <div class="wallet-tabs">
+              <div class="wallet-tab active" onclick="switchWalletTab('all')" id="wallet-tab-all">全部账单</div>
+              <div class="wallet-tab" onclick="switchWalletTab('recharge')" id="wallet-tab-recharge">充值记录</div>
+              <div class="wallet-tab" onclick="switchWalletTab('withdraw')" id="wallet-tab-withdraw">提现记录</div>
+              <div class="wallet-tab" onclick="switchWalletTab('consume')" id="wallet-tab-consume">消费记录</div>
+              <div class="wallet-tab" onclick="switchWalletTab('coupons')" id="wallet-tab-coupons">我的优惠券</div>
+            </div>
+            
             <div class="wallet-transactions">
-              <h4>交易明细</h4>
               <div class="transaction-list" id="transaction-list">
                 <!-- 交易记录将通过JavaScript动态生成 -->
               </div>
@@ -932,27 +1825,27 @@
           </div>
         </div>
         
-        <div class="membership-plans">
+        <div class="membership-plans" id="membership-plans-container" style="display: none;">
           <h3>会员套餐</h3>
           <div class="plans-list">
             <div class="plan-item">
               <h4>普通会员</h4>
-              <div class="plan-price">¥0/月</div>
+              <div class="plan-price">¥0/年</div>
               <ul class="plan-features">
                 <li>基础财务软件功能</li>
-                <li>5GB云盘空间</li>
                 <li>部分模板下载</li>
                 <li>标准客服支持</li>
+                <li style="color: #999; text-decoration: line-through;">云盘功能（需升级会员）</li>
               </ul>
               <button class="btn btn-primary">当前套餐</button>
             </div>
             <div class="plan-item featured">
               <div class="plan-badge">推荐</div>
               <h4>黄金会员</h4>
-              <div class="plan-price">¥99/月</div>
+              <div class="plan-price">¥199/年</div>
               <ul class="plan-features">
                 <li>全部财务软件功能</li>
-                <li>100GB云盘空间</li>
+                <li>50GB云盘空间</li>
                 <li>所有模板下载</li>
                 <li>专属客服支持</li>
                 <li>课程8折优惠</li>
@@ -962,16 +1855,32 @@
             </div>
             <div class="plan-item">
               <h4>钻石会员</h4>
-              <div class="plan-price">¥199/月</div>
+              <div class="plan-price">¥399/年</div>
               <ul class="plan-features">
                 <li>全部黄金会员权益</li>
-                <li>500GB云盘空间</li>
+                <li>200GB云盘空间</li>
                 <li>课程5折优惠</li>
                 <li>一对一财务顾问</li>
                 <li>免费参加线下培训</li>
                 <li>优先体验新功能</li>
               </ul>
               <button class="btn btn-primary">立即升级</button>
+            </div>
+            <div class="plan-item" style="border-color: #f39c12; box-shadow: 0 4px 8px rgba(243, 156, 18, 0.2);">
+              <div class="plan-badge" style="background-color: #f39c12;">尊享</div>
+              <h4>VIP会员</h4>
+              <div class="plan-price" style="color: #f39c12;">¥599/年</div>
+              <ul class="plan-features">
+                <li>全部钻石会员权益</li>
+                <li>500GB云盘空间</li>
+                <li>课程免费学习</li>
+                <li>专属VIP客服通道</li>
+                <li>年度财务健康报告</li>
+                <li>线下活动优先参与</li>
+                <li>专属定制服务</li>
+                <li>企业级安全保障</li>
+              </ul>
+              <button class="btn btn-primary" style="background-color: #f39c12;">立即升级</button>
             </div>
           </div>
         </div>
@@ -980,7 +1889,555 @@
   </div>
   
   <script>
+    // 当前账单筛选类型
+    let currentTransactionFilter = 'all';
+    
+    // 切换"我的会员"二级菜单
+    function toggleMemberSubmenu(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    }
+    
+    // 处理退出登录
+    function handleLogout() {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+
+        // 跳转到登录页面
+        window.location.href = 'login.html';
+      }
+    }
+
+    // 实名认证弹窗
+    function showRealNameAuth() {
+      const existing = document.getElementById('realname-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'realname-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <h3 style="margin:0 0 24px 0;color:#1a2332;font-size:22px;text-align:center;">实名认证</h3>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">真实姓名</label>
+            <input type="text" id="realname-input" placeholder="请输入真实姓名" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">身份证号</label>
+            <input type="text" id="idcard-input" placeholder="请输入18位身份证号" maxlength="18" style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;margin-bottom:8px;color:#334155;font-size:14px;font-weight:500;">出生日期</label>
+            <input type="text" id="birthdate-input" placeholder="自动识别" readonly style="width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box;background:#f8fafc;color:#64748b;">
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button id="realname-cancel" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;background:#f1f5f9;color:#64748b;font-weight:500;">取消</button>
+            <button id="realname-confirm" style="flex:1;padding:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;">确认认证</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // 身份证号输入自动提取出生日期
+      const idcardInput = document.getElementById('idcard-input');
+      const birthdateInput = document.getElementById('birthdate-input');
+      idcardInput.addEventListener('input', function() {
+        const idcard = this.value.trim();
+        if (/^\d{17}[\dXx]$/.test(idcard)) {
+          const year = idcard.substring(6, 10);
+          const month = idcard.substring(10, 12);
+          const day = idcard.substring(12, 14);
+          birthdateInput.value = `${year}-${month}-${day}`;
+        } else {
+          birthdateInput.value = '';
+        }
+      });
+
+      // 取消按钮
+      document.getElementById('realname-cancel').addEventListener('click', function() {
+        modal.remove();
+      });
+
+      // 确认认证
+      document.getElementById('realname-confirm').addEventListener('click', function() {
+        const name = document.getElementById('realname-input').value.trim();
+        const idcard = idcardInput.value.trim();
+        const birthdate = birthdateInput.value;
+
+        if (!name) {
+          alert('请输入真实姓名');
+          return;
+        }
+        if (!/^\d{17}[\dXx]$/.test(idcard)) {
+          alert('请输入正确的18位身份证号');
+          return;
+        }
+
+        // 保存实名认证信息
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        userInfo.realName = name;
+        userInfo.idcard = idcard;
+        userInfo.birthDate = birthdate;
+        userInfo.realNameVerified = true;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+        alert('实名认证成功！');
+        modal.remove();
+      });
+
+      // 点击背景关闭
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.remove();
+      });
+    }
+    
+    // 切换会员套餐显示
+    function toggleMembershipPlans() {
+      const container = document.getElementById('membership-plans-container');
+      if (container) {
+        if (container.style.display === 'none' || !container.style.display) {
+          container.style.display = 'block';
+          // 滚动到会员套餐区域
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          container.style.display = 'none';
+        }
+      }
+    }
+    
+    // 切换钱包标签页
+    function switchWalletTab(type) {
+      currentTransactionFilter = type;
+      
+      // 更新标签页样式
+      document.querySelectorAll('.wallet-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById('wallet-tab-' + type).classList.add('active');
+      
+      // 重新渲染交易记录或优惠券
+      if (type === 'coupons') {
+        renderCoupons();
+      } else {
+        renderTransactions();
+      }
+    }
+    
+    // 用户资料数据
+    let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
+      nickname: '张三',
+      avatar: null,
+      bio: ''
+    };
+    
+    // 头像上传处理
+    function handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          userProfile.avatar = e.target.result;
+          updateAvatarDisplay();
+          localStorage.setItem('userProfile', JSON.stringify(userProfile));
+          alert('头像上传成功！');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // 模态框头像上传处理
+    function handleModalAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          userProfile.avatar = e.target.result;
+          updateModalAvatarPreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // 更新头像显示
+    function updateAvatarDisplay() {
+      const avatarContainers = ['member-avatar', 'space-avatar', 'modal-avatar-preview'];
+      const avatarTexts = ['avatar-text', 'space-avatar-text', 'modal-avatar-text'];
+      
+      avatarContainers.forEach((containerId, index) => {
+        const container = document.getElementById(containerId);
+        const textSpan = document.getElementById(avatarTexts[index]);
+        
+        if (container && userProfile.avatar) {
+          container.innerHTML = `<img src="${userProfile.avatar}" alt="头像">`;
+        } else if (textSpan) {
+          textSpan.textContent = userProfile.nickname ? userProfile.nickname[0] : '张';
+        }
+      });
+    }
+    
+    // 更新模态框头像预览
+    function updateModalAvatarPreview() {
+      const preview = document.getElementById('modal-avatar-preview');
+      if (preview && userProfile.avatar) {
+        preview.innerHTML = `<img src="${userProfile.avatar}" alt="头像">`;
+      }
+    }
+    
+    // 打开编辑资料模态框
+    function openEditModal() {
+      document.getElementById('edit-modal').classList.add('active');
+      document.getElementById('edit-nickname').value = userProfile.nickname;
+      document.getElementById('edit-bio').value = userProfile.bio || '';
+      updateModalAvatarPreview();
+    }
+    
+    // 关闭编辑资料模态框
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+    
+    // 保存个人资料
+    function saveProfile() {
+      const nickname = document.getElementById('edit-nickname').value.trim();
+      const bio = document.getElementById('edit-bio').value.trim();
+      
+      if (!nickname) {
+        alert('请输入昵称');
+        return;
+      }
+      
+      userProfile.nickname = nickname;
+      userProfile.bio = bio;
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      
+      // 更新页面显示
+      document.getElementById('member-nickname').textContent = nickname;
+      document.getElementById('space-nickname').textContent = nickname;
+      document.getElementById('space-bio').textContent = bio || '暂无个人简介';
+      updateAvatarDisplay();
+      
+      closeEditModal();
+      alert('资料保存成功！');
+    }
+    
+    // 查看个人空间
+    function viewPersonalSpace() {
+      document.getElementById('personal-space').style.display = 'block';
+      document.querySelector('.member-profile').style.display = 'none';
+      document.querySelector('.member-benefits').style.display = 'none';
+      document.querySelector('.member-credit').style.display = 'none';
+      document.querySelector('.member-wallet').style.display = 'none';
+      document.querySelector('.membership-plans').style.display = 'none';
+      
+      // 更新个人空间数据
+      document.getElementById('space-nickname').textContent = userProfile.nickname;
+      document.getElementById('space-bio').textContent = userProfile.bio || '暂无个人简介';
+      updateAvatarDisplay();
+      
+      // 初始化照片墙、视频墙和日记
+      renderPhotos();
+      renderVideos();
+      renderDiaries();
+    }
+    
+    // 隐藏个人空间，返回会员中心
+    function hidePersonalSpace() {
+      document.getElementById('personal-space').style.display = 'none';
+      document.querySelector('.member-profile').style.display = 'block';
+      document.querySelector('.member-benefits').style.display = 'block';
+      document.querySelector('.member-credit').style.display = 'block';
+      document.querySelector('.member-wallet').style.display = 'block';
+      document.querySelector('.membership-plans').style.display = 'block';
+    }
+    
+    // 照片墙数据
+    let userPhotos = JSON.parse(localStorage.getItem('userPhotos')) || [];
+    
+    // 当前日记类型
+    let currentDiaryType = 'life';
+    
+    // 日记数据
+    let userDiaries = JSON.parse(localStorage.getItem('userDiaries')) || {
+      life: [],
+      work: []
+    };
+    
+    // 视频墙数据
+    let userVideos = JSON.parse(localStorage.getItem('userVideos')) || [];
+    
+    // 视频上传处理
+    function handleVideoUpload(event) {
+      const files = event.target.files;
+      if (files && files.length > 0) {
+        Array.from(files).forEach(file => {
+          // 检查文件大小（限制50MB）
+          if (file.size > 50 * 1024 * 1024) {
+            alert(`视频 ${file.name} 超过50MB限制，无法上传`);
+            return;
+          }
+          
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            userVideos.push({
+              id: Date.now() + Math.random(),
+              src: e.target.result,
+              name: file.name,
+              date: new Date().toLocaleString('zh-CN')
+            });
+            localStorage.setItem('userVideos', JSON.stringify(userVideos));
+            renderVideos();
+          };
+          reader.readAsDataURL(file);
+        });
+        alert(`成功上传 ${files.length} 个视频！`);
+      }
+    }
+    
+    // 渲染视频墙
+    function renderVideos() {
+      const videoGrid = document.getElementById('video-grid');
+      if (!videoGrid) return;
+      
+      let html = `
+        <div class="video-upload-btn" onclick="document.getElementById('video-upload-input').click()">
+          <span>▶</span>
+          <small>上传视频</small>
+        </div>
+      `;
+      
+      userVideos.forEach(video => {
+        html += `
+          <div class="video-item" onclick="previewVideo('${video.src}')">
+            <video src="${video.src}" preload="metadata"></video>
+            <div class="video-play-icon">▶</div>
+            <button class="video-delete" onclick="event.stopPropagation(); deleteVideo(${video.id})">×</button>
+            <div class="video-date">${video.date}</div>
+          </div>
+        `;
+      });
+      
+      videoGrid.innerHTML = html;
+    }
+    
+    // 删除视频
+    function deleteVideo(videoId) {
+      if (confirm('确定要删除这个视频吗？')) {
+        userVideos = userVideos.filter(v => v.id !== videoId);
+        localStorage.setItem('userVideos', JSON.stringify(userVideos));
+        renderVideos();
+      }
+    }
+    
+    // 预览视频
+    function previewVideo(src) {
+      const video = document.getElementById('preview-video');
+      video.src = src;
+      video.load();
+      document.getElementById('video-preview-modal').classList.add('active');
+      video.play();
+    }
+    
+    // 关闭视频预览
+    function closeVideoPreview() {
+      const video = document.getElementById('preview-video');
+      video.pause();
+      video.src = '';
+      document.getElementById('video-preview-modal').classList.remove('active');
+    }
+    
+    // 照片上传处理
+    function handlePhotoUpload(event) {
+      const files = event.target.files;
+      if (files && files.length > 0) {
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            userPhotos.push({
+              id: Date.now() + Math.random(),
+              src: e.target.result,
+              date: new Date().toLocaleString('zh-CN')
+            });
+            localStorage.setItem('userPhotos', JSON.stringify(userPhotos));
+            renderPhotos();
+          };
+          reader.readAsDataURL(file);
+        });
+        alert(`成功上传 ${files.length} 张照片！`);
+      }
+    }
+    
+    // 渲染照片墙
+    function renderPhotos() {
+      const photoGrid = document.getElementById('photo-grid');
+      if (!photoGrid) return;
+      
+      let html = `
+        <div class="photo-upload-btn" onclick="document.getElementById('photo-upload-input').click()">
+          <span>+</span>
+          <small>上传照片</small>
+        </div>
+      `;
+      
+      userPhotos.forEach(photo => {
+        html += `
+          <div class="photo-item" onclick="previewImage('${photo.src}')">
+            <img src="${photo.src}" alt="照片">
+            <button class="photo-delete" onclick="event.stopPropagation(); deletePhoto(${photo.id})">×</button>
+          </div>
+        `;
+      });
+      
+      photoGrid.innerHTML = html;
+    }
+    
+    // 删除照片
+    function deletePhoto(photoId) {
+      if (confirm('确定要删除这张照片吗？')) {
+        userPhotos = userPhotos.filter(p => p.id !== photoId);
+        localStorage.setItem('userPhotos', JSON.stringify(userPhotos));
+        renderPhotos();
+      }
+    }
+    
+    // 预览图片
+    function previewImage(src) {
+      document.getElementById('preview-image').src = src;
+      document.getElementById('image-preview-modal').classList.add('active');
+    }
+    
+    // 关闭图片预览
+    function closeImagePreview() {
+      document.getElementById('image-preview-modal').classList.remove('active');
+    }
+    
+    // 切换日记标签
+    function switchDiaryTab(type) {
+      currentDiaryType = type;
+      
+      // 更新标签样式
+      document.querySelectorAll('.diary-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // 更新表单标题
+      document.getElementById('diary-form-title').textContent = type === 'life' ? '写生活日记' : '写工作日记';
+      document.getElementById('diary-content').placeholder = type === 'life' ? '记录今天的心情...' : '记录工作心得...';
+      
+      // 渲染日记列表
+      renderDiaries();
+    }
+    
+    // 保存日记
+    function saveDiary() {
+      const title = document.getElementById('diary-title').value.trim();
+      const content = document.getElementById('diary-content').value.trim();
+      
+      if (!title || !content) {
+        alert('请填写标题和内容');
+        return;
+      }
+      
+      const diary = {
+        id: Date.now(),
+        title: title,
+        content: content,
+        date: new Date().toLocaleString('zh-CN'),
+        type: currentDiaryType
+      };
+      
+      userDiaries[currentDiaryType].unshift(diary);
+      localStorage.setItem('userDiaries', JSON.stringify(userDiaries));
+      
+      // 清空表单
+      document.getElementById('diary-title').value = '';
+      document.getElementById('diary-content').value = '';
+      
+      renderDiaries();
+      alert('日记保存成功！');
+    }
+    
+    // 渲染日记列表
+    function renderDiaries() {
+      const diaryList = document.getElementById('diary-list');
+      if (!diaryList) return;
+      
+      const diaries = userDiaries[currentDiaryType] || [];
+      
+      if (diaries.length === 0) {
+        diaryList.innerHTML = `
+          <div class="empty-state">
+            <span>📝</span>
+            <p>还没有${currentDiaryType === 'life' ? '生活' : '工作'}日记，开始记录吧！</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '';
+      diaries.forEach(diary => {
+        html += `
+          <div class="diary-item">
+            <div class="diary-header">
+              <div class="diary-title">${diary.title}</div>
+              <div class="diary-date">${diary.date}</div>
+            </div>
+            <div class="diary-content">${diary.content}</div>
+            <div class="diary-actions">
+              <button class="btn btn-secondary" onclick="editDiary(${diary.id})">编辑</button>
+              <button class="btn btn-secondary" onclick="deleteDiary(${diary.id})">删除</button>
+            </div>
+          </div>
+        `;
+      });
+      
+      diaryList.innerHTML = html;
+    }
+    
+    // 编辑日记
+    function editDiary(diaryId) {
+      const diaries = userDiaries[currentDiaryType];
+      const diary = diaries.find(d => d.id === diaryId);
+      
+      if (diary) {
+        document.getElementById('diary-title').value = diary.title;
+        document.getElementById('diary-content').value = diary.content;
+        
+        // 删除原日记
+        userDiaries[currentDiaryType] = diaries.filter(d => d.id !== diaryId);
+        localStorage.setItem('userDiaries', JSON.stringify(userDiaries));
+        renderDiaries();
+      }
+    }
+    
+    // 删除日记
+    function deleteDiary(diaryId) {
+      if (confirm('确定要删除这篇日记吗？')) {
+        userDiaries[currentDiaryType] = userDiaries[currentDiaryType].filter(d => d.id !== diaryId);
+        localStorage.setItem('userDiaries', JSON.stringify(userDiaries));
+        renderDiaries();
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
+      // 初始化用户资料显示
+      updateAvatarDisplay();
+      document.getElementById('member-nickname').textContent = userProfile.nickname;
+      
+      // 点击模态框外部关闭
+      document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeEditModal();
+        }
+      });
+      
       // 会员升级按钮点击事件
       const upgradeButtons = document.querySelectorAll('.btn-primary');
       upgradeButtons.forEach(button => {
@@ -995,18 +2452,12 @@
               amount = parseFloat(priceText.replace(/[^0-9.]/g, ''));
               productName = planItem.querySelector('h4').textContent + '会员';
             } else {
-              amount = 99; // 默认黄金会员价格
+              amount = 199; // 默认黄金会员价格
               productName = '黄金会员';
             }
             
             // 跳转到支付页面
             window.location.href = `payment.html?amount=${amount}&productName=${encodeURIComponent(productName)}&type=membership`;
-          } else if (this.textContent === '编辑资料') {
-            alert('正在跳转到编辑资料页面...');
-            // 这里可以添加跳转到编辑资料页面的逻辑
-          } else if (this.textContent === '查看账单') {
-            alert('正在跳转到账单页面...');
-            // 这里可以添加跳转到账单页面的逻辑
           }
         });
       });
@@ -1069,10 +2520,18 @@
       
       // 从localStorage获取交易记录
       let transactions = JSON.parse(localStorage.getItem('userTransactions')) || [
-        { type: 'expense', amount: 100, desc: '发布问题悬赏', time: '2024-01-15 10:00' },
-        { type: 'income', amount: 200, desc: '回答被采纳', time: '2024-01-14 18:00' },
-        { type: 'expense', amount: 50, desc: '发布问题悬赏', time: '2024-01-13 09:00' },
-        { type: 'income', amount: 150, desc: '回答被采纳', time: '2024-01-12 16:00' }
+        { category: 'consume', amount: 100, desc: '发布问题悬赏', time: '2024-01-15 10:00' },
+        { category: 'recharge', amount: 200, desc: '钱包充值', time: '2024-01-14 18:00' },
+        { category: 'withdraw', amount: 50, desc: '提现到银行卡', time: '2024-01-13 09:00' },
+        { category: 'consume', amount: 150, desc: '购买会员', time: '2024-01-12 16:00' }
+      ];
+      
+      // 优惠券数据
+      let userCoupons = JSON.parse(localStorage.getItem('userCoupons')) || [
+        { id: 1, name: '财务软件折扣券', type: 'discount', value: 20, minSpend: 100, expireDate: '2026-12-31', status: 'active', description: '财务软件购买满100元立减20元' },
+        { id: 2, name: '课程优惠券', type: 'discount', value: 50, minSpend: 200, expireDate: '2026-06-30', status: 'active', description: '财务学堂课程满200元立减50元' },
+        { id: 3, name: '会员体验券', type: 'membership', value: 30, minSpend: 0, expireDate: '2026-05-31', status: 'active', description: '免费体验30天黄金会员' },
+        { id: 4, name: '云盘扩容券', type: 'storage', value: 50, minSpend: 0, expireDate: '2026-09-30', status: 'expired', description: '云盘存储空间扩容50GB' }
       ];
       
       // 从localStorage获取用户数据
@@ -1096,59 +2555,120 @@
         const transactionList = document.getElementById('transaction-list');
         transactionList.innerHTML = '';
         
-        transactions.forEach(transaction => {
+        // 筛选交易记录
+        let filteredTransactions = transactions;
+        if (currentTransactionFilter !== 'all') {
+          filteredTransactions = transactions.filter(t => t.category === currentTransactionFilter);
+        }
+        
+        if (filteredTransactions.length === 0) {
+          transactionList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无交易记录</div>';
+          return;
+        }
+        
+        filteredTransactions.forEach(transaction => {
           const transactionItem = document.createElement('div');
           transactionItem.className = 'transaction-item';
+          
+          // 根据类别确定是收入还是支出
+          const isIncome = transaction.category === 'recharge';
+          const sign = isIncome ? '+' : '-';
+          const amountClass = isIncome ? 'income' : 'expense';
+          
           transactionItem.innerHTML = `
             <div class="transaction-info">
               <div class="transaction-desc">${transaction.desc}</div>
               <div class="transaction-time">${transaction.time}</div>
             </div>
-            <div class="transaction-amount ${transaction.type}">
-              ${transaction.type === 'income' ? '+' : '-'}¥${transaction.amount.toFixed(2)}
+            <div class="transaction-amount ${amountClass}">
+              ${sign}¥${transaction.amount.toFixed(2)}
             </div>
           `;
           transactionList.appendChild(transactionItem);
         });
       }
       
-      // 充值功能
-      function handleRecharge() {
-        const amount = prompt('请输入充值金额：');
-        if (amount && !isNaN(amount) && amount > 0) {
-          userWallet.balance += parseFloat(amount);
-          transactions.unshift({
-            type: 'income',
-            amount: parseFloat(amount),
-            desc: '钱包充值',
-            time: new Date().toLocaleString('zh-CN')
-          });
-          updateWallet();
-          renderTransactions();
-          localStorage.setItem('userTransactions', JSON.stringify(transactions));
-          alert(`成功充值 ¥${amount}`);
+      // 渲染优惠券
+      function renderCoupons() {
+        const transactionList = document.getElementById('transaction-list');
+        transactionList.innerHTML = '';
+        
+        if (userCoupons.length === 0) {
+          transactionList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无优惠券</div>';
+          return;
         }
+        
+        userCoupons.forEach(coupon => {
+          const couponItem = document.createElement('div');
+          couponItem.className = 'transaction-item';
+          
+          // 优惠券状态样式
+          const statusClass = coupon.status === 'active' ? 'income' : 'expense';
+          const statusText = coupon.status === 'active' ? '可用' : '已过期';
+          
+          // 优惠券类型显示
+          let valueText = '';
+          if (coupon.type === 'discount') {
+            valueText = `¥${coupon.value}`;
+          } else if (coupon.type === 'membership') {
+            valueText = `${coupon.value}天`;
+          } else if (coupon.type === 'storage') {
+            valueText = `${coupon.value}GB`;
+          }
+          
+          couponItem.innerHTML = `
+            <div class="transaction-info">
+              <div class="transaction-desc" style="font-weight: bold;">${coupon.name}</div>
+              <div class="transaction-time">${coupon.description}</div>
+              <div class="transaction-time" style="margin-top: 5px;">使用条件: ${coupon.minSpend > 0 ? `满¥${coupon.minSpend}` : '无门槛'}</div>
+              <div class="transaction-time" style="margin-top: 5px;">有效期至: ${coupon.expireDate}</div>
+            </div>
+            <div class="transaction-amount ${statusClass}" style="text-align: center;">
+              <div style="font-size: 20px; font-weight: bold;">${valueText}</div>
+              <div style="font-size: 12px; margin-top: 5px;">${statusText}</div>
+            </div>
+          `;
+          transactionList.appendChild(couponItem);
+        });
       }
       
-      // 提现功能
-      function handleWithdraw() {
-        const amount = prompt('请输入提现金额：');
-        if (amount && !isNaN(amount) && amount > 0 && amount <= userWallet.balance) {
-          userWallet.balance -= parseFloat(amount);
-          transactions.unshift({
-            type: 'expense',
-            amount: parseFloat(amount),
-            desc: '钱包提现',
-            time: new Date().toLocaleString('zh-CN')
-          });
-          updateWallet();
-          renderTransactions();
-          localStorage.setItem('userTransactions', JSON.stringify(transactions));
-          alert(`成功提现 ¥${amount}`);
-        } else if (amount > userWallet.balance) {
-          alert('余额不足');
-        }
+      // 充值功能
+    window.handleRecharge = function() {
+      const amount = prompt('请输入充值金额：');
+      if (amount && !isNaN(amount) && amount > 0) {
+        userWallet.balance += parseFloat(amount);
+        transactions.unshift({
+          category: 'recharge',
+          amount: parseFloat(amount),
+          desc: '钱包充值',
+          time: new Date().toLocaleString('zh-CN')
+        });
+        updateWallet();
+        renderTransactions();
+        localStorage.setItem('userTransactions', JSON.stringify(transactions));
+        alert(`成功充值 ¥${amount}`);
       }
+    };
+    
+    // 提现功能
+    window.handleWithdraw = function() {
+      const amount = prompt('请输入提现金额：');
+      if (amount && !isNaN(amount) && amount > 0 && amount <= userWallet.balance) {
+        userWallet.balance -= parseFloat(amount);
+        transactions.unshift({
+          category: 'withdraw',
+          amount: parseFloat(amount),
+          desc: '钱包提现',
+          time: new Date().toLocaleString('zh-CN')
+        });
+        updateWallet();
+        renderTransactions();
+        localStorage.setItem('userTransactions', JSON.stringify(transactions));
+        alert(`成功提现 ¥${amount}`);
+      } else if (amount > userWallet.balance) {
+        alert('余额不足');
+      }
+    };
       
       // 绑定充值和提现按钮事件
       const rechargeBtn = document.getElementById('recharge-btn');

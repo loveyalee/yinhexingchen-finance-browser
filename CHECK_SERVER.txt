@@ -36,4 +36,4 @@ cd /var/www/yinhexingchen && nohup node server.js > server.log 2>&1 &
 ```
 
 ## 6. 再次测试
-在浏览器中访问：http://49.232.63.136:3000
+在浏览器中访问：http://111.230.36.222:3000

@@ -11,243 +11,611 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      min-height: 100vh;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-wrapper {
+      display: flex;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 600px;
+      background: #fff;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 左侧品牌区域 */
+    .brand-section {
+      flex: 1;
+      background: linear-gradient(160deg, #1a365d 0%, #2d4a7c 40%, #3d5a8c 70%, #1a365d 100%);
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      position: relative;
+      overflow: hidden;
     }
-    
-    .login-container {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 40px;
-      width: 400px;
-      max-width: 90%;
+
+    .brand-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(99, 179, 237, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(129, 140, 248, 0.1) 0%, transparent 40%);
+      animation: pulse 15s ease-in-out infinite;
     }
-    
-    .login-header {
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .brand-section::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(to top, rgba(15, 23, 42, 0.3), transparent);
+    }
+
+    .brand-content {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      margin-bottom: 30px;
     }
-    
+
+    .brand-logo {
+      width: 180px;
+      height: 180px;
+      margin: 0 auto 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-logo img {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+    }
+
+    .brand-name {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      letter-spacing: 4px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-slogan {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 2px;
+      font-weight: 300;
+    }
+
+    .brand-slogan span {
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    .brand-features {
+      margin-top: 50px;
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .feature-item {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .feature-item .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .feature-item .text {
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    /* 右侧登录区域 */
+    .login-section {
+      flex: 1;
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+    }
+
+    .login-header {
+      margin-bottom: 35px;
+    }
+
     .login-header h2 {
-      color: #2c3e50;
-      font-size: 24px;
-      margin-bottom: 10px;
+      color: #1e293b;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
-    
+
     .login-header p {
-      color: #666;
+      color: #64748b;
       font-size: 14px;
     }
-    
+
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
-    
+
     .form-group label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       font-weight: 500;
-      color: #333;
+      color: #334155;
+      font-size: 14px;
     }
-    
+
     .form-group input {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 16px;
-      transition: border-color 0.3s;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s;
+      background: #fff;
     }
-    
+
     .form-group input:focus {
       outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
     }
-    
+
+    .form-group input::placeholder {
+      color: #94a3b8;
+    }
+
+    .input-hint {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    .login-type-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-top: 8px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .login-type-badge.phone {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .login-type-badge.email {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .login-type-badge.idcard {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .login-type-badge.unknown {
+      display: none;
+    }
+
     .form-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
-    
+
     .form-actions label {
       display: flex;
       align-items: center;
       font-size: 14px;
-      color: #666;
+      color: #64748b;
+      cursor: pointer;
     }
-    
+
     .form-actions input[type="checkbox"] {
       margin-right: 8px;
+      accent-color: #3b82f6;
     }
-    
+
     .form-actions a {
       font-size: 14px;
-      color: #3498db;
+      color: #3b82f6;
       text-decoration: none;
+      font-weight: 500;
     }
-    
+
     .form-actions a:hover {
       text-decoration: underline;
     }
-    
+
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: all 0.3s;
     }
-    
+
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
     }
-    
+
     .btn-primary:hover {
-      background-color: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
     }
-    
+
     .divider {
       display: flex;
       align-items: center;
       margin: 30px 0;
     }
-    
+
     .divider::before, .divider::after {
       content: '';
       flex: 1;
       height: 1px;
-      background-color: #e0e0e0;
+      background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
     }
-    
+
     .divider span {
-      padding: 0 15px;
-      color: #666;
-      font-size: 14px;
-    }
-    
-    .social-login {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    
-    .social-btn {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      background-color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .social-btn:hover {
-      background-color: #f9f9f9;
-      transform: translateY(-2px);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    
-    .social-btn i {
-      font-size: 20px;
-      margin-right: 8px;
-    }
-    
-    .social-btn.wechat {
-      border-color: #07C160;
-      color: #07C160;
-    }
-    
-    .social-btn.alipay {
-      border-color: #1677FF;
-      color: #1677FF;
-    }
-    
-    .register-link {
-      text-align: center;
-      margin-top: 20px;
-    }
-    
-    .register-link a {
-      color: #3498db;
-      text-decoration: none;
+      padding: 0 20px;
+      color: #94a3b8;
+      font-size: 13px;
       font-weight: 500;
     }
-    
+
+    /* 其他登录方式 */
+    .other-login-methods {
+      display: flex;
+      gap: 12px;
+    }
+
+    .other-login-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .other-login-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    .other-login-btn.chat {
+      border-color: #c4b5fd;
+      color: #7c3aed;
+    }
+
+    .other-login-btn.chat:hover {
+      background: #f5f3ff;
+      border-color: #a78bfa;
+    }
+
+    .other-login-btn.wechat {
+      border-color: #86efac;
+      color: #16a34a;
+    }
+
+    .other-login-btn.wechat:hover {
+      background: #f0fdf4;
+      border-color: #4ade80;
+    }
+
+    .other-login-btn.alipay {
+      border-color: #93c5fd;
+      color: #2563eb;
+    }
+
+    .other-login-btn.alipay:hover {
+      background: #eff6ff;
+      border-color: #60a5fa;
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .register-link a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
     .register-link a:hover {
       text-decoration: underline;
+    }
+
+    /* 弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .modal-logo {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      color: #1e293b;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-form input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+
+    .modal-form input:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .modal-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .modal-btn-secondary {
+      padding: 10px 30px;
+      border: none;
+      border-radius: 10px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .modal-btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* 响应式 */
+    @media (max-width: 900px) {
+      .login-wrapper {
+        flex-direction: column;
+        max-width: 450px;
+      }
+
+      .brand-section {
+        padding: 40px 30px;
+        min-height: auto;
+      }
+
+      .brand-logo {
+        width: 120px;
+        height: 120px;
+        border-radius: 28px;
+      }
+
+      .brand-logo img {
+        width: 90px;
+        height: 90px;
+      }
+
+      .brand-name {
+        font-size: 28px;
+      }
+
+      .brand-slogan {
+        font-size: 15px;
+      }
+
+      .brand-features {
+        display: none;
+      }
+
+      .login-section {
+        padding: 40px 30px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-header">
-      <h2>登录银河星辰财务专用浏览器</h2>
-      <p>请登录您的账户以访问全部功能</p>
-    </div>
-    
-    <form id="login-form">
-      <div class="form-group">
-        <label for="phone">手机号</label>
-        <input type="tel" id="phone" placeholder="请输入手机号码" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="password">密码</label>
-        <input type="password" id="password" placeholder="请输入密码" required>
-      </div>
-      
-      <div class="form-actions">
-        <label>
-          <input type="checkbox"> 记住我
-        </label>
-        <a href="#">忘记密码？</a>
-      </div>
-      
-      <button type="button" class="btn btn-primary">登录</button>
-    </form>
-    
-    <div class="divider">
-      <span>其他登录方式</span>
-    </div>
-    
-    <div class="social-login">
-      <div class="social-btn wechat" onclick="wechatLogin()">
-        <i>💬</i>
-        <span>微信登录</span>
-      </div>
-      <div class="social-btn alipay" onclick="alipayLogin()">
-        <i>💰</i>
-        <span>支付宝登录</span>
+  <div class="login-wrapper">
+    <!-- 左侧品牌区域 -->
+    <div class="brand-section">
+      <div class="brand-content">
+        <div class="brand-logo">
+          <img src="yinhelogo.png" alt="银河星辰">
+        </div>
+        <h1 class="brand-name">银河星辰</h1>
+        <p class="brand-slogan">登<span>银河星辰</span>，做<span>智慧财务</span></p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <div class="icon">🛡️</div>
+            <div class="text">安全可靠</div>
+          </div>
+          <div class="feature-item">
+            <div class="icon">⚡</div>
+            <div class="text">高效智能</div>
+          </div>
+          <div class="feature-item">
+            <div class="icon">💎</div>
+            <div class="text">专业服务</div>
+          </div>
+        </div>
       </div>
     </div>
-    
-    <div class="register-link">
-      还没有账户？<a href="register.html">立即注册</a>
+
+    <!-- 右侧登录区域 -->
+    <div class="login-section">
+      <div class="login-header">
+        <h2>欢迎登录</h2>
+        <p>请输入您的账号信息</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="account">账号</label>
+          <input type="text" id="account" placeholder="请输入手机号 / 邮箱 / 身份证号" required autocomplete="username">
+          <div class="input-hint">支持手机号、邮箱或身份证号登录</div>
+          <span class="login-type-badge unknown" id="login-type-badge"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" placeholder="请输入密码" required autocomplete="current-password">
+        </div>
+
+        <div class="form-actions">
+          <label>
+            <input type="checkbox" id="remember"> 记住我
+          </label>
+          <a href="javascript:void(0)" onclick="showForgotPassword()">忘记密码？</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary">登 录</button>
+      </form>
+
+      <div class="divider"><span>其他方式</span></div>
+
+      <div class="other-login-methods">
+        <button class="other-login-btn wechat" onclick="wechatLogin()">
+          <span>💬</span> 微信
+        </button>
+        <button class="other-login-btn alipay" onclick="alipayLogin()">
+          <span>💳</span> 支付宝
+        </button>
+        <button class="other-login-btn chat" onclick="showChatLoginModal()">
+          <span>🦋</span> 蜻蜓Chat
+        </button>
+      </div>
+
+      <div class="register-link">
+        还没有账户？<a href="register.html">立即注册</a>
+      </div>
     </div>
   </div>
-  
+
   <script src="login.js"></script>
-<!-- 引用蜻蜓聊天器 -->
   <script src="chat_float.js"></script>
-  <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>
-  </body>
+</body>
 </html>

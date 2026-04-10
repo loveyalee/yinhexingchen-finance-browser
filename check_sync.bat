@@ -24,10 +24,10 @@ echo 1. Open Command Prompt
 echo 2. Navigate to project directory:
 echo    cd c:\Users\Administrator\Documents\trae_projects\yinhexingchen
 echo 3. Run scp commands:
-echo    scp -o StrictHostKeyChecking=no *.html root@49.232.63.136:/var/www/yinhexingchen/
-echo    scp -o StrictHostKeyChecking=no *.js root@49.232.63.136:/var/www/yinhexingchen/
-echo    scp -o StrictHostKeyChecking=no *.json root@49.232.63.136:/var/www/yinhexingchen/
-echo    scp -o StrictHostKeyChecking=no *.png root@49.232.63.136:/var/www/yinhexingchen/
+echo    scp -o StrictHostKeyChecking=no *.html root@111.230.36.222:/var/www/yinhexingchen/
+echo    scp -o StrictHostKeyChecking=no *.js root@111.230.36.222:/var/www/yinhexingchen/
+echo    scp -o StrictHostKeyChecking=no *.json root@111.230.36.222:/var/www/yinhexingchen/
+echo    scp -o StrictHostKeyChecking=no *.png root@111.230.36.222:/var/www/yinhexingchen/
 echo 4. Enter password: 3452572Ab!
 echo.
 echo Press any key to exit...

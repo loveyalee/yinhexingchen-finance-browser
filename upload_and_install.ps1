@@ -2,7 +2,7 @@
 Write-Host "=== Uploading project files and installing dependencies ===" -ForegroundColor Green
 
 # Server information
-$serverIP = "49.232.63.136"
+$serverIP = "111.230.36.222"
 $serverUser = "root"
 $serverDir = "/var/www/yinhexingchen"
 

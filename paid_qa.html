@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -25,7 +26,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -70,7 +71,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -81,7 +82,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -118,7 +119,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -136,7 +137,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -157,7 +158,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -172,7 +173,7 @@
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -190,7 +191,7 @@
     .page-title {
       font-size: 24px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .qa-container {
@@ -211,7 +212,7 @@
     
     .qa-header {
       padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -219,7 +220,7 @@
     
     .qa-header h3 {
       margin: 0;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .qa-tabs {
@@ -230,14 +231,15 @@
     .qa-tab {
       padding: 8px 16px;
       border: none;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       cursor: pointer;
       border-radius: 4px;
       transition: all 0.3s;
     }
     
     .qa-tab.active {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -267,7 +269,7 @@
     .question-title {
       font-size: 18px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 5px;
     }
     
@@ -310,7 +312,7 @@
     }
     
     .status-badge.answered {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -334,7 +336,7 @@
     .answer-item {
       padding: 15px;
       margin-bottom: 10px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 4px;
       border-left: 3px solid #3498db;
     }
@@ -368,7 +370,7 @@
     .rating-title {
       font-size: 14px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 10px;
     }
     
@@ -404,7 +406,7 @@
     .rating-submit {
       margin-top: 10px;
       padding: 8px 20px;
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
       border: none;
       border-radius: 4px;
@@ -422,7 +424,7 @@
       gap: 10px;
       margin-top: 10px;
       padding: 10px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 4px;
     }
     
@@ -458,7 +460,7 @@
     
     .sidebar-card-header {
       padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       font-weight: bold;
       background-color: #f8f9fa;
     }
@@ -545,7 +547,7 @@
     .form-group select {
       width: 100%;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       outline: none;
       font-size: 14px;
@@ -580,11 +582,11 @@
     }
     
     .payment-method:hover {
-      border-color: #3498db;
+      border-color: #1a5fa8;
     }
     
     .payment-method.selected {
-      border-color: #3498db;
+      border-color: #1a5fa8;
       background-color: #e3f2fd;
     }
     
@@ -630,16 +632,101 @@
       margin-bottom: 5px;
       font-size: 14px;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
@@ -656,13 +743,22 @@
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
           </ul>
         </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -676,16 +772,16 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn">←</button>
-            <button class="btn">→</button>
-            <button class="btn">⟳</button>
+            <button class="btn">/button>
+            <button class="btn">/button>
+            <button class="btn">/button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <input type="text" placeholder="输入网址或搜索财务相关内..">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
           <button class="btn btn-primary" id="login-btn">登录</button>
-          <button class="btn" id="logout-btn" style="display: none;">退出</button>
+          <button class="btn" id="logout-btn" style="display: none;">退/button>
         </div>
       </div>
       
@@ -698,15 +794,15 @@
               <h3>问题列表</h3>
               <div class="qa-tabs">
                 <button class="qa-tab active" data-tab="all">全部</button>
-                <button class="qa-tab" data-tab="pending">待回答</button>
-                <button class="qa-tab" data-tab="answered">已回答</button>
+                <button class="qa-tab" data-tab="pending">待回/button>
+                <button class="qa-tab" data-tab="answered">已回/button>
                 <button class="qa-tab" data-tab="my">我的</button>
               </div>
               <button class="btn btn-primary" id="ask-question-btn">提问</button>
             </div>
             
             <div class="qa-content" id="qa-content">
-              <!-- 问题列表将通过JavaScript动态生成 -->
+              <!-- 问题列表将通过JavaScript动态生-->
             </div>
           </div>
           
@@ -718,7 +814,7 @@
               <div class="sidebar-card-content">
                 <div class="wallet-balance" id="wallet-balance">¥0.00</div>
                 <div style="text-align: center; margin-top: 10px;">
-                  <button class="btn btn-success" id="recharge-btn">充值</button>
+                  <button class="btn btn-success" id="recharge-btn">充/button>
                   <button class="btn btn-secondary" id="withdraw-btn">提现</button>
                 </div>
               </div>
@@ -738,7 +834,7 @@
                   <span id="answered-count">0</span>
                 </div>
                 <div class="stats-item">
-                  <span>被采纳答案</span>
+                  <span>被采纳答/span>
                   <span id="adopted-count">0</span>
                 </div>
                 <div class="stats-item">
@@ -750,11 +846,10 @@
             
             <div class="sidebar-card">
               <div class="sidebar-card-header">
-                最近交易
-              </div>
+                最近交              </div>
               <div class="sidebar-card-content">
                 <div class="transaction-list" id="transaction-list">
-                  <!-- 交易记录将通过JavaScript动态生成 -->
+                  <!-- 交易记录将通过JavaScript动态生-->
                 </div>
               </div>
             </div>
@@ -762,7 +857,7 @@
             <div class="sidebar-card">
               <div class="user-info">
                 <p id="user-type">用户类型：未登录</p>
-                <p id="user-status">状态：未登录</p>
+                <p id="user-status">状态：未登/p>
               </div>
             </div>
           </div>
@@ -781,7 +876,7 @@
       <form id="ask-form">
         <div class="form-group">
           <label for="question-title">问题标题</label>
-          <input type="text" id="question-title" placeholder="请简要描述您的问题" required>
+          <input type="text" id="question-title" placeholder="请简要描述您的问 required>
         </div>
         <div class="form-group">
           <label for="question-content">问题详情</label>
@@ -800,12 +895,12 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="question-reward">悬赏金额（元）</label>
+          <label for="question-reward">悬赏金额（元/label>
           <input type="number" id="question-reward" min="10" max="10000" value="50" required>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="ask-cancel">取消</button>
-          <button type="submit" class="btn btn-primary">发布并支付</button>
+          <button type="submit" class="btn btn-primary">发布并支/button>
         </div>
       </form>
     </div>
@@ -831,7 +926,7 @@
           </div>
           <div class="payment-method" data-method="alipay">
             <div style="font-size: 24px;">💰</div>
-            <div>支付宝</div>
+            <div>支付/div>
           </div>
         </div>
       </div>
@@ -856,7 +951,7 @@
         </div>
         <div class="form-group">
           <label for="answer-content">您的回答</label>
-          <textarea id="answer-content" placeholder="请详细回答这个问题..." required></textarea>
+          <textarea id="answer-content" placeholder="请详细回答这个问.." required></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="answer-cancel">取消</button>
@@ -869,13 +964,11 @@
   <script src="payment.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // 模拟用户登录状态
-      let isLoggedIn = false;
+      // 模拟用户登录状      let isLoggedIn = false;
       let userType = '';
       let currentUser = null;
       
-      // 从localStorage获取钱包数据或使用默认值
-      let userWallet = JSON.parse(localStorage.getItem('userWallet')) || {
+      // 从localStorage获取钱包数据或使用默认      let userWallet = JSON.parse(localStorage.getItem('userWallet')) || {
         balance: 1000.00,
         askedCount: 2,
         answeredCount: 5,
@@ -888,7 +981,7 @@
         {
           id: 1,
           title: '企业所得税汇算清缴需要注意哪些问题？',
-          content: '今年第一次做企业所得税汇算清缴，不知道需要注意哪些事项，有没有详细的流程指导？',
+          content: '今年第一次做企业所得税汇算清缴，不知道需要注意哪些事项，有没有详细的流程指导,
           category: 'tax',
           categoryName: '税务筹划',
           author: '财务小白',
@@ -900,11 +993,11 @@
         },
         {
           id: 2,
-          title: '如何优化财务报表的现金流？',
+          title: '如何优化财务报表的现金流,
           content: '公司现金流紧张，想通过优化财务报表来改善，有什么好的建议？',
           category: 'finance',
           categoryName: '财务管理',
-          author: '企业主',
+          author: '企业,
           authorId: 'user2',
           time: '2024-01-14 15:30',
           reward: 200,
@@ -914,7 +1007,7 @@
               id: 1,
               author: '财务专家',
               authorId: 'expert1',
-              content: '优化现金流可以从以下几个方面入手：1. 加强应收账款管理；2. 合理安排付款时间；3. 优化库存管理；4. 考虑短期融资...',
+              content: '优化现金流可以从以下几个方面入手. 加强应收账款管理. 合理安排付款时间. 优化库存管理. 考虑短期融资...',
               time: '2024-01-14 16:00',
               isAdopted: false
             }
@@ -922,8 +1015,8 @@
         },
         {
           id: 3,
-          title: '金蝶软件如何设置自动备份？',
-          content: '使用金蝶财务软件，想设置自动备份功能，不知道怎么操作？',
+          title: '金蝶软件如何设置自动备份,
+          content: '使用金蝶财务软件，想设置自动备份功能，不知道怎么操作,
           category: 'software',
           categoryName: '财务软件',
           author: '会计新手',
@@ -934,9 +1027,9 @@
           answers: [
             {
               id: 1,
-              author: '软件工程师',
+              author: '软件工程,
               authorId: 'expert2',
-              content: '在金蝶软件中设置自动备份的步骤如下：1. 进入系统管理；2. 选择账套管理；3. 点击自动备份设置...',
+              content: '在金蝶软件中设置自动备份的步骤如下：1. 进入系统管理. 选择账套管理. 点击自动备份设置...',
               time: '2024-01-13 10:00',
               isAdopted: true
             }
@@ -947,13 +1040,12 @@
       // 从localStorage获取交易记录
       let transactions = JSON.parse(localStorage.getItem('userTransactions')) || [
         { type: 'expense', amount: 100, desc: '发布问题悬赏', time: '2024-01-15 10:00' },
-        { type: 'income', amount: 200, desc: '回答被采纳', time: '2024-01-14 18:00' },
+        { type: 'income', amount: 200, desc: '回答被采, time: '2024-01-14 18:00' },
         { type: 'expense', amount: 50, desc: '发布问题悬赏', time: '2024-01-13 09:00' },
-        { type: 'income', amount: 150, desc: '回答被采纳', time: '2024-01-12 16:00' }
+        { type: 'income', amount: 150, desc: '回答被采, time: '2024-01-12 16:00' }
       ];
       
-      // 当前选中的支付方式
-      let selectedPaymentMethod = null;
+      // 当前选中的支付方      let selectedPaymentMethod = null;
       let currentQuestion = null;
       
       // 更新钱包显示
@@ -980,7 +1072,7 @@
             <div style="display: flex; justify-content: space-between;">
               <span>${transaction.desc}</span>
               <span class="transaction-amount ${transaction.type}">
-                ${transaction.type === 'income' ? '+' : '-'}¥${transaction.amount.toFixed(2)}
+                ${transaction.type === 'income'  '+' : '-'}¥${transaction.amount.toFixed(2)}
               </span>
             </div>
             <div style="font-size: 11px; color: #999; margin-top: 5px;">${transaction.time}</div>
@@ -1003,7 +1095,7 @@
         } else if (filter === 'answered') {
           filteredQuestions = questions.filter(q => q.status === 'answered' || q.status === 'resolved');
         } else if (filter === 'my') {
-          filteredQuestions = questions.filter(q => q.authorId === (currentUser ? currentUser.id : ''));
+          filteredQuestions = questions.filter(q => q.authorId === (currentUser  currentUser.id : ''));
         }
         
         filteredQuestions.forEach(question => {
@@ -1012,11 +1104,11 @@
           
           let statusBadge = '';
           if (question.status === 'pending') {
-            statusBadge = '<span class="status-badge pending">待回答</span>';
+            statusBadge = '<span class="status-badge pending">待回/span>';
           } else if (question.status === 'answered') {
-            statusBadge = '<span class="status-badge answered">已回答</span>';
+            statusBadge = '<span class="status-badge answered">已回/span>';
           } else if (question.status === 'resolved') {
-            statusBadge = '<span class="status-badge resolved">已解决</span>';
+            statusBadge = '<span class="status-badge resolved">已解/span>';
           }
           
           let answerSection = '';
@@ -1027,16 +1119,15 @@
                   // 生成评价区域HTML
                   let ratingSection = '';
                   const hasRated = answer.rating && answer.rating.score > 0;
-                  const canRate = question.authorId === (currentUser ? currentUser.id : '') && answer.isAdopted && question.status === 'resolved';
+                  const canRate = question.authorId === (currentUser  currentUser.id : '') && answer.isAdopted && question.status === 'resolved';
                   
                   if (hasRated) {
-                    // 显示已评价内容
-                    const stars = '★'.repeat(answer.rating.score) + '☆'.repeat(5 - answer.rating.score);
+                    // 显示已评价内                    const stars = '.repeat(answer.rating.score) + '.repeat(5 - answer.rating.score);
                     ratingSection = `
                       <div class="rating-display">
                         <div>
-                          <div class="rating-stars-display">${stars} <span class="rating-score">${answer.rating.score}分</span></div>
-                          ${answer.rating.comment ? `<div class="rating-comment">"${answer.rating.comment}"</div>` : ''}
+                          <div class="rating-stars-display">${stars} <span class="rating-score">${answer.rating.score}/span></div>
+                          ${answer.rating.comment  `<div class="rating-comment">"${answer.rating.comment}"</div>` : ''}
                         </div>
                       </div>
                     `;
@@ -1044,15 +1135,15 @@
                     // 显示评价输入区域
                     ratingSection = `
                       <div class="rating-section" id="rating-section-${answer.id}">
-                        <div class="rating-title">💬 对回答进行评价</div>
+                        <div class="rating-title">💬 对回答进行评/div>
                         <div class="star-rating" id="star-rating-${answer.id}">
-                          <span class="star" data-score="1" onclick="setRating(${answer.id}, 1)">★</span>
-                          <span class="star" data-score="2" onclick="setRating(${answer.id}, 2)">★</span>
-                          <span class="star" data-score="3" onclick="setRating(${answer.id}, 3)">★</span>
-                          <span class="star" data-score="4" onclick="setRating(${answer.id}, 4)">★</span>
-                          <span class="star" data-score="5" onclick="setRating(${answer.id}, 5)">★</span>
+                          <span class="star" data-score="1" onclick="setRating(${answer.id}, 1)">/span>
+                          <span class="star" data-score="2" onclick="setRating(${answer.id}, 2)">/span>
+                          <span class="star" data-score="3" onclick="setRating(${answer.id}, 3)">/span>
+                          <span class="star" data-score="4" onclick="setRating(${answer.id}, 4)">/span>
+                          <span class="star" data-score="5" onclick="setRating(${answer.id}, 5)">/span>
                         </div>
-                        <textarea class="rating-textarea" id="rating-comment-${answer.id}" placeholder="请输入您的评价（选填）..."></textarea>
+                        <textarea class="rating-textarea" id="rating-comment-${answer.id}" placeholder="请输入您的评价（选填.."></textarea>
                         <button class="rating-submit" onclick="submitRating(${question.id}, ${answer.id})">提交评价</button>
                       </div>
                     `;
@@ -1060,9 +1151,9 @@
                   
                   return `
                   <div class="answer-item">
-                    <div class="answer-header">${answer.author} | ${answer.time} ${answer.isAdopted ? '<span style="color: #27ae60;">✓ 已采纳</span>' : ''}</div>
+                    <div class="answer-header">${answer.author} | ${answer.time} ${answer.isAdopted  '<span style="color: #27ae60;">已采/span>' : ''}</div>
                     <div class="answer-content">${answer.content}</div>
-                    ${question.authorId === (currentUser ? currentUser.id : '') && !answer.isAdopted && question.status !== 'resolved' ? `
+                    ${question.authorId === (currentUser  currentUser.id : '') && !answer.isAdopted && question.status !== 'resolved'  `
                       <div class="answer-actions">
                         <button class="btn btn-success" onclick="adoptAnswer(${question.id}, ${answer.id})">采纳答案</button>
                       </div>
@@ -1079,7 +1170,7 @@
               <div>
                 <div class="question-title">${question.title}</div>
                 <div class="question-meta">
-                  提问者：${question.author} | ${question.time} | 分类：${question.categoryName}
+                  提问者：${question.author} | ${question.time} | 分类{question.categoryName}
                 </div>
               </div>
               <div>
@@ -1089,7 +1180,7 @@
             </div>
             <div class="question-content">${question.content}</div>
             <div class="question-actions">
-              ${question.status === 'pending' && question.authorId !== (currentUser ? currentUser.id : '') ? `
+              ${question.status === 'pending' && question.authorId !== (currentUser  currentUser.id : '')  `
                 <button class="btn btn-primary" onclick="openAnswerModal(${question.id})">我来回答</button>
               ` : ''}
               <button class="btn btn-secondary" onclick="viewQuestionDetail(${question.id})">查看详情</button>
@@ -1135,7 +1226,7 @@
             transactions.unshift({
               type: 'expense',
               amount: question.reward,
-              desc: `支付问题悬赏：${question.title}`,
+              desc: `支付问题悬赏{question.title}`,
               time: new Date().toLocaleString('zh-CN')
             });
             
@@ -1151,7 +1242,7 @@
       window.viewQuestionDetail = function(questionId) {
         const question = questions.find(q => q.id === questionId);
         if (question) {
-          alert(`问题详情：\n\n标题：${question.title}\n内容：${question.content}\n悬赏：¥${question.reward}\n状态：${question.status}`);
+          alert(`问题详情：\n\n标题{question.title}\n内容{question.content}\n悬赏：{question.reward}\n状态：${question.status}`);
         }
       };
       
@@ -1182,7 +1273,7 @@
         
         const score = currentRatings[answerId];
         if (!score || score < 1 || score > 5) {
-          alert('请选择评分（1-5星）');
+          alert('请选择评分-5星）');
           return;
         }
         
@@ -1205,7 +1296,7 @@
             // 重新渲染问题列表
             renderQuestions();
             
-            alert('评价提交成功！感谢您的反馈。');
+            alert('评价提交成功！感谢您的反馈);
           }
         }
       };
@@ -1295,8 +1386,8 @@
           content: currentQuestion.content,
           category: currentQuestion.category,
           categoryName: categoryNames[currentQuestion.category],
-          author: currentUser ? currentUser.name : '当前用户',
-          authorId: currentUser ? currentUser.id : 'current',
+          author: currentUser  currentUser.name : '当前用户',
+          authorId: currentUser  currentUser.id : 'current',
           time: new Date().toLocaleString('zh-CN'),
           reward: currentQuestion.reward,
           status: 'pending',
@@ -1312,7 +1403,7 @@
         transactions.unshift({
           type: 'expense',
           amount: currentQuestion.reward,
-          desc: `发布问题悬赏：${currentQuestion.title}`,
+          desc: `发布问题悬赏{currentQuestion.title}`,
           time: new Date().toLocaleString('zh-CN')
         });
         
@@ -1324,7 +1415,7 @@
         updateWallet();
         renderTransactions();
         renderQuestions();
-        alert('问题发布成功！悬赏金已托管到平台，等待回答。');
+        alert('问题发布成功！悬赏金已托管到平台，等待回答);
       });
       
       // 关闭回答模态框
@@ -1344,8 +1435,8 @@
         if (content && currentQuestion) {
           const answer = {
             id: currentQuestion.answers.length + 1,
-            author: currentUser ? currentUser.name : '当前用户',
-            authorId: currentUser ? currentUser.id : 'current',
+            author: currentUser  currentUser.name : '当前用户',
+            authorId: currentUser  currentUser.id : 'current',
             content: content,
             time: new Date().toLocaleString('zh-CN'),
             isAdopted: false
@@ -1361,12 +1452,11 @@
           
           updateWallet();
           renderQuestions();
-          alert('回答提交成功！等待提问者确认。');
+          alert('回答提交成功！等待提问者确认);
         }
       });
       
-      // 充值按钮
-      document.getElementById('recharge-btn').addEventListener('click', function() {
+      // 充值按      document.getElementById('recharge-btn').addEventListener('click', function() {
         if (!isLoggedIn) {
           alert('请先登录');
           return;
@@ -1377,12 +1467,12 @@
           transactions.unshift({
             type: 'income',
             amount: parseFloat(amount),
-            desc: '钱包充值',
+            desc: '钱包充,
             time: new Date().toLocaleString('zh-CN')
           });
           updateWallet();
           renderTransactions();
-          alert(`成功充值 ¥${amount}`);
+          alert(`成功充¥${amount}`);
         }
       });
       
@@ -1414,14 +1504,13 @@
         window.location.href = 'login.html';
       });
       
-      // 退出按钮
-      document.getElementById('logout-btn').addEventListener('click', function() {
+      // 退出按      document.getElementById('logout-btn').addEventListener('click', function() {
         localStorage.removeItem('userInfo');
         isLoggedIn = false;
         userType = '';
         currentUser = null;
         updateUserInfo();
-        alert('已退出登录');
+        alert('已退出登);
       });
       
       // 更新用户信息
@@ -1429,18 +1518,17 @@
         if (isLoggedIn) {
           document.getElementById('login-btn').style.display = 'none';
           document.getElementById('logout-btn').style.display = 'inline-block';
-          document.getElementById('user-type').textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
-          document.getElementById('user-status').textContent = '状态：已登录';
+          document.getElementById('user-type').textContent = `用户类型{userType === 'personal'  '个人用户' : '企业用户'}`;
+          document.getElementById('user-status').textContent = '状态：已登;
         } else {
           document.getElementById('login-btn').style.display = 'inline-block';
           document.getElementById('logout-btn').style.display = 'none';
           document.getElementById('user-type').textContent = '用户类型：未登录';
-          document.getElementById('user-status').textContent = '状态：未登录';
+          document.getElementById('user-status').textContent = '状态：未登;
         }
       }
       
-      // 检查登录状态
-      function checkLoginStatus() {
+      // 检查登录状      function checkLoginStatus() {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
           const parsedUserInfo = JSON.parse(userInfo);
@@ -1458,14 +1546,12 @@
         updateUserInfo();
       }
       
-      // 初始化
-      checkLoginStatus();
+      // 初始      checkLoginStatus();
       updateWallet();
       renderTransactions();
       renderQuestions();
       
-      // 浏览器功能
-      const searchInput = document.querySelector('.browser-bar input');
+      // 浏览器功      const searchInput = document.querySelector('.browser-bar input');
       const searchButton = document.querySelector('.browser-bar .btn-primary');
       
       searchButton.addEventListener('click', function() {
@@ -1485,7 +1571,7 @@
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

@@ -14,7 +14,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -25,7 +26,7 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
       overflow-y: auto;
@@ -70,7 +71,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: '▼';
+      content: ';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -81,7 +82,7 @@
       left: 0;
       top: 100%;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -118,7 +119,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -136,7 +137,7 @@
       flex: 1;
       height: 40px;
       padding: 0 15px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
       outline: none;
     }
@@ -156,7 +157,7 @@
     }
     
     .btn-primary {
-      background-color: #3498db;
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
       color: white;
     }
     
@@ -166,7 +167,7 @@
     }
     
     .btn-secondary {
-      background-color: #95a5a6;
+      background-color: #546e7a;
       color: white;
     }
     
@@ -179,7 +180,7 @@
     .page-title {
       font-size: 24px;
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .forum-container {
@@ -200,7 +201,7 @@
     
     .forum-header {
       padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -208,7 +209,7 @@
     
     .forum-header h3 {
       margin: 0;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .forum-content {
@@ -237,7 +238,7 @@
     .post-title {
       font-size: 18px;
       font-weight: bold;
-      color: #2c3e50;
+      color: #1a2d42;
       margin-bottom: 5px;
     }
     
@@ -294,7 +295,7 @@
     .comment-item {
       padding: 10px;
       margin-bottom: 10px;
-      background-color: #f9f9f9;
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
       border-radius: 4px;
     }
     
@@ -318,7 +319,7 @@
     .comment-form input {
       flex: 1;
       padding: 8px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       outline: none;
     }
@@ -338,7 +339,7 @@
     
     .sidebar-card-header {
       padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       font-weight: bold;
       background-color: #f8f9fa;
     }
@@ -361,7 +362,7 @@
     .knowledge-base-item h4 {
       font-size: 14px;
       margin-bottom: 5px;
-      color: #2c3e50;
+      color: #1a2d42;
     }
     
     .knowledge-base-item p {
@@ -426,7 +427,7 @@
     .form-group textarea {
       width: 100%;
       padding: 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 4px;
       outline: none;
       font-size: 14px;
@@ -454,16 +455,101 @@
       margin-bottom: 5px;
       font-size: 14px;
     }
-  </style>
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: transparent !important;
+      
+      padding: 0 !important;
+      border: none !important;
+      
+      
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: transparent !important;
+       padding: 0 !important;
+      border: none !important;
+       
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+</style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务专用浏览器/div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
@@ -480,13 +566,22 @@
             <li class="submenu-item"><a href="#" onclick="window.location.href='finance_management.html'; setTimeout(function() { showModule('seal-management'); }, 100); return false;">电子印章管理</a></li>
           </ul>
         </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
+          </ul>
+        </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html" class="active">会计论坛</a></li>
@@ -500,16 +595,16 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn">←</button>
-            <button class="btn">→</button>
-            <button class="btn">⟳</button>
+            <button class="btn">/button>
+            <button class="btn">/button>
+            <button class="btn">/button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内容...">
+          <input type="text" placeholder="输入网址或搜索财务相关内..">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
           <button class="btn btn-primary" id="login-btn">登录</button>
-          <button class="btn" id="logout-btn" style="display: none;">退出</button>
+          <button class="btn" id="logout-btn" style="display: none;">退/button>
         </div>
       </div>
       
@@ -519,22 +614,21 @@
         <div class="forum-container">
           <div class="forum-main">
             <div class="forum-header">
-              <h3>最新帖子</h3>
+              <h3>最新帖/h3>
               <button class="btn btn-primary" id="create-post-btn">发布新帖</button>
             </div>
             
             <div class="forum-content" id="forum-content">
-              <!-- 帖子列表将通过JavaScript动态生成 -->
+              <!-- 帖子列表将通过JavaScript动态生-->
             </div>
           </div>
           
           <div class="forum-sidebar">
             <div class="sidebar-card">
               <div class="sidebar-card-header">
-                知识库文章
-              </div>
+                知识库文              </div>
               <div class="sidebar-card-content" id="knowledge-base-content">
-                <!-- 知识库文章将通过JavaScript动态生成 -->
+                <!-- 知识库文章将通过JavaScript动态生-->
               </div>
             </div>
             
@@ -544,16 +638,16 @@
               </div>
               <div class="sidebar-card-content">
                 <div class="knowledge-base-item">
-                  <h4>财务报表分析技巧</h4>
-                  <p>掌握财务报表分析的核心方法</p>
+                  <h4>财务报表分析技/h4>
+                  <p>掌握财务报表分析的核心方/p>
                 </div>
                 <div class="knowledge-base-item">
-                  <h4>税务筹划最佳实践</h4>
-                  <p>合法节税的实用技巧</p>
+                  <h4>税务筹划最佳实/h4>
+                  <p>合法节税的实用技/p>
                 </div>
                 <div class="knowledge-base-item">
                   <h4>企业内部控制</h4>
-                  <p>建立有效的内部控制体系</p>
+                  <p>建立有效的内部控制体/p>
                 </div>
               </div>
             </div>
@@ -561,7 +655,7 @@
             <div class="sidebar-card">
               <div class="user-info">
                 <p id="user-type">用户类型：未登录</p>
-                <p id="user-status">状态：未登录</p>
+                <p id="user-status">状态：未登/p>
               </div>
             </div>
           </div>
@@ -580,11 +674,11 @@
       <form id="post-form">
         <div class="form-group">
           <label for="post-title">标题</label>
-          <input type="text" id="post-title" placeholder="请输入帖子标题" required>
+          <input type="text" id="post-title" placeholder="请输入帖子标 required>
         </div>
         <div class="form-group">
           <label for="post-content">内容</label>
-          <textarea id="post-content" placeholder="请输入帖子内容" required></textarea>
+          <textarea id="post-content" placeholder="请输入帖子内 required></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="cancel-post">取消</button>
@@ -596,23 +690,22 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // 模拟用户登录状态
-      let isLoggedIn = false;
+      // 模拟用户登录状      let isLoggedIn = false;
       let userType = '';
       
       // 模拟帖子数据
       const posts = [
         {
           id: 1,
-          title: '如何做好企业财务分析？',
-          content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法？',
+          title: '如何做好企业财务分析,
+          content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法,
           author: '财务专家',
           time: '2024-01-01 10:00',
           likes: 25,
           comments: [
             {
               author: '会计小白',
-              content: '我觉得应该关注盈利能力、运营能力和偿债能力三大指标',
+              content: '我觉得应该关注盈利能力、运营能力和偿债能力三大指,
               time: '2024-01-01 10:30'
             },
             {
@@ -626,14 +719,14 @@
         },
         {
           id: 2,
-          title: '税务筹划的常见方法有哪些？',
+          title: '税务筹划的常见方法有哪些,
           content: '企业在合法范围内如何进行税务筹划？有哪些实用的方法和技巧？',
-          author: '税务师',
+          author: '税务,
           time: '2024-01-02 14:00',
           likes: 18,
           comments: [
             {
-              author: '企业主',
+              author: '企业,
               content: '希望能分享一些具体的案例',
               time: '2024-01-02 14:30'
             }
@@ -644,7 +737,7 @@
         {
           id: 3,
           title: '财务软件选择指南',
-          content: '如何选择适合企业的财务软件？需要考虑哪些因素？',
+          content: '如何选择适合企业的财务软件？需要考虑哪些因素,
           author: 'IT顾问',
           time: '2024-01-03 09:00',
           likes: 32,
@@ -654,12 +747,11 @@
         }
       ];
       
-      // 模拟知识库文章数据
-      const knowledgeBaseArticles = [
+      // 模拟知识库文章数      const knowledgeBaseArticles = [
         {
           id: 1,
           title: '企业会计准则解读',
-          content: '详细解读最新企业会计准则的变化和应用',
+          content: '详细解读最新企业会计准则的变化和应,
           author: '会计准则专家',
           time: '2024-01-01'
         },
@@ -691,12 +783,12 @@
             <div class="post-header">
               <div>
                 <div class="post-title">${post.title}</div>
-                <div class="post-meta">作者：${post.author} | 发布时间：${post.time}</div>
+                <div class="post-meta">作者：${post.author} | 发布时间{post.time}</div>
               </div>
             </div>
             <div class="post-content">${post.content}</div>
             <div class="post-actions">
-              <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+              <button class="action-btn ${post.liked  'liked' : ''}" onclick="toggleLike(${post.id})">
                 <span>👍</span>
                 <span>${post.likes}</span>
               </button>
@@ -704,32 +796,31 @@
                 <span>💬</span>
                 <span>${post.comments.length}</span>
               </button>
-              <button class="action-btn ${post.bookmarked ? 'bookmarked' : ''}" onclick="toggleBookmark(${post.id})">
-                <span>⭐</span>
+              <button class="action-btn ${post.bookmarked  'bookmarked' : ''}" onclick="toggleBookmark(${post.id})">
+                <span>/span>
                 <span>收藏</span>
               </button>
             </div>
-            <div class="comments-section" id="comments-${post.id}" style="display: ${post.comments.length > 0 ? 'block' : 'none'}">
+            <div class="comments-section" id="comments-${post.id}" style="display: ${post.comments.length > 0  'block' : 'none'}">
               ${post.comments.map(comment => `
                 <div class="comment-item">
                   <div class="comment-header">${comment.author} | ${comment.time}</div>
                   <div class="comment-content">${comment.content}</div>
                 </div>
               `).join('')}
-              ${isLoggedIn ? `
+              ${isLoggedIn  `
                 <div class="comment-form">
                   <input type="text" placeholder="写下你的评论..." id="comment-input-${post.id}">
                   <button class="btn btn-primary" onclick="addComment(${post.id})")>发表</button>
                 </div>
-              ` : '<p style="font-size: 12px; color: #666;">登录后可以发表评论</p>'}
+              ` : '<p style="font-size: 12px; color: #666;">登录后可以发表评/p>'}
             </div>
           `;
           forumContent.appendChild(postItem);
         });
       }
       
-      // 渲染知识库文章
-      function renderKnowledgeBase() {
+      // 渲染知识库文      function renderKnowledgeBase() {
         const knowledgeBaseContent = document.getElementById('knowledge-base-content');
         knowledgeBaseContent.innerHTML = '';
         
@@ -745,8 +836,7 @@
         });
       }
       
-      // 切换点赞状态
-      window.toggleLike = function(postId) {
+      // 切换点赞状      window.toggleLike = function(postId) {
         if (!isLoggedIn) {
           alert('请先登录后再点赞');
           return;
@@ -755,13 +845,12 @@
         const post = posts.find(p => p.id === postId);
         if (post) {
           post.liked = !post.liked;
-          post.likes += post.liked ? 1 : -1;
+          post.likes += post.liked  1 : -1;
           renderPosts();
         }
       };
       
-      // 切换收藏状态
-      window.toggleBookmark = function(postId) {
+      // 切换收藏状      window.toggleBookmark = function(postId) {
         if (!isLoggedIn) {
           alert('请先登录后再收藏');
           return;
@@ -778,7 +867,7 @@
       window.toggleComments = function(postId) {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection) {
-          commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+          commentsSection.style.display = commentsSection.style.display === 'none'  'block' : 'none';
         }
       };
       
@@ -847,7 +936,7 @@
           document.getElementById('create-post-modal').style.display = 'none';
           document.getElementById('post-form').reset();
           renderPosts();
-          alert('帖子发布成功！');
+          alert('帖子发布成功);
         }
       });
       
@@ -856,14 +945,13 @@
         window.location.href = 'login.html';
       });
       
-      // 退出按钮
-      document.getElementById('logout-btn').addEventListener('click', function() {
+      // 退出按      document.getElementById('logout-btn').addEventListener('click', function() {
         // 清除localStorage中的用户信息
         localStorage.removeItem('userInfo');
         isLoggedIn = false;
         userType = '';
         updateUserInfo();
-        alert('已退出登录');
+        alert('已退出登);
       });
       
       // 更新用户信息
@@ -871,20 +959,18 @@
         if (isLoggedIn) {
           document.getElementById('login-btn').style.display = 'none';
           document.getElementById('logout-btn').style.display = 'inline-block';
-          document.getElementById('user-type').textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
-          document.getElementById('user-status').textContent = '状态：已登录';
+          document.getElementById('user-type').textContent = `用户类型{userType === 'personal'  '个人用户' : '企业用户'}`;
+          document.getElementById('user-status').textContent = '状态：已登;
         } else {
           document.getElementById('login-btn').style.display = 'inline-block';
           document.getElementById('logout-btn').style.display = 'none';
           document.getElementById('user-type').textContent = '用户类型：未登录';
-          document.getElementById('user-status').textContent = '状态：未登录';
+          document.getElementById('user-status').textContent = '状态：未登;
         }
       }
       
-      // 检查登录状态
-      function checkLoginStatus() {
-        // 从localStorage中获取登录状态
-        const userInfo = localStorage.getItem('userInfo');
+      // 检查登录状      function checkLoginStatus() {
+        // 从localStorage中获取登录状        const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
           const parsedUserInfo = JSON.parse(userInfo);
           isLoggedIn = parsedUserInfo.isLoggedIn || false;
@@ -896,13 +982,11 @@
         updateUserInfo();
       }
       
-      // 初始化
-      checkLoginStatus();
+      // 初始      checkLoginStatus();
       renderPosts();
       renderKnowledgeBase();
       
-      // 浏览器功能
-      const searchInput = document.querySelector('.browser-bar input');
+      // 浏览器功      const searchInput = document.querySelector('.browser-bar input');
       const searchButton = document.querySelector('.browser-bar .btn-primary');
       
       searchButton.addEventListener('click', function() {
@@ -922,7 +1006,7 @@
       });
     });
   </script>
-<!-- 引用蜻蜓聊天器 -->
+<!-- 引用蜻蜓聊天-->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>

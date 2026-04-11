@@ -379,19 +379,25 @@ function verifySmsCode(phone, purpose, code) {
   return item.code === String(code || '').trim();
 }
 
-function hasAliyunSmsConfig() {
+function hasAliyunSmsConfig(purpose) {
+  const templateCode = purpose === 'reset_password'
+    ? process.env.ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD
+    : process.env.ALIYUN_SMS_TEMPLATE_CODE_REGISTER;
   return !!(
     process.env.ALIYUN_SMS_ACCESS_KEY_ID &&
     process.env.ALIYUN_SMS_ACCESS_KEY_SECRET &&
     process.env.ALIYUN_SMS_SIGN_NAME &&
-    process.env.ALIYUN_SMS_TEMPLATE_CODE &&
+    templateCode &&
     Dysmsapi &&
     OpenApi &&
     Util
   );
 }
 
-async function sendAliyunSms(phone, code) {
+async function sendAliyunSms(phone, code, purpose) {
+  const templateCode = purpose === 'reset_password'
+    ? process.env.ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD
+    : process.env.ALIYUN_SMS_TEMPLATE_CODE_REGISTER;
   const config = new OpenApi.Config({
     accessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID,
     accessKeySecret: process.env.ALIYUN_SMS_ACCESS_KEY_SECRET
@@ -401,7 +407,7 @@ async function sendAliyunSms(phone, code) {
   const request = new Dysmsapi.SendSmsRequest({
     phoneNumbers: phone,
     signName: process.env.ALIYUN_SMS_SIGN_NAME,
-    templateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE,
+    templateCode: templateCode,
     templateParam: JSON.stringify({ code: code })
   });
   const runtime = new Util.RuntimeOptions({});
@@ -1138,8 +1144,8 @@ const server = http.createServer((req, res) => {
         }
         const purpose = data.purpose || 'register';
         const code = storeSmsCode(data.phone, purpose);
-        if (hasAliyunSmsConfig()) {
-          await sendAliyunSms(data.phone, code);
+        if (hasAliyunSmsConfig(purpose)) {
+          await sendAliyunSms(data.phone, code, purpose);
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: true, message: '验证码已发送到您的手机' }));

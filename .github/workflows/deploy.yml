@@ -38,7 +38,8 @@ jobs:
             ALIYUN_SMS_ACCESS_KEY_ID="${{ secrets.ALIYUN_SMS_ACCESS_KEY_ID }}" \
             ALIYUN_SMS_ACCESS_KEY_SECRET="${{ secrets.ALIYUN_SMS_ACCESS_KEY_SECRET }}" \
             ALIYUN_SMS_SIGN_NAME="${{ secrets.ALIYUN_SMS_SIGN_NAME }}" \
-            ALIYUN_SMS_TEMPLATE_CODE="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE }}" \
+            ALIYUN_SMS_TEMPLATE_CODE_REGISTER="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_REGISTER }}" \
+            ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD }}" \
             (pm2 describe yinhexingchen > /dev/null 2>&1 && pm2 restart yinhexingchen --update-env || pm2 start server.js --name yinhexingchen) && \
             pm2 save
           '

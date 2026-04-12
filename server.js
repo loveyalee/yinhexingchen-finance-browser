@@ -1483,10 +1483,26 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ success: false, message: '缺少用户ID参数' }));
           return;
         }
-        const accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        let accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        let repairedLegacyAccounts = 0;
+        if (!accounts.length) {
+          const legacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('active');
+          if (legacyAccounts.length) {
+            const bindLegacy = mainDb.prepare('UPDATE accounts SET user_id = ?, update_time = ? WHERE id = ? AND (user_id IS NULL OR user_id = \'\')');
+            const now = new Date().toISOString();
+            const trx = mainDb.transaction(function() {
+              legacyAccounts.forEach(function(account) {
+                bindLegacy.run(userId, now, account.id);
+              });
+            });
+            trx();
+            repairedLegacyAccounts = legacyAccounts.length;
+            accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+          }
+        }
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts }));
+        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

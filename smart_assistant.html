@@ -735,12 +735,13 @@
             <div class="card">
               <h3>置顶任务</h3>
               <div id="pinnedPanel" style="display:grid;gap:8px;"></div>
+              <div class="quick-action-bar"><button onclick="copyPinnedPanel()">复制置顶任务</button><button onclick="copyPinnedByAssignee()">按负责人复制</button></div>
             </div>
 
             <div class="card">
               <h3>风险任务专区</h3>
               <div id="riskZone" style="display:grid;gap:8px;"></div>
-              <div class="quick-action-bar"><button onclick="copyRiskZone()">复制风险任务</button></div>
+              <div class="quick-action-bar"><button onclick="copyRiskZone()">复制风险任务</button><button onclick="exportRiskSummary()">风险专项汇报</button></div>
             </div>
 
             <div class="card">
@@ -1405,9 +1406,61 @@
 
     function switchReportTemplate() {
       const current = getReportTemplate();
-      const next = current === 'standard' ? 'brief' : 'standard';
+      const next = current === 'standard' ? 'brief' : (current === 'brief' ? 'boss_brief' : 'standard');
       localStorage.setItem(smartAssistantReportTemplateKey, next);
-      addMessage('assistant', `已切换汇报模板为 <b>${next === 'standard' ? '正式版' : '简版'}</b>。`, true);
+      const label = next === 'standard' ? '正式版' : (next === 'brief' ? '简版' : '老板简报版');
+      addMessage('assistant', `已切换汇报模板为 <b>${label}</b>。`, true);
+    }
+
+    function copyPinnedPanel() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 6);
+      const text = tasks.length ? `【置顶任务】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('
+') : '暂无置顶任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return task.pinned; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【置顶任务-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task) { return `- ${task.title}`; }).join('
+');
+      }).join('
+
+') : '暂无置顶任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已按负责人复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function exportRiskSummary() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const text = tasks.length ? `【风险专项汇报】
+日期：${new Date().toLocaleString('zh-CN')}
+
+重点风险：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('
+') + '
+
+建议：
+- 优先跟进今天到期与高优先级事项
+- 对处理中任务逐项确认推进节点' : '当前暂无需要专项汇报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险专项汇报已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
     }
 
     function renderPinnedPanel() {
@@ -2383,6 +2436,18 @@ ${grouped[name].map(function(task) {
         const input = document.getElementById('taskSearchInput');
         if (input) input.value = '';
         return '已切换为查看全部任务。';
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /今天|明天|本周|下周|本月/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        if (currentTasks[index] && assignee && deadline) {
+          const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, assignee: assignee, deadline: deadline } : item; });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，并将截止时间改为 <b>${deadline}</b>。`;
+        }
       }
 
       if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text)) {

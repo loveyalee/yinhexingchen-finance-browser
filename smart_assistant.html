@@ -748,6 +748,7 @@
                 <button onclick="setTaskFilter('all')">全部</button>
                 <button onclick="setTaskFilter('high')">高优先级</button>
                 <button onclick="setTaskFilter('today')">今天到期</button>
+                <button onclick="setTaskFilter('risk')">临期风险</button>
                 <button onclick="setTaskFilter('assignee:会计')">会计</button>
                 <button onclick="setTaskFilter('assignee:出纳')">出纳</button>
               </div>
@@ -758,6 +759,7 @@
                 <button onclick="clearTaskBoard()">清空待办</button>
                 <button onclick="exportFilteredTasks()">导出清单</button>
                 <button onclick="exportAssignmentSlip()">交办单</button>
+                <button onclick="exportAssigneeTasks()">负责人导出</button>
               </div>
             </div>
             
@@ -1010,6 +1012,15 @@
       renderTaskStats();
     }
 
+    function getTaskStatusLabel(task) {
+      if (task.done) return 'done';
+      return task.status || 'todo';
+    }
+
+    function formatTaskStatus(status) {
+      return status === 'done' ? '已完成' : status === 'doing' ? '处理中' : '待处理';
+    }
+
     function getTaskFilter() {
       return localStorage.getItem(smartAssistantTaskFilterKey) || 'all';
     }
@@ -1126,6 +1137,9 @@
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
             title: title,
             done: false,
+            status: 'todo',
+            completedAt: '',
+            note: '',
             source: source || '智能助手',
             group: meta.group,
             priority: meta.priority,
@@ -1145,6 +1159,8 @@
       const filter = getTaskFilter();
       if (filter === 'high') return tasks.filter(function(task) { return task.priority === 'high' && !task.done; });
       if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
+      if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
+      if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
       if (filter.startsWith('assignee:')) {
         const assignee = filter.split(':')[1];
         tasks = tasks.filter(function(task) { return task.assignee === assignee; });
@@ -1227,11 +1243,14 @@
       }, {});
 
       board.innerHTML = Object.keys(grouped).map(function(group) {
+        const lanes = { todo: [], doing: [], done: [] };
+        grouped[group].forEach(function(task) { lanes[getTaskStatusLabel(task)] = lanes[getTaskStatusLabel(task)] || []; lanes[getTaskStatusLabel(task)].push(task); });
         return `
           <div>
             <div class="task-item-meta" style="margin-bottom:8px;font-size:12px;color:#1a65b8;font-weight:700">${taskGroupLabels[group] || '分组'}</div>
-            <div style="display:grid;gap:10px;">
-              ${grouped[group].map(function(task) {
+            <div style="display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));">
+              ${['todo','doing','done'].map(function(statusKey) {
+                return `<div style="display:grid;gap:10px;align-content:start;"><div class="task-item-meta" style="font-size:11px;font-weight:700;color:#5f7590">${formatTaskStatus(statusKey)}</div>${(lanes[statusKey] || []).map(function(task) {
                 return `
                   <label class="task-item ${task.done ? 'done' : ''} ${!task.done && (task.deadline === '今天' || task.deadline === '明天') ? 'risk-due' : ''}">
                     <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
@@ -1242,15 +1261,21 @@
                         <span class="task-badge priority-${task.priority || 'low'}">优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
                         <span class="task-badge">截止：${escapeHtml(task.deadline || '本月')}</span>
                         <span class="task-badge">负责人：${escapeHtml(task.assignee || '未分配')}</span>
+                        <span class="task-badge">状态：${formatTaskStatus(getTaskStatusLabel(task))}</span>
                       </div>
+                      ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
+                      ${task.completedAt ? `<div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div>` : ''}
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button>
+                        <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
                         <button onclick="event.preventDefault(); deleteTask('${task.id}')">删除</button>
                       </div>
                     </div>
                   </label>
                 `;
+              }).join('') || '<div class="task-item-meta">暂无任务</div>'}</div>`;
               }).join('')}
             </div>
           </div>
@@ -1260,7 +1285,9 @@
 
     function toggleTask(id) {
       const tasks = getStoredTasks().map(function(task) {
-        return task.id === id ? { ...task, done: !task.done } : task;
+        if (task.id !== id) return task;
+        const nextDone = !task.done;
+        return { ...task, done: nextDone, status: nextDone ? 'done' : 'todo', completedAt: nextDone ? new Date().toLocaleString('zh-CN') : '' };
       });
       saveTasks(tasks);
       recordTaskTrend();
@@ -1271,6 +1298,33 @@
 
     function clearTaskBoard() {
       localStorage.removeItem(smartAssistantTaskKey);
+      renderTaskBoard();
+    }
+
+    function updateTaskStatus(id) {
+      const value = prompt('状态：待处理 / 处理中 / 已完成');
+      if (!value) return;
+      const statusMap = value.includes('处理') && !value.includes('已') ? 'doing' : (value.includes('完成') ? 'done' : 'todo');
+      const tasks = getStoredTasks().map(function(task) {
+        if (task.id !== id) return task;
+        const done = statusMap === 'done';
+        return { ...task, status: statusMap, done: done, completedAt: done ? (task.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderTrendPanel();
+    }
+
+    function updateTaskNote(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入任务备注', task && task.note ? task.note : '');
+      if (value === null) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, note: value } : item;
+      });
+      saveTasks(tasks);
       renderTaskBoard();
     }
 
@@ -1455,6 +1509,20 @@ ${body}`;
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+    }
+
+    function exportAssigneeTasks() {
+      const assignee = prompt('请输入要导出的负责人，例如：会计 / 出纳 / 财务经理 / 老板');
+      if (!assignee) return;
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === assignee && !task.done; });
+      const text = tasks.length ? `${assignee}专属交办
+` + tasks.map(function(task) {
+        return `- ${task.title}｜状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('
+') : `${assignee} 当前暂无待交办任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(assignee)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
     }
 
     function exportAssignmentSlip() {

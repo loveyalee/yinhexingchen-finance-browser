@@ -751,6 +751,8 @@
                 <button onclick="setTaskFilter('status:done')">已完成</button>
                 <button onclick="setTaskFilter('assignee:会计')">会计</button>
                 <button onclick="setTaskFilter('assignee:出纳')">出纳</button>
+                <button onclick="setTaskFilter('assignee:财务经理')">经理</button>
+                <button onclick="setTaskFilter('assignee:老板')">老板</button>
               </div>
               <input type="text" id="taskSearchInput" placeholder="搜索任务/负责人/来源" style="width:100%;height:38px;padding:0 12px;border:1px solid rgba(26,95,168,0.14);border-radius:12px;margin-bottom:10px;" oninput="setTaskSearch(this.value)">
               <div class="quick-action-bar" style="margin-bottom:10px;"><button onclick="exportTasksByStatus('todo')">导出待处理</button><button onclick="exportTasksByStatus('doing')">导出处理中</button><button onclick="exportTasksByStatus('done')">导出已完成</button></div>
@@ -1213,11 +1215,16 @@
         doing: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length,
         done: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; }).length
       };
+      const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
       const stats = [
         { label: '总任务', value: tasks.length },
         { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
         { label: '高优先级', value: tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).length },
         { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length },
+        { label: '本周新增', value: weeklyNew },
+        { label: '本周完成', value: weeklyDone },
         { label: '完成率', value: `${completionRate}%` },
         { label: '逾期风险', value: overdueRisk },
         { label: '负责人数', value: assigneeSet.size },
@@ -1294,7 +1301,7 @@
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
-                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
                         <button onclick="event.preventDefault(); deleteTask('${task.id}')">删除</button>
@@ -1338,6 +1345,24 @@
       saveTasks(tasks);
       renderTaskBoard();
       renderTaskStats();
+    }
+
+    function copyTaskCard(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const text = `【单条任务卡】
+标题：${task.title}
+状态：${formatTaskStatus(getTaskStatusLabel(task))}
+负责人：${task.assignee || '未分配'}
+截止：${task.deadline || '本月'}${task.note ? `
+备注：${task.note}` : ''}`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">单条任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function findTaskByKeyword(keyword) {
+      return getStoredTasks().find(function(task) { return task.title.includes(keyword); });
     }
 
     function updateTaskStatus(id) {
@@ -1912,6 +1937,14 @@ ${grouped[name].map(function(task) {
           setTaskFilter('assignee:出纳');
           return '已切换为只看出纳负责的任务。';
         }
+        if (/财务经理|经理/.test(text)) {
+          setTaskFilter('assignee:财务经理');
+          return '已切换为只看财务经理负责的任务。';
+        }
+        if (/老板/.test(text)) {
+          setTaskFilter('assignee:老板');
+          return '已切换为只看老板负责的任务。';
+        }
         const keywordMatch = text.match(/搜索(.+)/);
         if (keywordMatch) {
           setTaskSearch(keywordMatch[1].trim());
@@ -1924,6 +1957,29 @@ ${grouped[name].map(function(task) {
         const input = document.getElementById('taskSearchInput');
         if (input) input.value = '';
         return '已切换为查看全部任务。';
+      }
+
+      if (/把.+交给/.test(text) || /把.+延期到/.test(text)) {
+        const taskKeyword = (text.match(/把(.+?)(交给|延期到)/) || [])[1];
+        const task = taskKeyword ? findTaskByKeyword(taskKeyword.trim()) : null;
+        if (task) {
+          if (/交给/.test(text)) {
+            const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+            if (assignee) {
+              const tasks = getStoredTasks().map(function(item) { return item.id === task.id ? { ...item, assignee: assignee } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把 <b>${escapeHtml(task.title)}</b> 交给 <b>${assignee}</b>。`;
+            }
+          }
+          if (/延期到/.test(text)) {
+            const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+            if (deadline) {
+              const tasks = getStoredTasks().map(function(item) { return item.id === task.id ? { ...item, deadline: deadline } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把 <b>${escapeHtml(task.title)}</b> 延期到 <b>${deadline}</b>。`;
+            }
+          }
+        }
       }
 
       if (/删除任务|删掉任务|移除任务/.test(text)) {

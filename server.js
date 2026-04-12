@@ -1498,6 +1498,35 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
     }
 
+  } else if (pathname.match(/^\/api\/accounts\/[^/]+\/opening-balances\/status$/) && req.method === 'GET') {
+    const accountId = pathname.split('/')[3];
+    const db = getAccountDb(accountId);
+    if (!db) {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '账套数据库不存在' }));
+      return;
+    }
+    try {
+      const summary = db.prepare('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN ABS(amount) > 0.0001 THEN 1 ELSE 0 END), 0) AS filled FROM opening_balances').get();
+      const filled = Number(summary.filled || 0);
+      const hasOpeningBalance = filled > 0;
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          hasOpeningBalance: hasOpeningBalance,
+          filledCount: filled,
+          totalCount: Number(summary.total || 0)
+        }
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '查询期初状态失败: ' + e.message }));
+    }
+
   // 获取期初余额：GET /api/accounts/:id/opening-balances
   } else if (pathname.match(/^\/api\/accounts\/[^/]+\/opening-balances$/) && req.method === 'GET') {
     const accountId = pathname.split('/')[3];

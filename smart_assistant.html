@@ -275,33 +275,25 @@
     }
     
     .message.assistant .message-content {
-      background-color: #f1f0f0;
-      color: #333;
+      background: linear-gradient(180deg, #f8fbff, #eef5fd);
+      color: #17324b;
+      border: 1px solid #dce8f4;
       border-bottom-left-radius: 4px;
+      line-height: 1.75;
     }
     
     .message-time {
       font-size: 12px;
-      color: #999;
-      margin-top: 5px;
+      color: #7b8a99;
+      margin-top: 6px;
       text-align: right;
     }
-    
-    .chat-input {
-      padding: 15px;
-      border-top: 1px solid #e0e0e0;
+
+    .sidebar-panel {
+      width: 320px;
       display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .chat-input input {
-      flex: 1;
-      height: 40px;
-      padding: 0 15px;
-      border: 1px solid rgba(26, 95, 168, 0.10);
-      border-radius: 20px;
-      outline: none;
+      flex-direction: column;
+      gap: 20px;
     }
     
     .voice-btn {
@@ -334,10 +326,28 @@
     }
     
     .sidebar-panel {
-      width: 300px;
+      width: 320px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .quick-action-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .quick-action-bar button {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: #eaf4ff;
+      color: #1a65b8;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
     }
     
     .card {
@@ -691,103 +701,272 @@
       }
     }
 
+    const smartAssistantStorageKey = 'dragonflyAssistantMessages';
+    const assistantQuickPrompts = [
+      '帮我生成今天的财务待办',
+      '整理本月报税清单',
+      '生成费用报销处理步骤',
+      '分析本周现金流风险'
+    ];
+
     document.addEventListener('DOMContentLoaded', function() {
       const chatInput = document.getElementById('chatInput');
       const voiceBtn = document.getElementById('voiceBtn');
-      
+
+      restoreMessages();
+
       chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
           sendMessage();
         }
       });
-      
+
       voiceBtn.addEventListener('click', function() {
         toggleVoiceRecording();
       });
     });
-    
-    function sendMessage() {
-      const chatInput = document.getElementById('chatInput');
-      const message = chatInput.value.trim();
-      
-      if (message) {
-        addMessage('user', message);
-        chatInput.value = '';
-        
-        // 模拟助手回复
-        setTimeout(() => {
-          let response;
-          if (message.includes('报税')) {
-            response = '您可以在一键报税模块中完成增值税、企业所得税等申报。需要我为您导航到该模块吗？';
-          } else if (message.includes('财务报表')) {
-            response = '您可以在数据分析模块中生成各类财务报表，包括资产负债表、利润表和现金流量表。';
-          } else if (message.includes('预算')) {
-            response = '您可以在预算管理模块中设置和跟踪企业预算执行情况。';
-          } else {
-            response = '感谢您的咨询。请问您需要了解哪方面的财务信息？';
-          }
-          addMessage('assistant', response);
-        }, 1000);
-      }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
-    
-    function addMessage(type, content) {
+
+    function saveMessages() {
+      const chatMessages = document.getElementById('chatMessages');
+      const items = Array.from(chatMessages.querySelectorAll('.message')).map(function(node) {
+        return {
+          type: node.classList.contains('user') ? 'user' : 'assistant',
+          html: node.querySelector('.message-content').innerHTML,
+          time: node.querySelector('.message-time').textContent
+        };
+      });
+      localStorage.setItem(smartAssistantStorageKey, JSON.stringify(items.slice(-30)));
+    }
+
+    function restoreMessages() {
+      const chatMessages = document.getElementById('chatMessages');
+      const saved = JSON.parse(localStorage.getItem(smartAssistantStorageKey) || '[]');
+      if (!saved.length) {
+        chatMessages.innerHTML = '';
+        addMessage('assistant', buildWelcomeCard(), true);
+        return;
+      }
+      chatMessages.innerHTML = '';
+      saved.forEach(function(item) {
+        addMessage(item.type, item.html, true, item.time);
+      });
+    }
+
+    function buildWelcomeCard() {
+      return `
+        <div style="font-weight:700;margin-bottom:8px">你好，我是蜻蜓智能助手</div>
+        <div style="line-height:1.8;color:#44576b">我可以通过对话帮你处理常见财务日常工作：报税准备、费用报销、月末结账、发票核对、现金流分析、待办整理。</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          ${assistantQuickPrompts.map(function(prompt) {
+            return `<button onclick="injectPrompt('${prompt}')" style="border:none;border-radius:999px;padding:6px 12px;background:#eaf4ff;color:#1a65b8;cursor:pointer;font-size:12px">${prompt}</button>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function injectPrompt(prompt) {
+      const chatInput = document.getElementById('chatInput');
+      chatInput.value = prompt;
+      chatInput.focus();
+    }
+
+    function buildTaskCard(title, steps, actions) {
+      return `
+        <div style="font-weight:700;margin-bottom:8px">${title}</div>
+        <div style="display:grid;gap:8px;margin-bottom:10px">
+          ${steps.map(function(step, idx) {
+            return `<div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2"><b style="color:#1a65b8">${idx + 1}.</b> ${step}</div>`;
+          }).join('')}
+        </div>
+        ${actions && actions.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px">${actions.map(function(action) {
+          return `<button onclick="handleTaskAction('${action.type}','${action.value || ''}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">${action.label}</button>`;
+        }).join('')}</div>` : ''}
+      `;
+    }
+
+    function buildAssistantResponse(message) {
+      const text = message.trim();
+      const normalized = text.replace(/\s+/g, '').toLowerCase();
+
+      if (/今天|今日/.test(text) && /待办|任务|工作/.test(text)) {
+        return buildTaskCard('今日财务待办建议', [
+          '检查待审核凭证、销项发票和进项勾选状态。',
+          '确认本周回款计划与供应商付款安排。',
+          '核对报税截止日期、社保个税和工资发放节点。',
+          '查看利润、费用和现金流是否有异常波动。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if (/报税|增值税|申报|税务/.test(text)) {
+        return buildTaskCard('报税处理建议', [
+          '先核对销项开票、进项勾选、红字发票和税率适用。',
+          '整理增值税、附加税、个税和企业所得税所需资料。',
+          '复核收入确认时间、进项认证期限和异常税负变化。',
+          '确认无误后再进入申报并留存截图与底稿。'
+        ], [
+          { label: '进入一键报税', type: 'goto', value: 'tax_reporting.html' },
+          { label: '查看发票管理', type: 'goto', value: 'tax_reporting.html' }
+        ]);
+      }
+
+      if (/报销|费用|差旅|付款申请/.test(text)) {
+        return buildTaskCard('费用报销处理流程', [
+          '收集报销单、发票、付款凭证和审批记录。',
+          '判断费用归属部门、项目和会计科目。',
+          '生成报销凭证草稿，并检查税额、附件和审批链。',
+          '同步更新预算执行和费用分析口径。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '生成报销模板', type: 'prompt', value: '请帮我生成一份费用报销审核清单' }
+        ]);
+      }
+
+      if (/结账|月末|月底|期末/.test(text)) {
+        return buildTaskCard('月末结账建议', [
+          '完成凭证审核、过账及银行、往来、库存对账。',
+          '计提工资、折旧、摊销并结转损益。',
+          '复核资产负债表、利润表和现金流量表逻辑。',
+          '归档凭证、报表、纳税申报表和工作底稿。'
+        ], [
+          { label: '进入账套', type: 'goto', value: 'finance_software.html?selectAccount=1' },
+          { label: '查看经营分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if (/发票|票据|进项|销项/.test(text)) {
+        return buildTaskCard('发票核对与处理', [
+          '核对发票抬头、税号、金额、税率和开票日期。',
+          '区分销项开票、进项认证和待抵扣状态。',
+          '检查票据是否匹配合同、出入库和付款节点。',
+          '异常票据单独标记，避免影响记账和报税。'
+        ], [
+          { label: '去发票管理', type: 'goto', value: 'tax_reporting.html' },
+          { label: '询问票税建议', type: 'prompt', value: '请帮我分析当前票据的税务风险' }
+        ]);
+      }
+
+      if (/现金流|资金|回款|付款/.test(text)) {
+        return buildTaskCard('现金流优化建议', [
+          '列出未来 7 天回款、付款、工资和税费支出计划。',
+          '优先催收超期应收，延后非关键采购支出。',
+          '对大额资金缺口提前准备融资或股东借款方案。',
+          '每日复盘现金余额、预计净流入和高风险项目。'
+        ], [
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '打开企业融资', type: 'goto', value: 'online_store.html' }
+        ]);
+      }
+
+      if (/工资|个税|社保|公积金/.test(text)) {
+        return buildTaskCard('工资核算建议', [
+          '核对考勤、绩效、社保公积金和专项附加扣除。',
+          '复核应发、实发和代扣个税金额是否一致。',
+          '生成工资凭证并同步工资发放台账。',
+          '在发薪前完成异常名单和银行卡信息复核。'
+        ], [
+          { label: '进入账套', type: 'goto', value: 'finance_software.html?selectAccount=1' },
+          { label: '生成工资待办', type: 'prompt', value: '请帮我生成本月工资核算检查清单' }
+        ]);
+      }
+
+      if (/导航|打开|进入/.test(text)) {
+        return '你可以直接告诉我想进入的工作场景，例如“进入报税”“打开财务软件”“查看数据分析”或“打开财务快聘”，我会给你最短处理路径。';
+      }
+
+      return `
+        <div style="font-weight:700;margin-bottom:8px">我已理解你的需求</div>
+        <div style="line-height:1.8;color:#44576b">如果你告诉我更具体的工作目标，我可以直接按场景给你生成处理步骤、检查清单和下一步操作。</div>
+        <div style="display:grid;gap:8px;margin-top:10px">
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：帮我整理本月报税清单</div>
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：生成费用报销审核流程</div>
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：分析今天的现金流风险</div>
+        </div>
+      `;
+    }
+
+    function sendMessage(prefill) {
+      const chatInput = document.getElementById('chatInput');
+      const message = (typeof prefill === 'string' ? prefill : chatInput.value).trim();
+
+      if (!message) return;
+
+      addMessage('user', escapeHtml(message), true);
+      chatInput.value = '';
+
+      setTimeout(function() {
+        addMessage('assistant', buildAssistantResponse(message), true);
+      }, 450);
+    }
+
+    function addMessage(type, content, isHtml, fixedTime) {
       const chatMessages = document.getElementById('chatMessages');
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${type}`;
-      
+
       const now = new Date();
-      const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
+      const time = fixedTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const safeContent = isHtml ? content : escapeHtml(content);
+
       messageDiv.innerHTML = `
-        <div class="message-content">${content}</div>
+        <div class="message-content">${safeContent}</div>
         <div class="message-time">${time}</div>
       `;
-      
+
       chatMessages.appendChild(messageDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      saveMessages();
     }
-    
+
+    function handleTaskAction(type, value) {
+      if (type === 'goto' && value) {
+        window.location.href = value;
+        return;
+      }
+      if (type === 'prompt' && value) {
+        injectPrompt(value);
+        addMessage('assistant', `已为你准备好下一条指令：<b>${escapeHtml(value)}</b>，你按发送即可继续。`, true);
+      }
+    }
+
     function toggleVoiceRecording() {
       const voiceBtn = document.getElementById('voiceBtn');
       isRecording = !isRecording;
-      
+
       if (isRecording) {
         voiceBtn.classList.add('recording');
         voiceBtn.title = '停止录音';
-        // 模拟录音功能
         setTimeout(() => {
           isRecording = false;
           voiceBtn.classList.remove('recording');
           voiceBtn.title = '语音输入';
-          addMessage('user', '如何优化企业现金流？');
-          
-          setTimeout(() => {
-            addMessage('assistant', '优化企业现金流可以从以下几个方面入手：1. 加快应收账款回收速度；2. 合理控制存货水平；3. 优化付款周期；4. 考虑使用供应链金融工具。');
-          }, 1000);
-        }, 3000);
+          sendMessage('请帮我生成今天的财务待办');
+        }, 1200);
       } else {
         voiceBtn.classList.remove('recording');
         voiceBtn.title = '语音输入';
       }
     }
-    
+
     function showRecommendation(type) {
-      let content;
-      
-      switch(type) {
-        case 'tax':
-          content = '根据您的企业情况，建议您：1. 合理利用税收优惠政策；2. 优化企业组织架构；3. 规范成本费用核算；4. 定期进行税务筹划。';
-          break;
-        case 'finance':
-          content = '财务管理优化建议：1. 建立现金流量预测系统；2. 实施成本控制措施；3. 优化资金结构；4. 建立财务风险预警机制。';
-          break;
-        case 'investment':
-          content = '投资机会分析：1. 考虑行业上下游整合；2. 关注数字化转型相关领域；3. 评估研发投入回报；4. 探索国际市场机会。';
-          break;
-      }
-      
-      addMessage('assistant', content);
+      const prompts = {
+        tax: '请帮我整理本月报税清单',
+        finance: '请分析本周现金流风险并给出优化建议',
+        investment: '请从经营角度分析当前适合的投资方向'
+      };
+      sendMessage(prompts[type] || '请帮我生成今天的财务待办');
     }
   </script>
 <!-- 引用蜻蜓聊天-->

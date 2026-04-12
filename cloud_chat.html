@@ -1019,66 +1019,128 @@
       <div class="header">
         <h1>云盘</h1>
         <div class="header-actions">
-          <button class="btn btn-primary">上传文件</button>
-          <button class="btn btn-secondary">新建文件/button>
+          <button class="btn btn-primary" id="uploadBtn">上传文件</button>
+          <button class="btn btn-secondary" id="newFolderBtn">新建文件夹</button>
         </div>
       </div>
-      
+
       <div class="content-area">
         <div class="file-explorer">
           <div class="file-sidebar">
             <ul class="file-nav">
-              <li class="file-nav-item"><a href="#" class="active">全部文件</a></li>
-              <li class="file-nav-item"><a href="#">最近文/a></li>
-              <li class="file-nav-item"><a href="#">共享文件</a></li>
-              <li class="file-nav-item"><a href="#">我的收藏</a></li>
-              <li class="file-nav-item"><a href="#">回收/a></li>
-              <li class="file-nav-item"><a href="#">财务报表</a></li>
-              <li class="file-nav-item"><a href="#">税务资料</a></li>
-              <li class="file-nav-item"><a href="#">合同文档</a></li>
-              <li class="file-nav-item"><a href="#">其他</a></li>
+              <li class="file-nav-item"><a href="#" class="active" data-category="all">全部文件</a></li>
+              <li class="file-nav-item"><a href="#" data-category="recent">最近文件</a></li>
+              <li class="file-nav-item"><a href="#" data-category="shared">共享文件</a></li>
+              <li class="file-nav-item"><a href="#" data-category="favorite">我的收藏</a></li>
+              <li class="file-nav-item"><a href="#" data-category="trash">回收站</a></li>
+              <li class="file-nav-item"><a href="#" data-category="finance">财务报表</a></li>
+              <li class="file-nav-item"><a href="#" data-category="tax">税务资料</a></li>
+              <li class="file-nav-item"><a href="#" data-category="contract">合同文档</a></li>
+              <li class="file-nav-item"><a href="#" data-category="other">其他</a></li>
             </ul>
           </div>
-          
+
           <div class="file-content">
             <div class="file-header">
-              <h3>全部文件</h3>
+              <h3 id="currentCategory">全部文件</h3>
               <div class="file-actions">
-                <button class="btn btn-secondary">排序</button>
-                <button class="btn btn-secondary">筛/button>
+                <input type="text" id="searchFile" placeholder="搜索文件..." style="padding: 6px 12px; border: 1px solid #d9e5f2; border-radius: 4px; width: 200px;">
+                <button class="btn btn-secondary" id="sortBtn">排序</button>
+                <button class="btn btn-secondary" id="viewToggle">视图</button>
               </div>
             </div>
-            
-            <div class="file-grid">
-              <div class="file-card">
+
+            <!-- 存储空间信息 -->
+            <div class="storage-info" style="background: linear-gradient(90deg, #eef2f8, #e4ecf8); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span>存储空间</span>
+                <span id="storageUsed">已使用 2.5GB / 10GB</span>
+              </div>
+              <div class="progress-bar" style="width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px;">
+                <div class="progress-fill" style="width: 25%; height: 100%; background: linear-gradient(135deg, #1a65b8, #124fa0); border-radius: 4px;"></div>
+              </div>
+            </div>
+
+            <div class="file-grid" id="fileGrid">
+              <div class="file-card" data-type="excel" data-name="2024年第一季度财务报表.xlsx">
                 <div class="file-icon">📊</div>
                 <div class="file-name">2024年第一季度财务报表.xlsx</div>
                 <div class="file-meta">2024-03-31 2.5MB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
-              <div class="file-card">
+              <div class="file-card" data-type="pdf" data-name="增值税申报表.pdf">
                 <div class="file-icon">📄</div>
-                <div class="file-name">增值税申报税pdf</div>
+                <div class="file-name">增值税申报表.pdf</div>
                 <div class="file-meta">2024-04-10 1.2MB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
-              <div class="file-card">
+              <div class="file-card" data-type="folder" data-name="合同文档">
                 <div class="file-icon">📁</div>
                 <div class="file-name">合同文档</div>
-                <div class="file-meta">2024-03-15 包含15个文/div>
+                <div class="file-meta">2024-03-15 包含15个文件</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="openFolder(this)">打开</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
-              <div class="file-card">
+              <div class="file-card" data-type="excel" data-name="2023年度财务报告.xlsx">
                 <div class="file-icon">📊</div>
                 <div class="file-name">2023年度财务报告.xlsx</div>
                 <div class="file-meta">2024-01-15 5.8MB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
-              <div class="file-card">
+              <div class="file-card" data-type="pdf" data-name="企业所得税汇算清缴报告.pdf">
                 <div class="file-icon">📄</div>
                 <div class="file-name">企业所得税汇算清缴报告.pdf</div>
                 <div class="file-meta">2024-02-28 2.1MB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
-              <div class="file-card">
+              <div class="file-card" data-type="folder" data-name="税务资料">
                 <div class="file-icon">📁</div>
                 <div class="file-name">税务资料</div>
-                <div class="file-meta">2024-03-01 包含8个文/div>
+                <div class="file-meta">2024-03-01 包含8个文件</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="openFolder(this)">打开</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
+              </div>
+              <div class="file-card" data-type="word" data-name="财务管理制度.docx">
+                <div class="file-icon">📝</div>
+                <div class="file-name">财务管理制度.docx</div>
+                <div class="file-meta">2024-02-15 856KB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
+              </div>
+              <div class="file-card" data-type="image" data-name="发票扫描件.jpg">
+                <div class="file-icon">🖼️</div>
+                <div class="file-name">发票扫描件.jpg</div>
+                <div class="file-meta">2024-04-05 3.2MB</div>
+                <div class="file-actions-overlay">
+                  <button class="btn btn-sm" onclick="downloadFile(this)">下载</button>
+                  <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+                </div>
               </div>
             </div>
           </div>

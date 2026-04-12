@@ -701,18 +701,18 @@
       
       // 功能配置数据
       const featureConfig = [
-        { id: 'accounting', name: '记账凭证', icon: '📊', url: 'accounting.html' },
-        { id: 'finance_management', name: '财务报表', icon: '📈', url: 'finance_management.html' },
-        { id: 'tax_reporting', name: '一键报税', icon: '💳', url: 'tax_reporting.html' },
-        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'accounting.html#invoice-list' },
-        { id: 'contract_management', name: '合同管理', icon: '📋', url: 'contract_management.html' },
-        { id: 'online_store', name: '在线商城', icon: '🛒', url: 'online_store.html' },
-        { id: 'smart_assistant', name: '蜻蜓助手', icon: '🤖', url: 'smart_assistant.html' },
-        { id: 'data_analysis', name: '数据分析', icon: '📊', url: 'data_analysis.html' },
-        { id: 'finance_academy', name: '财务学堂', icon: '📚', url: 'finance_academy.html' },
-        { id: 'templates_tools', name: '模板专区', icon: '📝', url: 'templates_tools.html' },
-        { id: 'cloud_chat', name: '个人云盘', icon: '☁️', url: 'cloud_chat.html' },
-        { id: 'news', name: '行业头条', icon: '📰', url: 'news.html' }
+        { id: 'accounting', name: '记账凭证', icon: '📊', url: 'accounting.html', order: 1 },
+        { id: 'finance_management', name: '财务报表', icon: '📈', url: 'finance_management.html', order: 2 },
+        { id: 'tax_reporting', name: '一键报税', icon: '💳', url: 'tax_reporting.html', order: 3 },
+        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'accounting.html#invoice-list', order: 4 },
+        { id: 'contract_management', name: '合同管理', icon: '📋', url: 'contract_management.html', order: 5 },
+        { id: 'online_store', name: '在线商城', icon: '🛒', url: 'online_store.html', order: 6 },
+        { id: 'smart_assistant', name: '蜻蜓助手', icon: '🤖', url: 'smart_assistant.html', order: 7 },
+        { id: 'data_analysis', name: '数据分析', icon: '📊', url: 'data_analysis.html', order: 8 },
+        { id: 'finance_academy', name: '财会学堂', icon: '📚', url: 'finance_academy.html', order: 9 },
+        { id: 'templates_tools', name: '模板专区', icon: '📝', url: 'templates_tools.html', order: 10 },
+        { id: 'cloud_chat', name: '个人云盘', icon: '☁️', url: 'cloud_chat.html', order: 11 },
+        { id: 'news', name: '行业头条', icon: '📰', url: 'news.html', order: 12 }
       ];
 
       // 获取功能使用频次数据
@@ -744,7 +744,10 @@
         return [...featureConfig].sort((a, b) => {
           const countA = usageData[a.id]?.count || 0;
           const countB = usageData[b.id]?.count || 0;
-          return countB - countA; // 降序排列，使用频次高的在前
+          if (countB !== countA) {
+            return countB - countA;
+          }
+          return (a.order || 0) - (b.order || 0);
         });
       }
 

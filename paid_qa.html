@@ -992,6 +992,57 @@
   
   <script src="payment.js"></script>
   <script>
+    // Navigation menu functions
+    function toggleSubmenu(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    }
+
+    function toggleMemberSubmenu(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        window.location.href = 'login.html';
+      }
+    }
+
+    function showModule(module) {
+      const moduleMap = {
+        'contract-management': 'finance_software.html',
+        'seal-management': 'finance_software.html',
+        'inventory-management': 'finance_software.html',
+        'company-management': 'member.html',
+        'financing-bank': 'online_store.html',
+        'financing-equity': 'online_store.html',
+        'financing-bond': 'online_store.html',
+        'financing-lease': 'online_store.html',
+        'financing-government': 'online_store.html',
+        'financing-selfservice': 'online_store.html',
+        'bidding': 'online_store.html',
+        'invoice-management': 'tax_reporting.html',
+        'tax-plan': 'tax_reporting.html',
+        'tax-consult': 'tax_reporting.html',
+        'tax-risk': 'tax_reporting.html',
+        'tax-equity': 'tax_reporting.html'
+      };
+
+      const target = moduleMap[module];
+      if (target) {
+        window.location.href = target;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       // 模拟用户登录状      let isLoggedIn = false;
       let userType = '';

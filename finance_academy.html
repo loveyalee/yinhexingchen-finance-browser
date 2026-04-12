@@ -865,25 +865,60 @@
   </div>
   
   <script>
-    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+    // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+        // 关闭所有子菜单
+        const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
+        subItems.forEach(item => {
+          item.classList.remove('active');
+        });
+      }
+    };
+
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
     };
-    
-    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
-      console.log('显示模块, moduleName);
-      // 根据模块名跳转到相应页面
-      if (moduleName.startsWith('tax-')) {
-        // 税务专区模块
-        window.location.href = 'tax_zone.html';
-      } else if (moduleName.startsWith('financing-')) {
-        // 企业融资模块
-        window.location.href = 'enterprise_management.html';
-      } else {
-        // 财务管理模块
-        window.location.href = 'finance_management.html';
+
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        window.location.href = 'login.html';
+      }
+    };
+
+    // showModule 函数（用于处理子菜单点击）
+    window.showModule = function(module) {
+      const moduleMap = {
+        'contract-management': 'finance_software.html',
+        'seal-management': 'finance_software.html',
+        'inventory-management': 'finance_software.html',
+        'company-management': 'member.html',
+        'financing-bank': 'online_store.html',
+        'financing-equity': 'online_store.html',
+        'financing-bond': 'online_store.html',
+        'financing-lease': 'online_store.html',
+        'financing-government': 'online_store.html',
+        'financing-selfservice': 'online_store.html',
+        'bidding': 'online_store.html',
+        'invoice-management': 'tax_reporting.html',
+        'tax-plan': 'tax_reporting.html',
+        'tax-consult': 'tax_reporting.html',
+        'tax-risk': 'tax_reporting.html',
+        'tax-equity': 'tax_reporting.html'
+      };
+
+      const target = moduleMap[module];
+      if (target) {
+        window.location.href = target;
       }
     };
     

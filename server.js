@@ -419,6 +419,26 @@ async function sendAliyunSms(phone, code, purpose) {
   return body;
 }
 
+function formatSmsErrorMessage(message) {
+  const text = String(message || '');
+  if (text.includes('isv.BUSINESS_LIMIT_CONTROL')) {
+    return '验证码发送过于频繁，请稍后再试';
+  }
+  if (text.includes('isv.AMOUNT_NOT_ENOUGH')) {
+    return '短信账户余额不足，请联系管理员处理';
+  }
+  if (text.includes('isv.MOBILE_NUMBER_ILLEGAL')) {
+    return '手机号格式不正确';
+  }
+  if (text.includes('isv.TEMPLATE_MISSING_PARAMETERS')) {
+    return '短信模板参数配置不正确，请联系管理员';
+  }
+  if (text.includes('isv.INVALID_PARAMETERS')) {
+    return '短信配置参数无效，请联系管理员';
+  }
+  return '验证码发送失败，请稍后再试';
+}
+
 // 加载已保存的订单
 function loadOrders() {
   if (fs.existsSync(orderFile)) {
@@ -1162,7 +1182,7 @@ const server = http.createServer((req, res) => {
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: '发送验证码失败: ' + e.message }));
+        res.end(JSON.stringify({ success: false, message: formatSmsErrorMessage(e.message), detail: e.message }));
       }
     });
 

@@ -7,11 +7,11 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f4f7fb; color: #223548; }
-    .page { max-width: 1180px; margin: 0 auto; padding: 24px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
     .title h1 { font-size: 28px; margin-bottom: 6px; }
     .title p { color: #6a7b8d; font-size: 14px; }
-    .actions { display: flex; gap: 10px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .btn { border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 700; }
     .btn-primary { background: #2d8cf0; color: #fff; }
     .btn-light { background: #fff; color: #2d4b68; border: 1px solid #d8e4f0; }
@@ -20,8 +20,11 @@
     .stat-label { color: #6c8196; font-size: 13px; margin-bottom: 8px; }
     .stat-value { font-size: 30px; font-weight: 800; color: #17324b; }
     .notice { background: #eef7ff; color: #24507a; border: 1px solid #cfe3f7; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
+    .filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 18px; }
+    .field label { display: block; margin-bottom: 6px; color: #64809c; font-size: 13px; }
+    .field input, .field select { width: 100%; padding: 11px 12px; border: 1px solid #d8e4f0; border-radius: 10px; outline: none; background: #fff; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 860px; }
+    table { width: 100%; border-collapse: collapse; min-width: 960px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #e8eef5; text-align: left; font-size: 14px; }
     th { color: #58708a; background: #f8fbfe; font-weight: 700; }
     tr:hover td { background: #f9fcff; }
@@ -29,6 +32,10 @@
     .badge-ok { background: #def7e8; color: #167a45; }
     .badge-partial { background: #fff3d9; color: #996600; }
     .empty { padding: 26px; text-align: center; color: #6c8196; }
+    .subtle { color: #6c8196; font-size: 13px; margin-top: 6px; }
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -36,7 +43,7 @@
     <div class="topbar">
       <div class="title">
         <h1>用户管理</h1>
-        <p>查看平台注册用户数量、类型与同步状态</p>
+        <p>查看平台注册用户数量、类型、今日新增与同步状态</p>
       </div>
       <div class="actions">
         <button class="btn btn-light" onclick="window.location.href='admin.html'">返回后台</button>
@@ -52,6 +59,10 @@
         <div class="stat-value" id="totalUsers">--</div>
       </div>
       <div class="card">
+        <div class="stat-label">今日新增</div>
+        <div class="stat-value" id="todayUsers">--</div>
+      </div>
+      <div class="card">
         <div class="stat-label">个人用户</div>
         <div class="stat-value" id="personalUsers">--</div>
       </div>
@@ -59,6 +70,37 @@
         <div class="stat-label">机构用户</div>
         <div class="stat-value" id="institutionUsers">--</div>
       </div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px;">
+      <div class="filters">
+        <div class="field">
+          <label for="searchKeyword">搜索手机号 / 机构名称</label>
+          <input id="searchKeyword" type="text" placeholder="输入手机号或机构名称关键词">
+        </div>
+        <div class="field">
+          <label for="userTypeFilter">用户类型</label>
+          <select id="userTypeFilter">
+            <option value="all">全部类型</option>
+            <option value="personal">个人用户</option>
+            <option value="institution">机构用户</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="syncFilter">同步状态</label>
+          <select id="syncFilter">
+            <option value="all">全部状态</option>
+            <option value="synced">已同步</option>
+            <option value="partial">部分同步</option>
+            <option value="unsynced">未同步</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="applyFilters()">筛选</button>
+          <button class="btn btn-light" onclick="resetFilters()">重置</button>
+        </div>
+      </div>
+      <div class="subtle" id="filterSummary">当前显示全部用户</div>
     </div>
 
     <div class="card">
@@ -85,6 +127,8 @@
   </div>
 
   <script>
+    let allUsers = [];
+
     function formatTime(value) {
       if (!value) return '--';
       try {
@@ -94,10 +138,27 @@
       }
     }
 
+    function isToday(value) {
+      if (!value) return false;
+      const date = new Date(value);
+      const now = new Date();
+      return date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate();
+    }
+
+    function updateStats(users) {
+      document.getElementById('totalUsers').textContent = allUsers.length;
+      document.getElementById('todayUsers').textContent = allUsers.filter(function(user) { return isToday(user.create_time); }).length;
+      document.getElementById('personalUsers').textContent = allUsers.filter(function(user) { return user.user_type !== 'institution'; }).length;
+      document.getElementById('institutionUsers').textContent = allUsers.filter(function(user) { return user.user_type === 'institution'; }).length;
+      document.getElementById('filterSummary').textContent = '当前筛选后显示 ' + users.length + ' 个用户';
+    }
+
     function renderUsers(users) {
       const body = document.getElementById('userTableBody');
       if (!Array.isArray(users) || !users.length) {
-        body.innerHTML = '<tr><td class="empty" colspan="8">暂无注册用户</td></tr>';
+        body.innerHTML = '<tr><td class="empty" colspan="8">暂无符合条件的用户</td></tr>';
         return;
       }
       body.innerHTML = users.map(function(user) {
@@ -116,6 +177,28 @@
       }).join('');
     }
 
+    function applyFilters() {
+      const keyword = document.getElementById('searchKeyword').value.trim();
+      const userType = document.getElementById('userTypeFilter').value;
+      const syncStatus = document.getElementById('syncFilter').value;
+      const filtered = allUsers.filter(function(user) {
+        const keywordMatch = !keyword || (user.phone || '').includes(keyword) || (user.institution_name || '').includes(keyword);
+        const typeMatch = userType === 'all' || user.user_type === userType || (userType === 'personal' && user.user_type !== 'institution');
+        const syncMatch = syncStatus === 'all' || (user.sync_status || 'unsynced') === syncStatus;
+        return keywordMatch && typeMatch && syncMatch;
+      });
+      updateStats(filtered);
+      renderUsers(filtered);
+    }
+
+    function resetFilters() {
+      document.getElementById('searchKeyword').value = '';
+      document.getElementById('userTypeFilter').value = 'all';
+      document.getElementById('syncFilter').value = 'all';
+      updateStats(allUsers);
+      renderUsers(allUsers);
+    }
+
     function loadUsers() {
       const notice = document.getElementById('notice');
       notice.textContent = '正在刷新注册用户数据...';
@@ -128,17 +211,21 @@
           return;
         }
         const data = result.data || {};
-        const users = Array.isArray(data.users) ? data.users : [];
-        document.getElementById('totalUsers').textContent = data.total || 0;
-        document.getElementById('personalUsers').textContent = users.filter(function(user) { return user.user_type !== 'institution'; }).length;
-        document.getElementById('institutionUsers').textContent = users.filter(function(user) { return user.user_type === 'institution'; }).length;
+        allUsers = Array.isArray(data.users) ? data.users : [];
         notice.textContent = '已加载 ' + (data.total || 0) + ' 个注册用户';
-        renderUsers(users);
+        updateStats(allUsers);
+        renderUsers(allUsers);
       }).catch(function(err) {
         notice.textContent = '获取用户数据失败：' + err.message;
         document.getElementById('userTableBody').innerHTML = '<tr><td class="empty" colspan="8">加载失败，请稍后重试</td></tr>';
       });
     }
+
+    document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') applyFilters();
+    });
+    document.getElementById('userTypeFilter').addEventListener('change', applyFilters);
+    document.getElementById('syncFilter').addEventListener('change', applyFilters);
 
     loadUsers();
   </script>

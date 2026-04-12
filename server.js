@@ -191,12 +191,48 @@ function initAccountDb(accountId) {
   }
 }
 
+function getNormalizedAccountDbFile(accountId, dbFile) {
+  if (!accountId) return '';
+  const expectedDbFile = path.join(dbDir, `account_${accountId}.db`);
+  if (!dbFile) return expectedDbFile;
+  const normalized = String(dbFile).replace(/\\/g, '/');
+  const expectedNormalized = expectedDbFile.replace(/\\/g, '/');
+  if (normalized === expectedNormalized) return expectedDbFile;
+  if (normalized.endsWith(`/account_${accountId}.db`)) return expectedDbFile;
+  if (!fs.existsSync(dbFile) && fs.existsSync(expectedDbFile)) return expectedDbFile;
+  return dbFile;
+}
+
+function repairAccountDbFile(accountId) {
+  if (!mainDb || !accountId) return null;
+  try {
+    const account = mainDb.prepare('SELECT id, db_file FROM accounts WHERE id = ?').get(accountId);
+    if (!account) return null;
+    const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
+    if (normalizedDbFile && normalizedDbFile !== account.db_file) {
+      mainDb.prepare('UPDATE accounts SET db_file = ?, update_time = ? WHERE id = ?')
+        .run(normalizedDbFile, new Date().toISOString(), account.id);
+      return normalizedDbFile;
+    }
+    return account.db_file || normalizedDbFile;
+  } catch (e) {
+    console.error('修复账套数据库路径失败 [' + accountId + ']:', e.message);
+    return null;
+  }
+}
+
 function getAccountDb(accountId) {
   if (!Database || !mainDb || !accountId) return null;
   try {
     const account = mainDb.prepare('SELECT * FROM accounts WHERE id = ? AND status = ?').get(accountId, 'active');
-    if (!account || !account.db_file) return null;
-    return new Database(account.db_file);
+    if (!account) return null;
+    const dbFile = getNormalizedAccountDbFile(account.id, account.db_file);
+    if (!dbFile) return null;
+    if (dbFile !== account.db_file) {
+      mainDb.prepare('UPDATE accounts SET db_file = ?, update_time = ? WHERE id = ?')
+        .run(dbFile, new Date().toISOString(), account.id);
+    }
+    return new Database(dbFile);
   } catch (e) {
     console.error('打开账套数据库失败 [' + accountId + ']:', e.message);
     return null;
@@ -1485,6 +1521,7 @@ const server = http.createServer((req, res) => {
         }
         let accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
         let repairedLegacyAccounts = 0;
+        let repairedDbFiles = 0;
         if (!accounts.length) {
           const legacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('active');
           if (legacyAccounts.length) {
@@ -1500,9 +1537,19 @@ const server = http.createServer((req, res) => {
             accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
           }
         }
+        accounts = accounts.map(function(account) {
+          const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
+          if (normalizedDbFile !== account.db_file) {
+            mainDb.prepare('UPDATE accounts SET db_file = ?, update_time = ? WHERE id = ?')
+              .run(normalizedDbFile, new Date().toISOString(), account.id);
+            repairedDbFiles++;
+            return { ...account, db_file: normalizedDbFile };
+          }
+          return account;
+        });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts }));
+        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts, repairedDbFiles: repairedDbFiles }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

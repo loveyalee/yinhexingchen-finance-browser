@@ -589,7 +589,7 @@
             <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
             
             
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">库存管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
             <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
             <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
@@ -749,6 +749,8 @@
                 <button onclick="setTaskFilter('high')">高优先级</button>
                 <button onclick="setTaskFilter('today')">今天到期</button>
                 <button onclick="setTaskFilter('risk')">临期风险</button>
+                <button onclick="setTaskFilter('status:doing')">处理中</button>
+                <button onclick="setTaskFilter('status:done')">已完成</button>
                 <button onclick="setTaskFilter('assignee:会计')">会计</button>
                 <button onclick="setTaskFilter('assignee:出纳')">出纳</button>
               </div>
@@ -760,6 +762,8 @@
                 <button onclick="exportFilteredTasks()">导出清单</button>
                 <button onclick="exportAssignmentSlip()">交办单</button>
                 <button onclick="exportAssigneeTasks()">负责人导出</button>
+                <button onclick="exportTasksForAssignee('会计')">会计交办</button>
+                <button onclick="exportTasksForAssignee('出纳')">出纳交办</button>
               </div>
             </div>
             

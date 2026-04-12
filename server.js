@@ -1521,6 +1521,7 @@ const server = http.createServer((req, res) => {
         }
         let accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
         let repairedLegacyAccounts = 0;
+        let repairedDeletedAccounts = 0;
         let repairedDbFiles = 0;
         if (!accounts.length) {
           const legacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('active');
@@ -1537,6 +1538,22 @@ const server = http.createServer((req, res) => {
             accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
           }
         }
+        const deletedLegacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('deleted').filter(function(account) {
+          const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
+          return normalizedDbFile && fs.existsSync(normalizedDbFile);
+        });
+        if (deletedLegacyAccounts.length) {
+          const reviveLegacy = mainDb.prepare("UPDATE accounts SET status = 'active', user_id = ?, db_file = ?, update_time = ? WHERE id = ? AND status = 'deleted'");
+          const now = new Date().toISOString();
+          const trx = mainDb.transaction(function() {
+            deletedLegacyAccounts.forEach(function(account) {
+              reviveLegacy.run(userId, getNormalizedAccountDbFile(account.id, account.db_file), now, account.id);
+            });
+          });
+          trx();
+          repairedDeletedAccounts = deletedLegacyAccounts.length;
+          accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        }
         accounts = accounts.map(function(account) {
           const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
           if (normalizedDbFile !== account.db_file) {
@@ -1549,7 +1566,7 @@ const server = http.createServer((req, res) => {
         });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts, repairedDbFiles: repairedDbFiles }));
+        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts, repairedDeletedAccounts: repairedDeletedAccounts, repairedDbFiles: repairedDbFiles }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

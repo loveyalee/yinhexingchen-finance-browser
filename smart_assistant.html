@@ -728,11 +728,13 @@
             <div class="card">
               <h3>最近新增</h3>
               <div id="recentAdded" style="display:grid;gap:8px;"></div>
+              <div class="quick-action-bar"><button onclick="copyRecentPanel('added')">复制最近新增</button></div>
             </div>
 
             <div class="card">
               <h3>最近完成</h3>
               <div id="recentCompleted" style="display:grid;gap:8px;"></div>
+              <div class="quick-action-bar"><button onclick="copyRecentPanel('completed')">复制最近完成</button></div>
             </div>
 
             <div class="card">
@@ -768,7 +770,7 @@
               <div class="quick-action-bar" style="margin-bottom:10px;"><button onclick="exportTasksByStatus('todo')">导出待处理</button><button onclick="exportTasksByStatus('doing')">导出处理中</button><button onclick="exportTasksByStatus('done')">导出已完成</button></div>
               <div id="taskBoard" style="display:grid;gap:10px;"></div>
               <div class="quick-action-bar">
-                <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button><button onclick="createManualTask()">手动新增</button>
+                <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button><button onclick="createManualTask()">增强新增</button>
                 <button onclick="clearTaskBoard()">清空待办</button><button onclick="clearFilteredTasks()">删当前筛选</button><button onclick="restoreDeletedTasks()">恢复删除</button>
                 <button onclick="exportFilteredTasks()">导出清单</button>
                 <button onclick="exportAssignmentSlip()">交办单</button>
@@ -1322,7 +1324,7 @@
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
-                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','明天')">明天</button><button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','本周')">本周</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
@@ -1375,6 +1377,28 @@
       renderTaskBoard();
       renderTaskStats();
       renderRecentAdded();
+    }
+
+    function cloneTask(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const tasks = getStoredTasks();
+      tasks.unshift({
+        ...task,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: task.title + '（副本）',
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: ''
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderTrendPanel();
+      renderRecentAdded();
+      renderRecentCompleted();
     }
 
     function copyTaskCard(id) {
@@ -1496,10 +1520,69 @@
       renderTrendPanel();
     }
 
+    function cloneTask(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const cloned = {
+        ...task,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: `${task.title}（复制）`,
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: ''
+      };
+      saveTasks([cloned].concat(getStoredTasks()));
+      renderTaskBoard();
+      renderTaskStats();
+      renderTrendPanel();
+      renderRecentAdded();
+      renderRecentCompleted();
+    }
+
+    function copyRecentPanel(type) {
+      const tasks = (type === 'added' ? getStoredTasks().filter(function(task) { return task.createdAt; }) : getStoredTasks().filter(function(task) { return task.done && task.completedAt; })).slice(0, 5);
+      const title = type === 'added' ? '最近新增' : '最近完成';
+      const text = tasks.length ? `【${title}】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜${type === 'added' ? '创建' : '完成'}时间：${type === 'added' ? task.createdAt : task.completedAt}`;
+      }).join('
+') : `暂无${title}任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${title}已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
     function createManualTask() {
       const title = prompt('请输入任务标题');
       if (!title) return;
-      addTasks([title], '手动新增', resolveTaskGroup(title));
+      const assignee = prompt('请输入负责人：会计 / 出纳 / 财务经理 / 老板', '会计') || '会计';
+      const priorityText = prompt('请输入优先级：高 / 中 / 低', '中') || '中';
+      const groupText = prompt('请输入分组：today / tax / monthEnd / cashflow / week', resolveTaskGroup(title)) || resolveTaskGroup(title);
+      const priority = priorityText.includes('高') ? 'high' : (priorityText.includes('低') ? 'low' : 'medium');
+      const meta = inferTaskMeta(title, groupText);
+      const tasks = getStoredTasks();
+      tasks.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: title,
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: '',
+        note: '',
+        source: '手动新增',
+        group: meta.group,
+        priority: priority,
+        deadline: meta.deadline,
+        assignee: assignee
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderTrendPanel();
+      renderRecentAdded();
+      renderRecentCompleted();
     }
 
     function renderRecentAdded() {
@@ -1507,7 +1590,7 @@
       if (!wrap) return;
       const tasks = getStoredTasks().filter(function(task) { return task.createdAt; }).slice(0, 5);
       wrap.innerHTML = tasks.length ? tasks.map(function(task) {
-        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">创建时间：${escapeHtml(task.createdAt)}</div></div>`;
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">创建时间：${escapeHtml(task.createdAt)}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button></div></div>`;
       }).join('') : '<div class="task-item-meta">暂无最近新增任务</div>';
     }
 
@@ -1516,7 +1599,7 @@
       if (!wrap) return;
       const tasks = getStoredTasks().filter(function(task) { return task.done && task.completedAt; }).slice(0, 5);
       wrap.innerHTML = tasks.length ? tasks.map(function(task) {
-        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div></div>`;
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button></div></div>`;
       }).join('') : '<div class="task-item-meta">暂无最近完成任务</div>';
     }
 
@@ -1670,13 +1753,19 @@
       const label = period === 'weekly' ? '周报' : '日报';
       const text = `【财务工作${label}】
 导出时间：${new Date().toLocaleString('zh-CN')}
-已完成：${doneCount} 项
-待处理：${pendingCount} 项
-本周新增：${weeklyNew} 项
-本周完成：${weeklyDone} 项
 
-待处理事项：
-${pendingTasks}`;
+一、核心指标
+- 已完成：${doneCount} 项
+- 待处理：${pendingCount} 项
+- 本周新增：${weeklyNew} 项
+- 本周完成：${weeklyDone} 项
+
+二、待处理事项
+${pendingTasks}
+
+三、建议动作
+- 优先推进高优先级与临期事项
+- 对未完成任务明确责任人与截止时间`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${label}已复制</div><div style="line-height:1.8;color:#44576b">你可以直接粘贴到群聊、邮件或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
@@ -1801,7 +1890,7 @@ ${grouped[name].map(function(task) {
         '将未完成事项同步到下一个工作日/周。',
         '对资金、税务、月末事项分别做一次复盘。'
       ]);
-      addMessage('assistant', report + `<div style="margin-top:10px"><button onclick="exportReport('${period}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">复制${period === 'weekly' ? '周报' : '日报'}</button></div>`, true);
+      addMessage('assistant', report + `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="exportReport('${period}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">复制${period === 'weekly' ? '周报' : '日报'}</button><button onclick="sendMessage('${period === 'weekly' ? '周报' : '日报'}')" style="border:none;border-radius:12px;padding:8px 12px;background:#eaf4ff;color:#1a65b8;cursor:pointer;font-size:12px">刷新摘要</button></div>`, true);
     }
 
     function buildTaskCard(title, steps, actions) {
@@ -2101,6 +2190,14 @@ ${grouped[name].map(function(task) {
         const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
         const task = getStoredTasks()[index];
         if (task) {
+          if (/交给/.test(text)) {
+            const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+            if (assignee) {
+              const tasks = getStoredTasks().map(function(item, idx) { return idx === index ? { ...item, assignee: assignee } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把第${index + 1}个任务交给 <b>${assignee}</b>。`;
+            }
+          }
           if (/高优先级/.test(text) || /中优先级/.test(text) || /低优先级/.test(text)) {
             const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
             const tasks = getStoredTasks().map(function(item, idx) { return idx === index ? { ...item, priority: priority } : item; });

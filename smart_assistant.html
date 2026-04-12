@@ -700,12 +700,23 @@
             </div>
 
             <div class="card">
+              <h3>任务统计</h3>
+              <div id="taskStats" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;"></div>
+            </div>
+
+            <div class="card">
               <h3>智能待办</h3>
               <div class="quick-action-bar" style="margin-bottom:10px;">
                 <button onclick="generateTemplateTasks('today')">今日</button>
                 <button onclick="generateTemplateTasks('tax')">税务</button>
                 <button onclick="generateTemplateTasks('monthEnd')">月末</button>
                 <button onclick="generateTemplateTasks('cashflow')">资金</button>
+              </div>
+              <div class="quick-action-bar" style="margin-bottom:10px;" id="taskFilters">
+                <button onclick="setTaskFilter('all')">全部</button>
+                <button onclick="setTaskFilter('high')">高优先级</button>
+                <button onclick="setTaskFilter('today')">今天到期</button>
+                <button onclick="setTaskFilter('assignee:会计')">会计</button>
               </div>
               <div id="taskBoard" style="display:grid;gap:10px;"></div>
               <div class="quick-action-bar">
@@ -730,6 +741,16 @@
               </div>
             </div>
             
+            <div class="card">
+              <h3>专项报告</h3>
+              <div class="quick-action-bar">
+                <button onclick="generateSpecialReport('tax')">税务风险</button>
+                <button onclick="generateSpecialReport('cashflow')">资金日报</button>
+                <button onclick="generateSpecialReport('monthEnd')">月末结账</button>
+                <button onclick="generateSpecialReport('payroll')">工资核算</button>
+              </div>
+            </div>
+
             <div class="card">
               <h3>个性化推荐</h3>
               <div class="recommendation-item" onclick="showRecommendation('tax')">
@@ -813,6 +834,7 @@
     const smartAssistantRoleKey = 'dragonflyAssistantRole';
     const smartAssistantLastPromptKey = 'dragonflyAssistantLastPrompt';
     const smartAssistantContextKey = 'dragonflyAssistantContext';
+    const smartAssistantTaskFilterKey = 'dragonflyAssistantTaskFilter';
     const taskGroupLabels = {
       today: '今日',
       week: '本周',
@@ -839,7 +861,9 @@
       restoreMessages();
       restoreRoleMode();
       renderTaskBoard();
+      renderTaskStats();
       renderLastWorkCard();
+      setTaskFilter(getTaskFilter());
 
       chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -934,6 +958,20 @@
       return 'today';
     }
 
+    function getTaskFilter() {
+      return localStorage.getItem(smartAssistantTaskFilterKey) || 'all';
+    }
+
+    function setTaskFilter(filter) {
+      localStorage.setItem(smartAssistantTaskFilterKey, filter);
+      renderTaskBoard();
+      renderTaskStats();
+      const buttons = document.querySelectorAll('#taskFilters button');
+      buttons.forEach(function(button) {
+        button.classList.toggle('active-role', button.getAttribute('onclick').includes(`'${filter}'`));
+      });
+    }
+
     function getStoredTasks() {
       return JSON.parse(localStorage.getItem(smartAssistantTaskKey) || '[]');
     }
@@ -976,12 +1014,39 @@
       });
       saveTasks(tasks);
       renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function getFilteredTasks(tasks) {
+      const filter = getTaskFilter();
+      if (filter === 'high') return tasks.filter(function(task) { return task.priority === 'high' && !task.done; });
+      if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
+      if (filter.startsWith('assignee:')) {
+        const assignee = filter.split(':')[1];
+        return tasks.filter(function(task) { return task.assignee === assignee; });
+      }
+      return tasks;
+    }
+
+    function renderTaskStats() {
+      const wrap = document.getElementById('taskStats');
+      if (!wrap) return;
+      const tasks = getStoredTasks();
+      const stats = [
+        { label: '总任务', value: tasks.length },
+        { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
+        { label: '高优先级', value: tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).length },
+        { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length }
+      ];
+      wrap.innerHTML = stats.map(function(item) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.label}</div><div style="font-size:22px;font-weight:700;color:#1a2d42">${item.value}</div></div>`;
+      }).join('');
     }
 
     function renderTaskBoard() {
       const board = document.getElementById('taskBoard');
       if (!board) return;
-      const tasks = getStoredTasks();
+      const tasks = getFilteredTasks(getStoredTasks());
       if (!tasks.length) {
         board.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无待办</h4><p>你可以让助手生成今日待办、报税清单或月末结账步骤。</p></div>';
         return;
@@ -1031,6 +1096,7 @@
       });
       saveTasks(tasks);
       renderTaskBoard();
+      renderTaskStats();
     }
 
     function clearTaskBoard() {
@@ -1046,6 +1112,7 @@
       });
       saveTasks(tasks);
       renderTaskBoard();
+      renderTaskStats();
     }
 
     function deferTask(id) {
@@ -1056,6 +1123,7 @@
       });
       saveTasks(tasks);
       renderTaskBoard();
+      renderTaskStats();
     }
 
     function generateTemplateTasks(group) {
@@ -1167,6 +1235,27 @@ ${pendingTasks}`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${label}已复制</div><div style="line-height:1.8;color:#44576b">你可以直接粘贴到群聊、邮件或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
+    }
+
+    function generateSpecialReport(type) {
+      const tasks = getStoredTasks();
+      const groups = {
+        tax: { label: '税务风险摘要', match: function(task) { return task.group === 'tax'; } },
+        cashflow: { label: '资金日报', match: function(task) { return task.group === 'cashflow'; } },
+        monthEnd: { label: '月末结账摘要', match: function(task) { return task.group === 'monthEnd'; } },
+        payroll: { label: '工资核算摘要', match: function(task) { return /工资|个税|社保/.test(task.title); } }
+      };
+      const config = groups[type];
+      if (!config) return;
+      const filtered = tasks.filter(config.match);
+      const summary = filtered.length ? `当前共涉及 ${filtered.length} 项相关任务，未完成 ${filtered.filter(function(task) { return !task.done; }).length} 项。` : '当前暂无相关任务，可先生成对应场景清单。';
+      addMessage('assistant', buildResultCard(config.label, summary, [
+        filtered.some(function(task) { return task.priority === 'high' && !task.done; }) ? '仍有高优先级事项未完成，请尽快处理。' : '当前高风险事项较少。',
+        '建议同步关注负责人和截止时间是否匹配。'
+      ], [
+        '如需细化，请继续让我生成该场景的专项清单。',
+        '如需汇报，可再生成日报或周报。'
+      ]), true);
     }
 
     function generateWorkReport(period) {
@@ -1370,6 +1459,58 @@ ${pendingTasks}`;
           { label: '进入账套', type: 'goto', value: 'finance_software.html?selectAccount=1' },
           { label: '生成工资待办', type: 'prompt', value: '请帮我生成本月工资核算检查清单' }
         ]);
+      }
+
+      if (/把.*交给|改成.*负责|负责人改成/.test(text)) {
+        const assigneeMatch = text.match(/会计|出纳|财务经理|老板/);
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (assigneeMatch && group) {
+          const tasks = getStoredTasks().map(function(task) {
+            return task.group === group ? { ...task, assignee: assigneeMatch[0] } : task;
+          });
+          saveTasks(tasks);
+          renderTaskBoard();
+          renderTaskStats();
+          return `已将${taskGroupLabels[group]}相关任务负责人统一调整为 <b>${assigneeMatch[0]}</b>。`;
+        }
+      }
+
+      if (/延期到|延到/.test(text)) {
+        const deadlineMatch = text.match(/今天|明天|本周|下周|本月/);
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (deadlineMatch && group) {
+          const tasks = getStoredTasks().map(function(task) {
+            return task.group === group ? { ...task, deadline: deadlineMatch[0] } : task;
+          });
+          saveTasks(tasks);
+          renderTaskBoard();
+          renderTaskStats();
+          return `已将${taskGroupLabels[group]}相关任务统一延期到 <b>${deadlineMatch[0]}</b>。`;
+        }
+      }
+
+      if (/只看|筛选/.test(text)) {
+        if (/高优先级/.test(text)) {
+          setTaskFilter('high');
+          return '已切换为只看高优先级任务。';
+        }
+        if (/今天到期/.test(text)) {
+          setTaskFilter('today');
+          return '已切换为只看今天到期任务。';
+        }
+        if (/会计/.test(text)) {
+          setTaskFilter('assignee:会计');
+          return '已切换为只看会计负责的任务。';
+        }
+        setTaskFilter('all');
+        return '已切换为查看全部任务。';
+      }
+
+      if (/专项报告|税务风险|资金日报|月末结账摘要|工资核算摘要/.test(text)) {
+        if (/税务/.test(text)) return (generateSpecialReport('tax'), '正在生成税务风险摘要。');
+        if (/资金/.test(text)) return (generateSpecialReport('cashflow'), '正在生成资金日报。');
+        if (/月末|结账/.test(text)) return (generateSpecialReport('monthEnd'), '正在生成月末结账摘要。');
+        if (/工资/.test(text)) return (generateSpecialReport('payroll'), '正在生成工资核算摘要。');
       }
 
       if (/导航|打开|进入/.test(text)) {

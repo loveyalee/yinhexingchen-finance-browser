@@ -774,21 +774,26 @@
 
   <script>
     // Navigation menu functions
-    function toggleSubmenu(element) {
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
+        // 关闭所有子菜单
+        const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
+        subItems.forEach(item => {
+          item.classList.remove('active');
+        });
       }
-    }
+    };
 
-    function toggleMemberSubmenu(element) {
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
+    };
 
-    function handleLogout() {
+    window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userProfile');
@@ -796,9 +801,9 @@
         localStorage.removeItem('userTransactions');
         window.location.href = 'login.html';
       }
-    }
+    };
 
-    function showModule(module) {
+    window.showModule = function(module) {
       const moduleMap = {
         'contract-management': 'finance_software.html',
         'seal-management': 'finance_software.html',
@@ -822,7 +827,7 @@
       if (target) {
         window.location.href = target;
       }
-    }
+    };
 
     // 热门标签样式
     const hotTagStyle = document.createElement('style');

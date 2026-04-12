@@ -705,6 +705,19 @@
             </div>
 
             <div class="card">
+              <h3>完成趋势</h3>
+              <div id="trendPanel" style="display:grid;gap:8px;"></div>
+            </div>
+
+            <div class="card">
+              <h3>常用视图</h3>
+              <div class="quick-action-bar" id="savedViews"></div>
+              <div class="quick-action-bar">
+                <button onclick="saveCurrentView()">保存当前视图</button>
+              </div>
+            </div>
+
+            <div class="card">
               <h3>智能待办</h3>
               <div class="quick-action-bar" style="margin-bottom:10px;">
                 <button onclick="generateTemplateTasks('today')">今日</button>
@@ -725,6 +738,7 @@
                 <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button>
                 <button onclick="clearTaskBoard()">清空待办</button>
                 <button onclick="exportFilteredTasks()">导出清单</button>
+                <button onclick="exportAssignmentSlip()">交办单</button>
               </div>
             </div>
             
@@ -838,6 +852,8 @@
     const smartAssistantLastPromptKey = 'dragonflyAssistantLastPrompt';
     const smartAssistantContextKey = 'dragonflyAssistantContext';
     const smartAssistantTaskFilterKey = 'dragonflyAssistantTaskFilter';
+    const smartAssistantSavedViewsKey = 'dragonflyAssistantSavedViews';
+    const smartAssistantTrendKey = 'dragonflyAssistantTrend';
     const taskGroupLabels = {
       today: '今日',
       week: '本周',
@@ -865,6 +881,8 @@
       restoreRoleMode();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
+      renderSavedViews();
       renderLastWorkCard();
       setTaskFilter(getTaskFilter());
       const taskSearchInput = document.getElementById('taskSearchInput');
@@ -987,6 +1005,59 @@
       });
     }
 
+    function getSavedViews() {
+      return JSON.parse(localStorage.getItem(smartAssistantSavedViewsKey) || '[]');
+    }
+
+    function saveCurrentView() {
+      const views = getSavedViews();
+      const name = prompt('请输入视图名称，例如：我的高优先级');
+      if (!name) return;
+      views.unshift({ name, filter: getTaskFilter(), search: getTaskSearch() });
+      localStorage.setItem(smartAssistantSavedViewsKey, JSON.stringify(views.slice(0, 6)));
+      renderSavedViews();
+    }
+
+    function applySavedView(index) {
+      const view = getSavedViews()[index];
+      if (!view) return;
+      setTaskFilter(view.filter || 'all');
+      setTaskSearch(view.search || '');
+      const input = document.getElementById('taskSearchInput');
+      if (input) input.value = view.search || '';
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function renderSavedViews() {
+      const wrap = document.getElementById('savedViews');
+      if (!wrap) return;
+      const views = getSavedViews();
+      if (!views.length) {
+        wrap.innerHTML = '<div class="task-item-meta">暂无常用视图</div>';
+        return;
+      }
+      wrap.innerHTML = views.map(function(view, index) {
+        return `<button onclick="applySavedView(${index})">${escapeHtml(view.name)}</button>`;
+      }).join('');
+    }
+
+    function getTrendRecords() {
+      return JSON.parse(localStorage.getItem(smartAssistantTrendKey) || '[]');
+    }
+
+    function recordTaskTrend() {
+      const tasks = getStoredTasks();
+      const today = new Date().toISOString().slice(0, 10);
+      const records = getTrendRecords().filter(function(item) { return item.date !== today; });
+      records.push({
+        date: today,
+        total: tasks.length,
+        done: tasks.filter(function(task) { return task.done; }).length
+      });
+      localStorage.setItem(smartAssistantTrendKey, JSON.stringify(records.slice(-7)));
+    }
+
     function getStoredTasks() {
       return JSON.parse(localStorage.getItem(smartAssistantTaskKey) || '[]');
     }
@@ -1028,8 +1099,10 @@
         }
       });
       saveTasks(tasks);
+      recordTaskTrend();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
     }
 
     function getFilteredTasks(tasks) {
@@ -1047,6 +1120,20 @@
         });
       }
       return tasks;
+    }
+
+    function renderTrendPanel() {
+      const wrap = document.getElementById('trendPanel');
+      if (!wrap) return;
+      const records = getTrendRecords();
+      if (!records.length) {
+        wrap.innerHTML = '<div class="task-item-meta">暂无趋势数据，开始勾选任务后会累计最近 7 天走势。</div>';
+        return;
+      }
+      wrap.innerHTML = records.map(function(item) {
+        const rate = item.total ? Math.round((item.done / item.total) * 100) : 0;
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.date}</div><div style="font-size:16px;font-weight:700;color:#1a2d42">完成 ${item.done}/${item.total}</div><div style="font-size:12px;color:#1a65b8">完成率 ${rate}%</div></div>`;
+      }).join('');
     }
 
     function renderTaskStats() {
@@ -1123,8 +1210,10 @@
         return task.id === id ? { ...task, done: !task.done } : task;
       });
       saveTasks(tasks);
+      recordTaskTrend();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
     }
 
     function clearTaskBoard() {
@@ -1139,8 +1228,10 @@
         return task.id === id ? { ...task, assignee: value } : task;
       });
       saveTasks(tasks);
+      recordTaskTrend();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
     }
 
     function deferTask(id) {
@@ -1150,8 +1241,10 @@
         return task.id === id ? { ...task, deadline: value } : task;
       });
       saveTasks(tasks);
+      recordTaskTrend();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
     }
 
     function generateTemplateTasks(group) {
@@ -1296,8 +1389,33 @@ ${body}`;
         return task;
       });
       saveTasks(tasks);
+      recordTaskTrend();
       renderTaskBoard();
       renderTaskStats();
+      renderTrendPanel();
+    }
+
+    function exportAssignmentSlip() {
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return !task.done; });
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? Object.keys(grouped).map(function(name) {
+        return `${name}
+${grouped[name].map(function(task) {
+          const priorityLabel = task.priority === 'high' ? '高优先级' : task.priority === 'medium' ? '中优先级' : '低优先级';
+          return `- ${task.title}（${priorityLabel} / ${task.deadline || '本月'}）`;
+        }).join('
+')}`;
+      }).join('
+
+') : '当前筛选下暂无可交办任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">任务交办单已复制</div><div style="line-height:1.8;color:#44576b">已按负责人整理，可直接分发到群聊或邮件。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
     }
 
     function generateSpecialReport(type) {
@@ -1534,6 +1652,15 @@ ${body}`;
         }
       }
 
+      if (/改成.*优先级|优先级改成|调整优先级/.test(text)) {
+        const priorityMap = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : (/低优先级/.test(text) ? 'low' : null));
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (priorityMap && group) {
+          batchUpdateTasks({ group, newPriority: priorityMap });
+          return `已将${taskGroupLabels[group]}相关任务优先级批量调整。`;
+        }
+      }
+
       if (/延期到|延到/.test(text)) {
         const deadlineMatch = text.match(/今天|明天|本周|下周|本月/);
         const priority = /高优先级/.test(text) ? 'high' : null;
@@ -1579,6 +1706,16 @@ ${body}`;
       if (/导出清单|导出任务|复制任务/.test(text)) {
         exportFilteredTasks();
         return '正在导出当前筛选下的任务清单。';
+      }
+
+      if (/交办单|分发任务|按负责人整理/.test(text)) {
+        exportAssignmentSlip();
+        return '正在生成任务交办单。';
+      }
+
+      if (/保存视图|保存当前视图/.test(text)) {
+        saveCurrentView();
+        return '你可以给当前筛选和搜索组合起一个名字，后续可一键恢复。';
       }
 
       if (/专项报告|税务风险|资金日报|月末结账摘要|工资核算摘要/.test(text)) {

@@ -85,7 +85,11 @@
       margin-top: 5px;
     }
     
-    .nav-item.has-submenu.active .submenu {
+    .nav-item.has-submenu.active > .submenu {
+      display: block;
+    }
+    
+    .submenu-item.has-submenu.active > .submenu {
       display: block;
     }
     
@@ -970,7 +974,13 @@
       window.toggleSubmenu = function(element) {
         const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
         if (navItem) {
+          // 只切换当前菜单的active状态，不影响其他菜单
           navItem.classList.toggle('active');
+          // 确保所有子菜单（三级菜单）保持关闭状态
+          const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
+          subItems.forEach(item => {
+            item.classList.remove('active');
+          });
         }
       };
 

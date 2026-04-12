@@ -1203,6 +1203,16 @@
         const key = task.assignee || '未分配';
         assigneeCount[key] = (assigneeCount[key] || 0) + 1;
       });
+      const statusCount = {
+        todo: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'todo'; }).length,
+        doing: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length,
+        done: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; }).length
+      };
+      const statusCount = {
+        todo: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'todo'; }).length,
+        doing: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length,
+        done: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; }).length
+      };
       const stats = [
         { label: '总任务', value: tasks.length },
         { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
@@ -1218,9 +1228,19 @@
         const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
         return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${name}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
       }).join('');
+      const statusCount = {
+        todo: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'todo'; }).length,
+        doing: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length,
+        done: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; }).length
+      };
+      const statusChart = ['todo','doing','done'].map(function(key) {
+        const value = statusCount[key];
+        const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
+        return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${formatTaskStatus(key)}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
+      }).join('');
       wrap.innerHTML = stats.map(function(item) {
         return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.label}</div><div style="font-size:22px;font-weight:700;color:#1a2d42">${item.value}</div></div>`;
-      }).join('') + `<div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人分布</div>${topAssignees || '<div class="task-item-meta">暂无负责人数据</div>'}</div>`;
+      }).join('') + `<div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人分布</div>${topAssignees || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">状态占比</div>${statusChart}</div>`;
     }
 
     function renderTaskBoard() {
@@ -1269,7 +1289,7 @@
                       ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
                       ${task.completedAt ? `<div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div>` : ''}
                       <div class="quick-action-bar" style="margin-top:8px;">
-                        <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
+                        <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
                         <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
@@ -1872,6 +1892,14 @@ ${grouped[name].map(function(task) {
           setTaskFilter('risk');
           return '已切换为只看临期风险任务。';
         }
+        if (/处理中/.test(text)) {
+          setTaskFilter('status:doing');
+          return '已切换为只看处理中任务。';
+        }
+        if (/已完成/.test(text)) {
+          setTaskFilter('status:done');
+          return '已切换为只看已完成任务。';
+        }
         if (/会计/.test(text)) {
           setTaskFilter('assignee:会计');
           return '已切换为只看会计负责的任务。';
@@ -1907,7 +1935,29 @@ ${grouped[name].map(function(task) {
         }
       }
 
+      if (/改标题|标题改成/.test(text)) {
+        const keyword = text.replace(/改标题|标题改成/g, '').trim();
+        const tasks = getStoredTasks();
+        if (tasks.length && keyword) {
+          const updated = tasks.map(function(task, index) {
+            return index === 0 ? { ...task, title: keyword } : task;
+          });
+          saveTasks(updated);
+          renderTaskBoard();
+          renderTaskStats();
+          return `已把第一条任务标题改为 <b>${escapeHtml(keyword)}</b>。`;
+        }
+      }
+
       if (/负责人导出|专属交办|导出会计|导出出纳/.test(text)) {
+        if (/会计/.test(text)) {
+          exportTasksForAssignee('会计');
+          return '正在生成会计专属交办。';
+        }
+        if (/出纳/.test(text)) {
+          exportTasksForAssignee('出纳');
+          return '正在生成出纳专属交办。';
+        }
         exportAssigneeTasks();
         return '正在生成负责人专属交办。';
       }

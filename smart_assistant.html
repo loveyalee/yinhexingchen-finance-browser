@@ -367,6 +367,34 @@
       cursor: pointer;
     }
 
+    .task-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .task-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #edf4fb;
+      color: #40627f;
+    }
+
+    .task-badge.priority-high { background: #ffe5e5; color: #b64a4a; }
+    .task-badge.priority-medium { background: #fff0dc; color: #a26a17; }
+    .task-badge.priority-low { background: #e8f6e8; color: #317a45; }
+
+    .report-card {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fbfdff, #f2f7fc);
+      border: 1px solid #d9e6f2;
+      display: grid;
+      gap: 8px;
+    }
+
     .task-item.done {
       opacity: 0.62;
       background: #f3f5f7;
@@ -553,6 +581,8 @@
           <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
+            <li class="submenu-item"><a href="contract_management.html">合同管理</a></li>
+            <li class="submenu-item"><a href="seal_management.html">电子印章管理</a></li>
             <li class="submenu-item has-submenu">
               <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
               <ul class="submenu">
@@ -662,6 +692,10 @@
                   <h4>恢复最近任务</h4>
                   <p>继续处理刚才的聊天工作流和待办事项</p>
                 </div>
+              </div>
+              <div class="quick-action-bar">
+                <button onclick="generateWorkReport('daily')">生成日报</button>
+                <button onclick="generateWorkReport('weekly')">生成周报</button>
               </div>
             </div>
 
@@ -908,16 +942,26 @@
       localStorage.setItem(smartAssistantTaskKey, JSON.stringify(tasks.slice(0, 12)));
     }
 
+    function inferTaskMeta(title, group) {
+      const normalizedGroup = group || resolveTaskGroup(title);
+      const priority = /税务|报税|资金|现金流|工资/.test(title) ? 'high' : (/月末|结账|发票/.test(title) ? 'medium' : 'low');
+      const deadline = normalizedGroup === 'today' ? '今天' : (normalizedGroup === 'week' ? '本周' : '本月');
+      return { priority, deadline, group: normalizedGroup };
+    }
+
     function addTasks(taskTitles, source, group) {
       const tasks = getStoredTasks();
       taskTitles.forEach(function(title) {
         if (!tasks.some(function(item) { return item.title === title; })) {
+          const meta = inferTaskMeta(title, group);
           tasks.unshift({
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
             title: title,
             done: false,
             source: source || '智能助手',
-            group: group || resolveTaskGroup(title)
+            group: meta.group,
+            priority: meta.priority,
+            deadline: meta.deadline
           });
         }
       });
@@ -953,6 +997,10 @@
                     <div>
                       <div class="task-item-title">${escapeHtml(task.title)}</div>
                       <div class="task-item-meta">来源：${escapeHtml(task.source || '智能助手')}</div>
+                      <div class="task-badges">
+                        <span class="task-badge priority-${task.priority || 'low'}">优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
+                        <span class="task-badge">截止：${escapeHtml(task.deadline || '本月')}</span>
+                      </div>
                     </div>
                   </label>
                 `;
@@ -1047,6 +1095,45 @@
       const chatInput = document.getElementById('chatInput');
       chatInput.value = prompt;
       chatInput.focus();
+    }
+
+    function buildResultCard(title, summary, risks, nextSteps) {
+      return `
+        <div class="report-card">
+          <div style="font-weight:700;color:#17324b">${title}</div>
+          <div style="line-height:1.8;color:#44576b">${summary}</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1a65b8;margin-bottom:6px">风险提示</div>
+            <div style="display:grid;gap:6px;">${risks.map(function(item) {
+              return `<div style="padding:7px 10px;border-radius:10px;background:#fff5f5;border:1px solid #f2d6d6;color:#8f4343">• ${item}</div>`;
+            }).join('')}</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1a65b8;margin-bottom:6px">下一步建议</div>
+            <div style="display:grid;gap:6px;">${nextSteps.map(function(item) {
+              return `<div style="padding:7px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;color:#34506a">• ${item}</div>`;
+            }).join('')}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function generateWorkReport(period) {
+      const tasks = getStoredTasks();
+      const doneCount = tasks.filter(function(task) { return task.done; }).length;
+      const pendingCount = tasks.length - doneCount;
+      const highPriority = tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).map(function(task) { return task.title; }).slice(0, 3);
+      const label = period === 'weekly' ? '本周' : '今日';
+      const summary = `${label}已完成 ${doneCount} 项，待处理 ${pendingCount} 项。当前高优先级任务主要集中在 ${highPriority.length ? highPriority.join('、') : '常规事项收尾'}。`;
+      const report = buildResultCard(`${label}财务工作摘要`, summary, [
+        highPriority[0] || '请继续关注税务申报与资金安排时点。',
+        pendingCount > 5 ? '待办积压较多，建议优先清理高优先级事项。' : '待办数量可控，但需按节点完成复核。'
+      ], [
+        '优先完成高优先级且截止时间为今天的任务。',
+        '将未完成事项同步到下一个工作日/周。',
+        '对资金、税务、月末事项分别做一次复盘。'
+      ]);
+      addMessage('assistant', report, true);
     }
 
     function buildTaskCard(title, steps, actions) {
@@ -1236,6 +1323,26 @@
 
       if (/导航|打开|进入/.test(text)) {
         return '你可以直接告诉我想进入的工作场景，例如“进入报税”“打开财务软件”“查看数据分析”或“打开财务快聘”，我会给你最短处理路径。';
+      }
+
+      if (/日报|今日总结/.test(text)) {
+        return buildResultCard('今日财务工作摘要', '今日工作重点聚焦在待办推进、税务节点和资金安排。建议下班前确认高优先级事项是否已完成。', [
+          '税务或资金类任务若未完成，明日优先处理。',
+          '请留意待办中截止时间为今天的事项。'
+        ], [
+          '生成并检查明日待办。',
+          '对未完成事项补充责任人和计划时间。'
+        ]);
+      }
+
+      if (/周报|本周总结/.test(text)) {
+        return buildResultCard('本周财务工作摘要', '本周建议重点复盘税务申报、现金流变化、月末结账准备和高风险客户回款。', [
+          '若本周仍有高优先级未完成事项，需提前锁定下周计划。',
+          '请关注资金缺口和异常税负波动。'
+        ], [
+          '生成下周优先级任务清单。',
+          '对资金和税务事项分别做专项复盘。'
+        ]);
       }
 
       if (/继续|下一步|然后|接着/.test(text)) {

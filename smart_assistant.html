@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>智能财务助手 - 银河星辰财务专用浏览器</title>
+  <title>蜻蜓智能财务助手 - 银河星辰财务专用浏览器</title>
   <style>
     * {
       margin: 0;
@@ -429,17 +429,17 @@
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器/div>
+      <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">仪表/a></li>
+        <li class="nav-item"><a href="index.html">仪表</a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税/a></li>
+        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
         <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
         <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
         <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
         <li class="nav-item"><a href="online_store.html">在线商城</a></li>
         <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
-        <li class="nav-item"><a href="smart_assistant.html" class="active">智能财务助手</a></li>
+        <li class="nav-item"><a href="smart_assistant.html" class="active">蜻蜓助手</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
@@ -456,7 +456,7 @@
             <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
             <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
             <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
-            <li class="submenu-item"><a href="enterprise_management.html">招投标管/a></li>
+            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
@@ -464,8 +464,8 @@
         <li class="nav-item has-submenu">
           <a href="finance_jobs.html">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.htmltab=job-seeker">个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.htmltab=company-recruit">企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
@@ -479,11 +479,11 @@
       <div class="header">
         <div class="browser-bar">
           <div class="browser-controls">
-            <button class="btn" onclick="window.history.back()">/button>
-            <button class="btn" onclick="window.history.forward()">/button>
-            <button class="btn" onclick="location.reload()">/button>
+            <button class="btn" onclick="window.history.back()">←</button>
+            <button class="btn" onclick="window.history.forward()">→</button>
+            <button class="btn" onclick="location.reload()">↻</button>
           </div>
-          <input type="text" placeholder="输入网址或搜索财务相关内..">
+          <input type="text" placeholder="输入网址或搜索财务相关内容...">
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
@@ -492,26 +492,26 @@
       </div>
       
       <div class="content-area">
-        <h2>智能财务助手</h2>
-        <p>通过语音交互、智能提醒和个性化推荐，为您提供全方位的财务支/p>
+        <h2>蜻蜓智能财务助手</h2>
+        <p>通过语音交互、智能提醒和个性化推荐，为您提供全方位的财务支持</p>
         
         <div class="assistant-container">
           <div class="chat-panel">
             <div class="chat-header">
-              <h2>财务助手</h2>
+              <h2>蜻蜓智能财务助手</h2>
             </div>
             <div class="chat-messages" id="chatMessages">
               <div class="message assistant">
                 <div class="message-content">
-                  您好！我是您的智能财务助手，有什么可以帮您的吗？
+                  您好！我是您的蜻蜓智能财务助手，有什么可以帮您的吗？
                 </div>
                 <div class="message-time">10:00</div>
               </div>
             </div>
             <div class="chat-input">
-              <input type="text" id="chatInput" placeholder="输入问题或指..">
+              <input type="text" id="chatInput" placeholder="输入问题或指令...">
               <button class="voice-btn" id="voiceBtn" title="语音输入">🎤</button>
-              <button class="btn btn-primary" onclick="sendMessage()">发/button>
+              <button class="btn btn-primary" onclick="sendMessage()">发送</button>
             </div>
           </div>
           
@@ -520,15 +520,15 @@
               <h3>智能提醒</h3>
               <div class="reminder-item">
                 <h4>报税截止提醒</h4>
-                <p>增值税申报截止日期天后</p>
+                <p>增值税申报截止日期还有7天</p>
               </div>
               <div class="reminder-item">
                 <h4>账单到期提醒</h4>
-                <p>供应商A账单天后到期</p>
+                <p>供应商A账单3天后到期</p>
               </div>
               <div class="reminder-item">
                 <h4>财务报表提醒</h4>
-                <p>月度财务报表需天内完成</p>
+                <p>月度财务报表需5天内完成</p>
               </div>
             </div>
             
@@ -536,7 +536,7 @@
               <h3>个性化推荐</h3>
               <div class="recommendation-item" onclick="showRecommendation('tax')">
                 <h4>税务筹划建议</h4>
-                <p>根据您的业务情况，提供节税方/p>
+                <p>根据您的业务情况，提供节税方案</p>
               </div>
               <div class="recommendation-item" onclick="showRecommendation('finance')">
                 <h4>财务管理优化</h4>
@@ -592,9 +592,9 @@
           if (message.includes('报税')) {
             response = '您可以在一键报税模块中完成增值税、企业所得税等申报。需要我为您导航到该模块吗？';
           } else if (message.includes('财务报表')) {
-            response = '您可以在数据分析模块中生成各类财务报表，包括资产负债表、利润表和现金流量表;
+            response = '您可以在数据分析模块中生成各类财务报表，包括资产负债表、利润表和现金流量表。';
           } else if (message.includes('预算')) {
-            response = '您可以在预算管理模块中设置和跟踪企业预算执行情况;
+            response = '您可以在预算管理模块中设置和跟踪企业预算执行情况。';
           } else {
             response = '感谢您的咨询。请问您需要了解哪方面的财务信息？';
           }
@@ -635,7 +635,7 @@
           addMessage('user', '如何优化企业现金流？');
           
           setTimeout(() => {
-            addMessage('assistant', '优化企业现金流可以从以下几个方面入手. 加快应收账款回收速度. 合理控制存货水平. 优化付款周期. 考虑使用供应链金融工具);
+            addMessage('assistant', '优化企业现金流可以从以下几个方面入手：1. 加快应收账款回收速度；2. 合理控制存货水平；3. 优化付款周期；4. 考虑使用供应链金融工具。');
           }, 1000);
         }, 3000);
       } else {
@@ -649,13 +649,13 @@
       
       switch(type) {
         case 'tax':
-          content = '根据您的企业情况，建议您. 合理利用税收优惠政策. 优化企业组织架构. 规范成本费用核算. 定期进行税务筹划;
+          content = '根据您的企业情况，建议您：1. 合理利用税收优惠政策；2. 优化企业组织架构；3. 规范成本费用核算；4. 定期进行税务筹划。';
           break;
         case 'finance':
-          content = '财务管理优化建议. 建立现金流量预测系统. 实施成本控制措施. 优化资金结构. 建立财务风险预警机制;
+          content = '财务管理优化建议：1. 建立现金流量预测系统；2. 实施成本控制措施；3. 优化资金结构；4. 建立财务风险预警机制。';
           break;
         case 'investment':
-          content = '投资机会分析. 考虑行业上下游整合；2. 关注数字化转型相关领域；3. 评估研发投入回报税. 探索国际市场机会;
+          content = '投资机会分析：1. 考虑行业上下游整合；2. 关注数字化转型相关领域；3. 评估研发投入回报；4. 探索国际市场机会。';
           break;
       }
       

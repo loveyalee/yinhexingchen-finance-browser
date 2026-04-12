@@ -540,8 +540,8 @@
           <ul class="submenu">
             <li class="submenu-item"><a href="finance_software.html">财务软件</a></li>
             <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+            
+            
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">库存管理</a></li>
             <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
@@ -667,6 +667,12 @@
 
             <div class="card">
               <h3>智能待办</h3>
+              <div class="quick-action-bar" style="margin-bottom:10px;">
+                <button onclick="generateTemplateTasks('today')">今日</button>
+                <button onclick="generateTemplateTasks('tax')">税务</button>
+                <button onclick="generateTemplateTasks('monthEnd')">月末</button>
+                <button onclick="generateTemplateTasks('cashflow')">资金</button>
+              </div>
               <div id="taskBoard" style="display:grid;gap:10px;"></div>
               <div class="quick-action-bar">
                 <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button>
@@ -772,6 +778,14 @@
     const smartAssistantTaskKey = 'dragonflyAssistantTasks';
     const smartAssistantRoleKey = 'dragonflyAssistantRole';
     const smartAssistantLastPromptKey = 'dragonflyAssistantLastPrompt';
+    const smartAssistantContextKey = 'dragonflyAssistantContext';
+    const taskGroupLabels = {
+      today: '今日',
+      week: '本周',
+      monthEnd: '月末',
+      tax: '税务',
+      cashflow: '资金'
+    };
     const roleProfiles = {
       accountant: '当前模式：会计。更偏向凭证、报税、结账、报销和台账处理。',
       cashier: '当前模式：出纳。更偏向收付款、资金计划、银行余额和现金日记账。',
@@ -870,6 +884,22 @@
       }
     }
 
+    function saveContext(context) {
+      localStorage.setItem(smartAssistantContextKey, JSON.stringify(context || {}));
+    }
+
+    function getContext() {
+      return JSON.parse(localStorage.getItem(smartAssistantContextKey) || '{}');
+    }
+
+    function resolveTaskGroup(title) {
+      if (/报税|税务|发票/.test(title)) return 'tax';
+      if (/月末|结账|工资/.test(title)) return 'monthEnd';
+      if (/现金流|资金|回款|付款|出纳/.test(title)) return 'cashflow';
+      if (/本周/.test(title)) return 'week';
+      return 'today';
+    }
+
     function getStoredTasks() {
       return JSON.parse(localStorage.getItem(smartAssistantTaskKey) || '[]');
     }
@@ -878,7 +908,7 @@
       localStorage.setItem(smartAssistantTaskKey, JSON.stringify(tasks.slice(0, 12)));
     }
 
-    function addTasks(taskTitles, source) {
+    function addTasks(taskTitles, source, group) {
       const tasks = getStoredTasks();
       taskTitles.forEach(function(title) {
         if (!tasks.some(function(item) { return item.title === title; })) {
@@ -886,7 +916,8 @@
             id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
             title: title,
             done: false,
-            source: source || '智能助手'
+            source: source || '智能助手',
+            group: group || resolveTaskGroup(title)
           });
         }
       });
@@ -902,15 +933,32 @@
         board.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无待办</h4><p>你可以让助手生成今日待办、报税清单或月末结账步骤。</p></div>';
         return;
       }
-      board.innerHTML = tasks.map(function(task) {
+
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.group || 'today';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+
+      board.innerHTML = Object.keys(grouped).map(function(group) {
         return `
-          <label class="task-item ${task.done ? 'done' : ''}">
-            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
-            <div>
-              <div class="task-item-title">${escapeHtml(task.title)}</div>
-              <div class="task-item-meta">来源：${escapeHtml(task.source || '智能助手')}</div>
+          <div>
+            <div class="task-item-meta" style="margin-bottom:8px;font-size:12px;color:#1a65b8;font-weight:700">${taskGroupLabels[group] || '分组'}</div>
+            <div style="display:grid;gap:10px;">
+              ${grouped[group].map(function(task) {
+                return `
+                  <label class="task-item ${task.done ? 'done' : ''}">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                    <div>
+                      <div class="task-item-title">${escapeHtml(task.title)}</div>
+                      <div class="task-item-meta">来源：${escapeHtml(task.source || '智能助手')}</div>
+                    </div>
+                  </label>
+                `;
+              }).join('')}
             </div>
-          </label>
+          </div>
         `;
       }).join('');
     }
@@ -926,6 +974,31 @@
     function clearTaskBoard() {
       localStorage.removeItem(smartAssistantTaskKey);
       renderTaskBoard();
+    }
+
+    function generateTemplateTasks(group) {
+      const templates = {
+        today: {
+          title: '今日模板',
+          steps: ['检查当日待审核凭证', '确认付款与回款节点', '核对税务与工资时间点', '复盘利润和现金流异常']
+        },
+        tax: {
+          title: '税务模板',
+          steps: ['整理增值税申报资料', '核对销项与进项勾选状态', '检查异常税负与红字发票', '留存申报截图和底稿']
+        },
+        monthEnd: {
+          title: '月末模板',
+          steps: ['完成过账和对账', '计提折旧摊销与工资', '结转损益并复核报表', '归档底稿和凭证附件']
+        },
+        cashflow: {
+          title: '资金模板',
+          steps: ['梳理未来7天收付款', '优先催收逾期应收', '复核大额付款审批', '更新资金日报和缺口预测']
+        }
+      };
+      const template = templates[group];
+      if (!template) return;
+      addTasks(template.steps, template.title, group);
+      addMessage('assistant', buildTaskCard(`${taskGroupLabels[group] || ''}工作模板`, template.steps, []), true);
     }
 
     function rememberLastPrompt(prompt) {
@@ -977,7 +1050,7 @@
     }
 
     function buildTaskCard(title, steps, actions) {
-      addTasks(steps, title);
+      addTasks(steps, title, resolveTaskGroup(title));
       return `
         <div style="font-weight:700;margin-bottom:8px">${title}</div>
         <div style="display:grid;gap:8px;margin-bottom:10px">
@@ -995,6 +1068,46 @@
       const text = message.trim();
       const normalized = text.replace(/\s+/g, '').toLowerCase();
       const role = getAssistantRole();
+      const context = getContext();
+
+      if (context.topic === 'tax' && /继续|下一步|然后|接着/.test(text)) {
+        return buildTaskCard('报税下一步建议', [
+          '核对申报表主表和附表逻辑是否一致。',
+          '检查税款测算与账面税金是否匹配。',
+          '导出申报结果并留存纸电档底稿。'
+        ], [
+          { label: '进入一键报税', type: 'goto', value: 'tax_reporting.html' }
+        ]);
+      }
+
+      if (context.topic === 'reimbursement' && /继续|下一步|然后|接着/.test(text)) {
+        return buildTaskCard('报销处理下一步', [
+          '补齐缺失附件并确认发票真伪。',
+          '检查审批流、预算占用和成本归属。',
+          '生成付款建议并同步会计凭证。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' }
+        ]);
+      }
+
+      if (/带我去|打开|进入|跳转到|去/.test(text)) {
+        const navMap = [
+          { match: /报税|税务/, url: 'tax_reporting.html', label: '一键报税' },
+          { match: /预算/, url: 'budget_management.html', label: '预算管理' },
+          { match: /财务bp|bp/, url: 'finance_bp.html', label: '财务BP' },
+          { match: /数据分析|经营分析/, url: 'data_analysis.html', label: '数据分析' },
+          { match: /财务软件|账套/, url: 'finance_software.html', label: '财务软件' },
+          { match: /审计/, url: 'audit_zone.html', label: '审计专区' },
+          { match: /风控|风险/, url: 'risk_management.html', label: '风险预警' },
+          { match: /蜻蜓助手|智能助手/, url: 'smart_assistant.html', label: '蜻蜓助手' },
+          { match: /财务快聘|招聘|求职/, url: 'finance_jobs.html', label: '财务快聘' }
+        ];
+        const target = navMap.find(function(item) { return item.match.test(normalized); });
+        if (target) {
+          saveContext({ topic: 'navigation', target: target.label });
+          return `我可以直接带你进入<b>${target.label}</b>。<div style="margin-top:10px"><button onclick="handleTaskAction('goto','${target.url}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">立即打开</button></div>`;
+        }
+      }
 
       if ((/会计/.test(text) || role === 'accountant') && (/今天|今日/.test(text) && /待办|任务|工作/.test(text))) {
         return buildTaskCard('会计今日重点工作', [
@@ -1045,6 +1158,7 @@
       }
 
       if (/报税|增值税|申报|税务/.test(text)) {
+        saveContext({ topic: 'tax', role: role });
         return buildTaskCard('报税处理建议', [
           '先核对销项开票、进项勾选、红字发票和税率适用。',
           '整理增值税、附加税、个税和企业所得税所需资料。',
@@ -1057,6 +1171,7 @@
       }
 
       if (/报销|费用|差旅|付款申请/.test(text)) {
+        saveContext({ topic: 'reimbursement', role: role });
         return buildTaskCard('费用报销处理流程', [
           '收集报销单、发票、付款凭证和审批记录。',
           '判断费用归属部门、项目和会计科目。',
@@ -1069,6 +1184,7 @@
       }
 
       if (/结账|月末|月底|期末/.test(text)) {
+        saveContext({ topic: 'monthEnd', role: role });
         return buildTaskCard('月末结账建议', [
           '完成凭证审核、过账及银行、往来、库存对账。',
           '计提工资、折旧、摊销并结转损益。',
@@ -1093,6 +1209,7 @@
       }
 
       if (/现金流|资金|回款|付款/.test(text)) {
+        saveContext({ topic: 'cashflow', role: role });
         return buildTaskCard('现金流优化建议', [
           '列出未来 7 天回款、付款、工资和税费支出计划。',
           '优先催收超期应收，延后非关键采购支出。',
@@ -1105,6 +1222,7 @@
       }
 
       if (/工资|个税|社保|公积金/.test(text)) {
+        saveContext({ topic: 'payroll', role: role });
         return buildTaskCard('工资核算建议', [
           '核对考勤、绩效、社保公积金和专项附加扣除。',
           '复核应发、实发和代扣个税金额是否一致。',
@@ -1118,6 +1236,10 @@
 
       if (/导航|打开|进入/.test(text)) {
         return '你可以直接告诉我想进入的工作场景，例如“进入报税”“打开财务软件”“查看数据分析”或“打开财务快聘”，我会给你最短处理路径。';
+      }
+
+      if (/继续|下一步|然后|接着/.test(text)) {
+        return '你可以直接告诉我想继续哪一类工作，例如“继续报税”“继续报销”“继续月末结账”或“继续资金安排”，我会沿着刚才的话题继续。';
       }
 
       return `

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 银河星辰管理后台</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f4f7fb; color: #223548; }
+    .page { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .title h1 { font-size: 28px; margin-bottom: 6px; }
+    .title p { color: #6a7b8d; font-size: 14px; }
+    .actions { display: flex; gap: 10px; }
+    .btn { border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 700; }
+    .btn-primary { background: #2d8cf0; color: #fff; }
+    .btn-light { background: #fff; color: #2d4b68; border: 1px solid #d8e4f0; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .card { background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 8px 22px rgba(26, 57, 92, 0.08); }
+    .stat-label { color: #6c8196; font-size: 13px; margin-bottom: 8px; }
+    .stat-value { font-size: 30px; font-weight: 800; color: #17324b; }
+    .notice { background: #eef7ff; color: #24507a; border: 1px solid #cfe3f7; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 860px; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #e8eef5; text-align: left; font-size: 14px; }
+    th { color: #58708a; background: #f8fbfe; font-weight: 700; }
+    tr:hover td { background: #f9fcff; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge-ok { background: #def7e8; color: #167a45; }
+    .badge-partial { background: #fff3d9; color: #996600; }
+    .empty { padding: 26px; text-align: center; color: #6c8196; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="title">
+        <h1>用户管理</h1>
+        <p>查看平台注册用户数量、类型与同步状态</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-light" onclick="window.location.href='admin.html'">返回后台</button>
+        <button class="btn btn-primary" onclick="loadUsers()">刷新数据</button>
+      </div>
+    </div>
+
+    <div class="notice" id="notice">正在加载注册用户数据...</div>
+
+    <div class="stats">
+      <div class="card">
+        <div class="stat-label">注册用户总数</div>
+        <div class="stat-value" id="totalUsers">--</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">个人用户</div>
+        <div class="stat-value" id="personalUsers">--</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">机构用户</div>
+        <div class="stat-value" id="institutionUsers">--</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>用户ID</th>
+              <th>手机号</th>
+              <th>用户类型</th>
+              <th>机构类型</th>
+              <th>机构名称</th>
+              <th>同步状态</th>
+              <th>注册时间</th>
+              <th>最近同步</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td class="empty" colspan="8">加载中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatTime(value) {
+      if (!value) return '--';
+      try {
+        return new Date(value).toLocaleString('zh-CN');
+      } catch (e) {
+        return value;
+      }
+    }
+
+    function renderUsers(users) {
+      const body = document.getElementById('userTableBody');
+      if (!Array.isArray(users) || !users.length) {
+        body.innerHTML = '<tr><td class="empty" colspan="8">暂无注册用户</td></tr>';
+        return;
+      }
+      body.innerHTML = users.map(function(user) {
+        const isInstitution = user.user_type === 'institution';
+        const syncOk = user.sync_status === 'synced';
+        return '<tr>' +
+          '<td>' + (user.id || '--') + '</td>' +
+          '<td>' + (user.phone || '--') + '</td>' +
+          '<td>' + (isInstitution ? '机构用户' : '个人用户') + '</td>' +
+          '<td>' + (user.institution_type || '--') + '</td>' +
+          '<td>' + (user.institution_name || '--') + '</td>' +
+          '<td><span class="badge ' + (syncOk ? 'badge-ok' : 'badge-partial') + '">' + (syncOk ? '已同步' : (user.sync_status || '未同步')) + '</span></td>' +
+          '<td>' + formatTime(user.create_time) + '</td>' +
+          '<td>' + formatTime(user.last_sync_time) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function loadUsers() {
+      const notice = document.getElementById('notice');
+      notice.textContent = '正在刷新注册用户数据...';
+      fetch('/api/admin/users').then(function(resp) {
+        return resp.json();
+      }).then(function(result) {
+        if (!result.success) {
+          notice.textContent = result.message || '获取用户数据失败';
+          document.getElementById('userTableBody').innerHTML = '<tr><td class="empty" colspan="8">加载失败，请稍后重试</td></tr>';
+          return;
+        }
+        const data = result.data || {};
+        const users = Array.isArray(data.users) ? data.users : [];
+        document.getElementById('totalUsers').textContent = data.total || 0;
+        document.getElementById('personalUsers').textContent = users.filter(function(user) { return user.user_type !== 'institution'; }).length;
+        document.getElementById('institutionUsers').textContent = users.filter(function(user) { return user.user_type === 'institution'; }).length;
+        notice.textContent = '已加载 ' + (data.total || 0) + ' 个注册用户';
+        renderUsers(users);
+      }).catch(function(err) {
+        notice.textContent = '获取用户数据失败：' + err.message;
+        document.getElementById('userTableBody').innerHTML = '<tr><td class="empty" colspan="8">加载失败，请稍后重试</td></tr>';
+      });
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

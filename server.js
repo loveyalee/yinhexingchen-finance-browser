@@ -1225,6 +1225,25 @@ const server = http.createServer((req, res) => {
       }
     });
 
+  } else if (pathname === '/api/admin/users' && req.method === 'GET') {
+    try {
+      if (!usersDb) throw new Error('用户数据库未初始化');
+      const users = usersDb.prepare('SELECT id, phone, user_type, institution_type, institution_name, create_time, sync_status, last_sync_time FROM users ORDER BY create_time DESC').all();
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          total: users.length,
+          users: users
+        }
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取注册用户失败: ' + e.message }));
+    }
+
   } else if (pathname === '/api/users/register' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });

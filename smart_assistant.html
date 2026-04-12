@@ -726,6 +726,11 @@
             </div>
 
             <div class="card">
+              <h3>最近完成</h3>
+              <div id="recentCompleted" style="display:grid;gap:8px;"></div>
+            </div>
+
+            <div class="card">
               <h3>常用视图</h3>
               <div class="quick-action-bar" id="savedViews"></div>
               <div class="quick-action-bar">
@@ -758,8 +763,8 @@
               <div class="quick-action-bar" style="margin-bottom:10px;"><button onclick="exportTasksByStatus('todo')">导出待处理</button><button onclick="exportTasksByStatus('doing')">导出处理中</button><button onclick="exportTasksByStatus('done')">导出已完成</button></div>
               <div id="taskBoard" style="display:grid;gap:10px;"></div>
               <div class="quick-action-bar">
-                <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button>
-                <button onclick="clearTaskBoard()">清空待办</button>
+                <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button><button onclick="createManualTask()">手动新增</button>
+                <button onclick="clearTaskBoard()">清空待办</button><button onclick="clearFilteredTasks()">删当前筛选</button>
                 <button onclick="exportFilteredTasks()">导出清单</button>
                 <button onclick="exportAssignmentSlip()">交办单</button>
                 <button onclick="exportAssigneeTasks()">负责人导出</button>
@@ -910,6 +915,7 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentCompleted();
       renderSavedViews();
       renderLastWorkCard();
       setTaskFilter(getTaskFilter());
@@ -1301,8 +1307,9 @@
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
-                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
+                        <button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','明天')">明天</button><button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','本周')">本周</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
                         <button onclick="event.preventDefault(); deleteTask('${task.id}')">删除</button>
                       </div>
@@ -1328,6 +1335,7 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentCompleted();
     }
 
     function clearTaskBoard() {
@@ -1379,6 +1387,7 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentCompleted();
     }
 
     function exportTasksForAssignee(name) {
@@ -1434,6 +1443,7 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentCompleted();
     }
 
     function deleteTask(id) {
@@ -1456,6 +1466,48 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+    }
+
+    function createManualTask() {
+      const title = prompt('请输入任务标题');
+      if (!title) return;
+      addTasks([title], '手动新增', resolveTaskGroup(title));
+    }
+
+    function renderRecentCompleted() {
+      const wrap = document.getElementById('recentCompleted');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return task.done && task.completedAt; }).slice(0, 5);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无最近完成任务</div>';
+    }
+
+    function updateTaskPriority(id) {
+      const value = prompt('优先级：高 / 中 / 低');
+      if (!value) return;
+      const priority = value.includes('高') ? 'high' : (value.includes('中') ? 'medium' : 'low');
+      const tasks = getStoredTasks().map(function(task) { return task.id === id ? { ...task, priority: priority } : task; });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function quickUpdateTaskDeadline(id, deadline) {
+      const tasks = getStoredTasks().map(function(task) { return task.id === id ? { ...task, deadline: deadline } : task; });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function clearFilteredTasks() {
+      const filteredIds = new Set(getFilteredTasks(getStoredTasks()).map(function(task) { return task.id; }));
+      const tasks = getStoredTasks().filter(function(task) { return !filteredIds.has(task.id); });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderTrendPanel();
+      renderRecentCompleted();
     }
 
     function generateTemplateTasks(group) {
@@ -1607,6 +1659,7 @@ ${body}`;
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentCompleted();
     }
 
     function exportTasksForAssignee(assignee) {
@@ -2080,7 +2133,11 @@ ${grouped[name].map(function(task) {
 
       if (/日报|今日总结/.test(text)) {
         saveContext({ topic: 'report', type: 'daily' });
-        return buildResultCard('今日财务工作摘要', '今日工作重点聚焦在待办推进、税务节点和资金安排。建议下班前确认高优先级事项是否已完成。', [
+        const tasks = getStoredTasks();
+        const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        return buildResultCard('今日财务工作摘要', `今日工作重点聚焦在待办推进、税务节点和资金安排。本周新增 ${weeklyNew} 项，本周完成 ${weeklyDone} 项。建议下班前确认高优先级事项是否已完成。`, [
           '税务或资金类任务若未完成，明日优先处理。',
           '请留意待办中截止时间为今天的事项。'
         ], [

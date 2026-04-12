@@ -389,7 +389,23 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item"><a href="#" onclick="showModule('finance-management'); return false;">财务管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html">财务软件</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">库存管理</a></li>
+            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">财会招聘</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">财会求职</a></li>
+                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
           <ul class="submenu">
@@ -407,23 +423,6 @@
         <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
         <li class="nav-item"><a href="smart_assistant.html">AI助手</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
-        <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
-          <ul class="submenu">
-            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">出入库管理</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
           <ul class="submenu">

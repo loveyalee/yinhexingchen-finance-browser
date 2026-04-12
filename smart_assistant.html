@@ -177,6 +177,7 @@
       gap: 20px;
       flex: 1;
       min-height: 0;
+      align-items: stretch;
     }
     
     .chat-panel {
@@ -187,6 +188,8 @@
       display: flex;
       flex-direction: column;
       min-height: 400px;
+      height: calc(100vh - 180px);
+      overflow: hidden;
     }
     
     .chat-header {
@@ -208,6 +211,19 @@
       min-height: 200px;
     }
     
+    .chat-input {
+      padding: 15px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+    }
+
     .message {
       margin-bottom: 15px;
       max-width: 80%;

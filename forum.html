@@ -639,52 +639,80 @@
       
       <div class="content-area">
         <h2 class="page-title">会计论坛</h2>
-        
+
         <div class="forum-container">
           <div class="forum-main">
             <div class="forum-header">
-              <h3>最新帖/h3>
-              <button class="btn btn-primary" id="create-post-btn">发布新帖</button>
+              <h3>最新帖子</h3>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <input type="text" id="search-input" placeholder="搜索帖子..." style="padding:8px 12px;border:1px solid #d9e5f2;border-radius:20px;outline:none;width:200px;">
+                <button class="btn btn-primary" id="create-post-btn">发布新帖</button>
+              </div>
             </div>
-            
+
+            <div class="forum-tabs" style="padding:10px 20px;display:flex;gap:10px;border-bottom:1px solid #f0f0f0;">
+              <button class="tab-btn active" data-category="all">全部</button>
+              <button class="tab-btn" data-category="tax">税务</button>
+              <button class="tab-btn" data-category="accounting">会计</button>
+              <button class="tab-btn" data-category="audit">审计</button>
+              <button class="tab-btn" data-category="finance">财务管理</button>
+              <button class="tab-btn" data-category="other">其他</button>
+            </div>
+
             <div class="forum-content" id="forum-content">
-              <!-- 帖子列表将通过JavaScript动态生-->
+              <!-- 帖子列表将通过JavaScript动态生成 -->
+            </div>
+
+            <div class="forum-pagination" id="forum-pagination" style="padding:15px;text-align:center;border-top:1px solid #f0f0f0;">
+              <!-- 分页将通过JavaScript动态生成 -->
             </div>
           </div>
-          
+
           <div class="forum-sidebar">
             <div class="sidebar-card">
               <div class="sidebar-card-header">
-                知识库文              </div>
-              <div class="sidebar-card-content" id="knowledge-base-content">
-                <!-- 知识库文章将通过JavaScript动态生-->
+                🔥 热门帖子
+              </div>
+              <div class="sidebar-card-content" id="hot-posts-content">
+                <!-- 热门帖子将通过JavaScript动态生成 -->
               </div>
             </div>
-            
+
             <div class="sidebar-card">
               <div class="sidebar-card-header">
-                热门话题
+                📚 知识库文章
               </div>
-              <div class="sidebar-card-content">
-                <div class="knowledge-base-item">
-                  <h4>财务报表分析技/h4>
-                  <p>掌握财务报表分析的核心方/p>
-                </div>
-                <div class="knowledge-base-item">
-                  <h4>税务筹划最佳实/h4>
-                  <p>合法节税的实用技/p>
-                </div>
-                <div class="knowledge-base-item">
-                  <h4>企业内部控制</h4>
-                  <p>建立有效的内部控制体/p>
+              <div class="sidebar-card-content" id="knowledge-base-content">
+                <!-- 知识库文章将通过JavaScript动态生成 -->
+              </div>
+            </div>
+
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">
+                🏷️ 热门标签
+              </div>
+              <div class="sidebar-card-content" id="hot-tags-content">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <span class="hot-tag" onclick="filterByTag('税务筹划')">税务筹划</span>
+                  <span class="hot-tag" onclick="filterByTag('财务分析')">财务分析</span>
+                  <span class="hot-tag" onclick="filterByTag('增值税')">增值税</span>
+                  <span class="hot-tag" onclick="filterByTag('企业所得税')">企业所得税</span>
+                  <span class="hot-tag" onclick="filterByTag('报销')">报销</span>
+                  <span class="hot-tag" onclick="filterByTag('发票')">发票</span>
+                  <span class="hot-tag" onclick="filterByTag('工资')">工资</span>
+                  <span class="hot-tag" onclick="filterByTag('内部控制')">内部控制</span>
                 </div>
               </div>
             </div>
-            
+
             <div class="sidebar-card">
-              <div class="user-info">
+              <div class="sidebar-card-header">
+                👤 用户信息
+              </div>
+              <div class="sidebar-card-content user-info">
                 <p id="user-type">用户类型：未登录</p>
-                <p id="user-status">状态：未登/p>
+                <p id="user-status">状态：未登录</p>
+                <p id="user-posts" style="display:none;">发帖数：<span>0</span></p>
               </div>
             </div>
           </div>
@@ -692,22 +720,36 @@
       </div>
     </div>
   </div>
-  
+
   <!-- 发布新帖模态框 -->
   <div class="create-post-modal" id="create-post-modal">
-    <div class="modal-content">
+    <div class="modal-content" style="width:600px;max-width:95%;">
       <div class="modal-header">
         <h3>发布新帖</h3>
         <button class="modal-close" id="modal-close">&times;</button>
       </div>
       <form id="post-form">
         <div class="form-group">
-          <label for="post-title">标题</label>
-          <input type="text" id="post-title" placeholder="请输入帖子标 required>
+          <label for="post-title">标题 <span style="color:#e74c3c">*</span></label>
+          <input type="text" id="post-title" placeholder="请输入帖子标题（5-50字）" required maxlength="50">
         </div>
         <div class="form-group">
-          <label for="post-content">内容</label>
-          <textarea id="post-content" placeholder="请输入帖子内 required></textarea>
+          <label for="post-category">分类</label>
+          <select id="post-category" style="width:100%;padding:10px;border:1px solid #d9e5f2;border-radius:4px;">
+            <option value="other">其他</option>
+            <option value="tax">税务</option>
+            <option value="accounting">会计</option>
+            <option value="audit">审计</option>
+            <option value="finance">财务管理</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="post-tags">标签（用逗号分隔）</label>
+          <input type="text" id="post-tags" placeholder="例如：税务筹划,增值税" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="post-content">内容 <span style="color:#e74c3c">*</span></label>
+          <textarea id="post-content" placeholder="请输入帖子内容（至少20字）" required style="min-height:150px;"></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="cancel-post">取消</button>
@@ -716,7 +758,20 @@
       </form>
     </div>
   </div>
-  
+
+  <!-- 帖子详情模态框 -->
+  <div class="create-post-modal" id="post-detail-modal">
+    <div class="modal-content" style="width:700px;max-width:95%;max-height:90vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="detail-title">帖子详情</h3>
+        <button class="modal-close" id="detail-modal-close">&times;</button>
+      </div>
+      <div id="post-detail-content">
+        <!-- 帖子详情将通过JavaScript动态生成 -->
+      </div>
+    </div>
+  </div>
+
   <script>
     // Navigation menu functions
     function toggleSubmenu(element) {

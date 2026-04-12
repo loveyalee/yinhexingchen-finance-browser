@@ -904,15 +904,27 @@
   </div>
   
   <script>
-    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+    // 行业配置
+    const industryConfig = {
+      recycling_resource: { name: '再生资源回收与利用', icon: '♻️', desc: '为您推荐再生资源行业专用模板，包含回收进货单、损耗核算、税负分析等' },
+      commodity_wholesale: { name: '商品流通（批发）', icon: '📦', desc: '为您推荐商贸批发行业专用模板，包含进销存管理、客户往来、毛利分析等' },
+      manufacturing_general: { name: '一般制造业', icon: '🏭', desc: '为您推荐制造业专用模板，包含生产成本核算、材料领用、在制品盘点等' },
+      business_service: { name: '商务服务', icon: '🏢', desc: '为您推荐服务业专用模板，包含项目成本核算、服务回款跟踪等' },
+      software_dev: { name: '软件开发', icon: '💻', desc: '为您推荐软件行业专用模板，包含研发费用归集、加计扣除计算等' },
+      other: { name: '其他行业', icon: '📋', desc: '为您推荐通用财务模板' }
+    };
+
+    // toggleSubmenu 函数（用于切换二级菜单显隐藏）
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
     };
-    
-    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
-      console.log('显示模块, moduleName);
+
+    // showModule 函数（用于处理子菜单点击）
+    window.showModule = function(moduleName) {
+      console.log('显示模块:', moduleName);
       // 根据模块名跳转到相应页面
       if (moduleName.startsWith('tax-')) {
         // 税务专区模块
@@ -925,28 +937,100 @@
         window.location.href = 'finance_management.html';
       }
     };
-    
+
+    // 获取当前用户行业
+    function getCurrentIndustry() {
+      try {
+        const currentAccount = JSON.parse(localStorage.getItem('currentAccount') || 'null');
+        if (currentAccount && currentAccount.industry) {
+          return currentAccount.industry;
+        }
+        // 兼容旧数据
+        return localStorage.getItem('userIndustry') || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 显示行业推荐
+    function showIndustryRecommendation(industry) {
+      const config = industryConfig[industry] || industryConfig.other;
+      const recommendationEl = document.getElementById('industryRecommendation');
+      const titleEl = document.getElementById('industryTitle');
+      const descEl = document.getElementById('industryDesc');
+
+      if (recommendationEl && titleEl && descEl) {
+        titleEl.textContent = config.icon + ' ' + config.name + ' - 推荐模板';
+        descEl.textContent = config.desc;
+        recommendationEl.style.display = 'block';
+      }
+    }
+
+    // 筛选模板
+    function filterTemplates(category, industry) {
+      const cards = document.querySelectorAll('.template-card');
+      cards.forEach(card => {
+        const cardCategory = card.getAttribute('data-category');
+        const cardIndustry = card.getAttribute('data-industry');
+
+        if (category === 'all') {
+          card.style.display = 'block';
+        } else if (category === 'industry') {
+          // 行业模板：显示当前行业的模板
+          if (industry && cardIndustry === industry) {
+            card.style.display = 'block';
+          } else if (!industry && cardIndustry) {
+            // 没有选择行业时，显示所有行业模板
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        } else {
+          card.style.display = cardCategory === category ? 'block' : 'none';
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+      // 获取当前行业并显示推荐
+      const currentIndustry = getCurrentIndustry();
+      if (currentIndustry) {
+        showIndustryRecommendation(currentIndustry);
+      }
+
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
       const tabContents = document.querySelectorAll('.tab-content');
-      
+
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active          this.classList.add('active');
-          
-          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
+          // 移除所有标签的active
+          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active
+          this.classList.add('active');
+
+          // 隐藏所有内容
+          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
         });
       });
-      
+
       // 分类按钮切换
       const categoryBtns = document.querySelectorAll('.category-btn');
       categoryBtns.forEach(btn => {
         btn.addEventListener('click', function() {
+          // 移除所有按钮的active
+          categoryBtns.forEach(b => b.classList.remove('active'));
+          // 添加当前按钮的active
+          this.classList.add('active');
+
+          // 筛选模板
+          const category = this.getAttribute('data-category');
+          filterTemplates(category, currentIndustry);
+        });
+      });
           // 移除所有按钮的active          categoryBtns.forEach(b => b.classList.remove('active'));
           // 添加当前按钮的active          this.classList.add('active');
         });

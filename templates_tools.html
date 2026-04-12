@@ -516,16 +516,24 @@
           </div>
           
           <div class="tab-content active" id="templates">
+            <div class="industry-recommendation" id="industryRecommendation" style="margin-bottom:20px;padding:15px 20px;background:linear-gradient(135deg,#e8f4ff,#f0f7ff);border-radius:12px;border:1px solid #c5d9f0;display:none;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <span style="font-size:20px;">💼</span>
+                <span style="font-weight:700;color:#1a5a9e;" id="industryTitle">当前行业推荐模板</span>
+              </div>
+              <p style="color:#4a6d8c;font-size:14px;" id="industryDesc">根据您选择的行业，为您推荐以下专业模板</p>
+            </div>
             <h3>财务模板</h3>
             <div class="template-categories">
-              <button class="category-btn active">全部</button>
-              <button class="category-btn">财务报表</button>
-              <button class="category-btn">税务申报</button>
-              <button class="category-btn">合同模板</button>
-              <button class="category-btn">财务制度</button>
+              <button class="category-btn active" data-category="all">全部</button>
+              <button class="category-btn" data-category="industry">行业模板</button>
+              <button class="category-btn" data-category="finance">财务报表</button>
+              <button class="category-btn" data-category="tax">税务申报</button>
+              <button class="category-btn" data-category="contract">合同模板</button>
+              <button class="category-btn" data-category="system">财务制度</button>
             </div>
-            
-            <div class="template-grid">
+
+            <div class="template-grid" id="templateGrid">
               <div class="template-card">
                 <div class="template-title">资产负债表模板</div>
                 <div class="template-description">标准企业资产负债表模板，包含资产、负债和所有者权益三大类</div>

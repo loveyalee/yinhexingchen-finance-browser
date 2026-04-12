@@ -933,31 +933,31 @@
 
   <script>
     // 显示模块内容
-    function showModule(moduleId) {
+    window.showModule = function(moduleId) {
       // 隐藏所有模块
       const modules = document.querySelectorAll('.module-content');
       modules.forEach(module => {
         module.classList.remove('active');
       });
-      
+
       // 显示选中的模块
       const selectedModule = document.getElementById(moduleId);
       if (selectedModule) {
         selectedModule.classList.add('active');
       }
-    }
+    };
 
     // 切换子菜单
-    function toggleSubmenu(element) {
+    window.toggleSubmenu = function(element) {
       const parentItem = element.parentElement;
       parentItem.classList.toggle('active');
-    }
+    };
 
     // 切换会员子菜单
-    function toggleMemberSubmenu(element) {
+    window.toggleMemberSubmenu = function(element) {
       const parentItem = element.parentElement;
       parentItem.classList.toggle('active');
-    }
+    };
 
     // 客服助手功能
     function toggleServicePanel() {
@@ -970,11 +970,11 @@
     }
 
     // 处理退出登录
-    function handleLogout() {
+    window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         window.location.href = 'login.html';
       }
-    }
+    };
 
     // 显示实名认证
     function showRealNameAuth() {

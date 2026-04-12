@@ -69,18 +69,16 @@
     .nav-item.has-submenu {
       position: relative;
     }
-    
+
     .nav-item.has-submenu > a::after {
-      content: ';
+      content: '▼';
       float: right;
       font-size: 12px;
       margin-left: 5px;
     }
-    
+
     .submenu {
-      position: absolute;
-      left: 0;
-      top: 100%;
+      position: relative;
       width: 100%;
       background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
@@ -89,15 +87,21 @@
       z-index: 1000;
       list-style: none;
     }
-    
-    .nav-item.has-submenu:hover .submenu {
+
+    .nav-item.has-submenu.active > .submenu,
+    .submenu-item.has-submenu.active > .submenu {
       display: block;
     }
-    
+
     .submenu-item {
       margin: 0;
     }
-    
+
+    .submenu-item .submenu {
+      margin-left: 20px;
+      margin-top: 5px;
+    }
+
     .submenu-item a {
       display: block;
       padding: 10px 15px;
@@ -105,11 +109,11 @@
       text-decoration: none;
       transition: background-color 0.3s;
     }
-    
+
     .submenu-item a:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
-    
+
     .main-content {
       flex: 1;
       display: flex;

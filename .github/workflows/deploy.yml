@@ -35,11 +35,11 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
             cd ${{ secrets.SERVER_PATH }} && \
             npm install --production && \
-            ALIYUN_SMS_ACCESS_KEY_ID="${{ secrets.ALIYUN_SMS_ACCESS_KEY_ID }}" \
-            ALIYUN_SMS_ACCESS_KEY_SECRET="${{ secrets.ALIYUN_SMS_ACCESS_KEY_SECRET }}" \
-            ALIYUN_SMS_SIGN_NAME="${{ secrets.ALIYUN_SMS_SIGN_NAME }}" \
-            ALIYUN_SMS_TEMPLATE_CODE_REGISTER="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_REGISTER }}" \
-            ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD }}" \
+            export ALIYUN_SMS_ACCESS_KEY_ID="${{ secrets.ALIYUN_SMS_ACCESS_KEY_ID }}" && \
+            export ALIYUN_SMS_ACCESS_KEY_SECRET="${{ secrets.ALIYUN_SMS_ACCESS_KEY_SECRET }}" && \
+            export ALIYUN_SMS_SIGN_NAME="${{ secrets.ALIYUN_SMS_SIGN_NAME }}" && \
+            export ALIYUN_SMS_TEMPLATE_CODE_REGISTER="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_REGISTER }}" && \
+            export ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD="${{ secrets.ALIYUN_SMS_TEMPLATE_CODE_RESET_PASSWORD }}" && \
             (pm2 describe yinhexingchen > /dev/null 2>&1 && pm2 restart yinhexingchen --update-env || pm2 start server.js --name yinhexingchen) && \
             pm2 save
           '

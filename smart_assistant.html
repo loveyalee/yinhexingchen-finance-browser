@@ -712,6 +712,7 @@
               <div class="quick-action-bar">
                 <button onclick="generateWorkReport('daily')">生成日报</button>
                 <button onclick="generateWorkReport('weekly')">生成周报</button>
+                <button onclick="configureReportHeader()">设置页眉</button>
               </div>
             </div>
 
@@ -734,6 +735,7 @@
             <div class="card">
               <h3>风险任务专区</h3>
               <div id="riskZone" style="display:grid;gap:8px;"></div>
+              <div class="quick-action-bar"><button onclick="copyRiskZone()">复制风险任务</button></div>
             </div>
 
             <div class="card">
@@ -906,6 +908,7 @@
     const smartAssistantSavedViewsKey = 'dragonflyAssistantSavedViews';
     const smartAssistantTrendKey = 'dragonflyAssistantTrend';
     const smartAssistantDeletedTasksKey = 'dragonflyAssistantDeletedTasks';
+    const smartAssistantReportHeaderKey = 'dragonflyAssistantReportHeader';
     const taskGroupLabels = {
       today: '今日',
       week: '本周',
@@ -1254,6 +1257,7 @@
       const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
       const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
       const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const pinnedCount = tasks.filter(function(task) { return task.pinned; }).length;
       const stats = [
         { label: '总任务', value: tasks.length },
         { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
@@ -1261,6 +1265,7 @@
         { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length },
         { label: '本周新增', value: weeklyNew },
         { label: '本周完成', value: weeklyDone },
+        { label: '置顶任务', value: pinnedCount },
         { label: '完成率', value: `${completionRate}%` },
         { label: '逾期风险', value: overdueRisk },
         { label: '负责人数', value: assigneeSet.size },
@@ -1339,7 +1344,7 @@
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
-                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); markTaskDoing('${task.id}')">转处理中</button><button onclick="event.preventDefault(); pinTask('${task.id}')">${task.pinned ? '取消置顶' : '置顶'}</button><button onclick="event.preventDefault(); copyTaskAsDailyEntry('${task.id}')">日报条目</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); markTaskDoing('${task.id}')">转处理中</button><button onclick="event.preventDefault(); pinTask('${task.id}')">${task.pinned ? '取消置顶' : '置顶'}</button><button onclick="event.preventDefault(); moveTaskToFront('${task.id}')">移到最前</button><button onclick="event.preventDefault(); copyTaskAsDailyEntry('${task.id}')">日报条目</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','明天')">明天</button><button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','本周')">本周</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
@@ -1379,6 +1384,42 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+      renderRecentAdded();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function getReportHeaderName() {
+      return localStorage.getItem(smartAssistantReportHeaderKey) || '蜻蜓财务协作中心';
+    }
+
+    function configureReportHeader() {
+      const value = prompt('请输入报告页眉名称', getReportHeaderName());
+      if (value) localStorage.setItem(smartAssistantReportHeaderKey, value);
+    }
+
+    function copyRiskZone() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 6);
+      const text = tasks.length ? `【风险任务专区】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('
+') : '暂无高风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function moveTaskToFront(id) {
+      const tasks = getStoredTasks();
+      const index = tasks.findIndex(function(task) { return task.id === id; });
+      if (index <= 0) return;
+      const picked = tasks.splice(index, 1)[0];
+      tasks.unshift(picked);
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
       renderRecentAdded();
       renderRiskZone();
       renderRecentDoing();
@@ -1863,8 +1904,10 @@
       }).join('
 ') || '1. 暂无待处理事项';
       const label = period === 'weekly' ? '周报' : '日报';
-      const text = `【财务工作${label}】
-导出时间：${new Date().toLocaleString('zh-CN')}
+      const text = `${getReportHeaderName()}
+【财务部${label}】
+日期：${new Date().toLocaleString('zh-CN')}
+制表：智能助手
 
 一、核心指标
 - 已完成：${doneCount} 项
@@ -2306,6 +2349,20 @@ ${grouped[name].map(function(task) {
         const currentTasks = getStoredTasks();
         const task = currentTasks[index];
         if (task) {
+          if (/复制成日报条目|日报条目/.test(text)) {
+            const line = `- ${task.title}（${formatTaskStatus(getTaskStatusLabel(task))} / ${task.assignee || '未分配'} / ${task.deadline || '本月'}）`;
+            navigator.clipboard.writeText(line).then(function() {
+              addMessage('assistant', `<div class="report-card"><div style="font-weight:700">第${index + 1}个任务日报条目已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(line)}</div></div>`, true);
+            });
+            return `已复制第${index + 1}个任务为日报条目。`;
+          }
+          if (/移到最前|放到最前/.test(text)) {
+            const reordered = currentTasks.slice();
+            const picked = reordered.splice(index, 1)[0];
+            reordered.unshift(picked);
+            saveTasks(reordered); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务移到最前。`;
+          }
           if (/取消置顶/.test(text)) {
             const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, pinned: false } : item; });
             saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();

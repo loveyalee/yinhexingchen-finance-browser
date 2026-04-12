@@ -647,7 +647,6 @@
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -747,6 +746,7 @@
                 <button onclick="setTaskFilter('high')">高优先级</button>
                 <button onclick="setTaskFilter('today')">今天到期</button>
                 <button onclick="setTaskFilter('risk')">临期风险</button>
+                <button onclick="setTaskFilter('timeout')">超时风险</button>
                 <button onclick="setTaskFilter('status:doing')">处理中</button>
                 <button onclick="setTaskFilter('status:done')">已完成</button>
                 <button onclick="setTaskFilter('assignee:会计')">会计</button>
@@ -1143,6 +1143,7 @@
             title: title,
             done: false,
             status: 'todo',
+            createdAt: new Date().toLocaleString('zh-CN'),
             completedAt: '',
             note: '',
             source: source || '智能助手',
@@ -1165,6 +1166,7 @@
       if (filter === 'high') return tasks.filter(function(task) { return task.priority === 'high' && !task.done; });
       if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
       if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
+      if (filter === 'timeout') return tasks.filter(function(task) { return isTaskTimeoutRisk(task); });
       if (filter === 'status:doing') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; });
       if (filter === 'status:done') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; });
       if (filter.startsWith('assignee:')) {
@@ -1226,6 +1228,12 @@
         const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
         return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${name}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
       }).join('');
+      const assigneeCompletion = Object.keys(assigneeCount).map(function(name) {
+        const total = tasks.filter(function(task) { return (task.assignee || '未分配') === name; }).length;
+        const done = tasks.filter(function(task) { return (task.assignee || '未分配') === name && task.done; }).length;
+        const ratio = total ? Math.round((done / total) * 100) : 0;
+        return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${name}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
+      }).join('');
       const statusChart = ['todo','doing','done'].map(function(key) {
         const value = statusCount[key];
         const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
@@ -1233,7 +1241,7 @@
       }).join('');
       wrap.innerHTML = stats.map(function(item) {
         return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.label}</div><div style="font-size:22px;font-weight:700;color:#1a2d42">${item.value}</div></div>`;
-      }).join('') + `<div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人分布</div>${topAssignees || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">状态占比</div>${statusChart}</div>`;
+      }).join('') + `<div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人分布</div>${topAssignees || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人完成率</div>${assigneeCompletion || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">状态占比</div>${statusChart}</div>`;
     }
 
     function renderTaskBoard() {
@@ -1266,7 +1274,7 @@
             <div class="task-item-meta" style="margin-bottom:8px;font-size:12px;color:#1a65b8;font-weight:700">${taskGroupLabels[group] || '分组'}</div>
             <div style="display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));">
               ${['todo','doing','done'].map(function(statusKey) {
-                return `<div style="display:grid;gap:10px;align-content:start;"><div class="task-item-meta" style="font-size:11px;font-weight:700;color:#5f7590">${formatTaskStatus(statusKey)}</div>${(lanes[statusKey] || []).map(function(task) {
+                return `<div style="display:grid;gap:10px;align-content:start;"><div class="task-item-meta" style="font-size:11px;font-weight:700;color:#5f7590">${formatTaskStatus(statusKey)}（${(lanes[statusKey] || []).length}）</div>${(lanes[statusKey] || []).map(function(task) {
                 return `
                   <label class="task-item ${task.done ? 'done' : ''} ${!task.done && (task.deadline === '今天' || task.deadline === '明天') ? 'risk-due' : ''}">
                     <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
@@ -1281,6 +1289,7 @@
                       </div>
                       ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
                       ${isTaskTimeoutRisk(task) ? `<div class="task-item-meta" style="color:#b64a4a;font-weight:700">处理中超时风险：请尽快推进</div>` : ''}
+                      ${task.createdAt ? `<div class="task-item-meta">创建时间：${escapeHtml(task.createdAt)}</div>` : ''}
                       ${task.completedAt ? `<div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div>` : ''}
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
@@ -1349,11 +1358,9 @@
 
     function exportTasksForAssignee(name) {
       const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === name && !task.done; });
-      const text = tasks.length ? `${name}专属交办
-` + tasks.map(function(task) {
-        return `- ${task.title}｜状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
-      }).join('
-') : `${name} 当前暂无待交办任务`;
+      const text = tasks.length ? `【${name}专属交办单】\n导出时间：${new Date().toLocaleString('zh-CN')}\n\n` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}\n   状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('\n') : `${name} 当前暂无待交办任务`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(name)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
@@ -1372,11 +1379,9 @@
 
     function exportTasksByStatus(status) {
       const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return getTaskStatusLabel(task) === status; });
-      const text = tasks.length ? `${formatTaskStatus(status)}任务
-` + tasks.map(function(task) {
-        return `- ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
-      }).join('
-') : `${formatTaskStatus(status)} 当前暂无任务`;
+      const text = tasks.length ? `【${formatTaskStatus(status)}任务清单】\n导出时间：${new Date().toLocaleString('zh-CN')}\n\n` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}\n   负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('\n') : `${formatTaskStatus(status)} 当前暂无任务`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${formatTaskStatus(status)}任务已复制</div><div style="line-height:1.8;color:#44576b">适合按状态做分列汇报或交办。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
@@ -1882,6 +1887,10 @@ ${grouped[name].map(function(task) {
         if (/今天到期/.test(text)) {
           setTaskFilter('today');
           return '已切换为只看今天到期任务。';
+        }
+        if (/超时风险/.test(text)) {
+          setTaskFilter('timeout');
+          return '已切换为只看处理中超时风险任务。';
         }
         if (/临期|风险任务/.test(text)) {
           setTaskFilter('risk');

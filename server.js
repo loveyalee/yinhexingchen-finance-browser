@@ -1508,6 +1508,16 @@ const server = http.createServer((req, res) => {
       return;
     }
     try {
+      db.exec(`CREATE TABLE IF NOT EXISTS opening_balances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_code TEXT UNIQUE NOT NULL,
+        account_name TEXT NOT NULL,
+        direction TEXT NOT NULL,
+        amount REAL DEFAULT 0,
+        auxiliary TEXT,
+        create_time TEXT NOT NULL,
+        update_time TEXT NOT NULL
+      )`);
       const summary = db.prepare('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN ABS(amount) > 0.0001 THEN 1 ELSE 0 END), 0) AS filled FROM opening_balances').get();
       const filled = Number(summary.filled || 0);
       const hasOpeningBalance = filled > 0;

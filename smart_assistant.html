@@ -349,6 +349,44 @@
       font-size: 12px;
       font-weight: 600;
     }
+
+    .quick-action-bar button.active-role {
+      background: linear-gradient(135deg, #1a65b8, #124fa0);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(26, 101, 184, 0.18);
+    }
+
+    .task-item {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #f7fbff;
+      border: 1px solid #dbe7f2;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .task-item.done {
+      opacity: 0.62;
+      background: #f3f5f7;
+    }
+
+    .task-item input {
+      margin-top: 3px;
+    }
+
+    .task-item-title {
+      font-size: 13px;
+      color: #17324b;
+      line-height: 1.6;
+    }
+
+    .task-item-meta {
+      font-size: 11px;
+      color: #6e7f91;
+      margin-top: 4px;
+    }
     
     .card {
       background-color: white;
@@ -608,6 +646,35 @@
           
           <div class="sidebar-panel">
             <div class="card">
+              <h3>身份模式</h3>
+              <div class="quick-action-bar" id="roleModeButtons">
+                <button onclick="setAssistantRole('accountant')">会计</button>
+                <button onclick="setAssistantRole('cashier')">出纳</button>
+                <button onclick="setAssistantRole('boss')">老板</button>
+              </div>
+              <p id="roleModeHint" style="margin-top:12px;font-size:12px;color:#5f7590;line-height:1.7;">当前模式：会计。更偏向凭证、报税、结账、报销和台账处理。</p>
+            </div>
+
+            <div class="card">
+              <h3>继续上次工作</h3>
+              <div id="continueLastWork" style="display:grid;gap:10px;">
+                <div class="recommendation-item" onclick="continueLastWork()">
+                  <h4>恢复最近任务</h4>
+                  <p>继续处理刚才的聊天工作流和待办事项</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>智能待办</h3>
+              <div id="taskBoard" style="display:grid;gap:10px;"></div>
+              <div class="quick-action-bar">
+                <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button>
+                <button onclick="clearTaskBoard()">清空待办</button>
+              </div>
+            </div>
+            
+            <div class="card">
               <h3>智能提醒</h3>
               <div class="reminder-item">
                 <h4>报税截止提醒</h4>
@@ -702,6 +769,14 @@
     }
 
     const smartAssistantStorageKey = 'dragonflyAssistantMessages';
+    const smartAssistantTaskKey = 'dragonflyAssistantTasks';
+    const smartAssistantRoleKey = 'dragonflyAssistantRole';
+    const smartAssistantLastPromptKey = 'dragonflyAssistantLastPrompt';
+    const roleProfiles = {
+      accountant: '当前模式：会计。更偏向凭证、报税、结账、报销和台账处理。',
+      cashier: '当前模式：出纳。更偏向收付款、资金计划、银行余额和现金日记账。',
+      boss: '当前模式：老板。更偏向利润、回款、现金流、风险与经营决策。'
+    };
     const assistantQuickPrompts = [
       '帮我生成今天的财务待办',
       '整理本月报税清单',
@@ -714,6 +789,9 @@
       const voiceBtn = document.getElementById('voiceBtn');
 
       restoreMessages();
+      restoreRoleMode();
+      renderTaskBoard();
+      renderLastWorkCard();
 
       chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -762,6 +840,124 @@
       });
     }
 
+    function getAssistantRole() {
+      return localStorage.getItem(smartAssistantRoleKey) || 'accountant';
+    }
+
+    function restoreRoleMode() {
+      updateRoleModeUI(getAssistantRole());
+    }
+
+    function setAssistantRole(role) {
+      localStorage.setItem(smartAssistantRoleKey, role);
+      updateRoleModeUI(role);
+      const prompts = {
+        accountant: '请以会计视角帮我安排今天的重点工作',
+        cashier: '请以出纳视角帮我安排今天的收付款工作',
+        boss: '请以老板视角帮我总结今天需要关注的经营重点'
+      };
+      sendMessage(prompts[role]);
+    }
+
+    function updateRoleModeUI(role) {
+      const hint = document.getElementById('roleModeHint');
+      const roleButtons = document.querySelectorAll('#roleModeButtons button');
+      roleButtons.forEach(function(button) {
+        button.classList.toggle('active-role', button.getAttribute('onclick').includes(`'${role}'`));
+      });
+      if (hint) {
+        hint.textContent = roleProfiles[role] || roleProfiles.accountant;
+      }
+    }
+
+    function getStoredTasks() {
+      return JSON.parse(localStorage.getItem(smartAssistantTaskKey) || '[]');
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem(smartAssistantTaskKey, JSON.stringify(tasks.slice(0, 12)));
+    }
+
+    function addTasks(taskTitles, source) {
+      const tasks = getStoredTasks();
+      taskTitles.forEach(function(title) {
+        if (!tasks.some(function(item) { return item.title === title; })) {
+          tasks.unshift({
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            title: title,
+            done: false,
+            source: source || '智能助手'
+          });
+        }
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+    }
+
+    function renderTaskBoard() {
+      const board = document.getElementById('taskBoard');
+      if (!board) return;
+      const tasks = getStoredTasks();
+      if (!tasks.length) {
+        board.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无待办</h4><p>你可以让助手生成今日待办、报税清单或月末结账步骤。</p></div>';
+        return;
+      }
+      board.innerHTML = tasks.map(function(task) {
+        return `
+          <label class="task-item ${task.done ? 'done' : ''}">
+            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+            <div>
+              <div class="task-item-title">${escapeHtml(task.title)}</div>
+              <div class="task-item-meta">来源：${escapeHtml(task.source || '智能助手')}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleTask(id) {
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, done: !task.done } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+    }
+
+    function clearTaskBoard() {
+      localStorage.removeItem(smartAssistantTaskKey);
+      renderTaskBoard();
+    }
+
+    function rememberLastPrompt(prompt) {
+      localStorage.setItem(smartAssistantLastPromptKey, prompt);
+      renderLastWorkCard();
+    }
+
+    function renderLastWorkCard() {
+      const wrap = document.getElementById('continueLastWork');
+      if (!wrap) return;
+      const lastPrompt = localStorage.getItem(smartAssistantLastPromptKey);
+      if (!lastPrompt) {
+        wrap.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无最近工作</h4><p>和助手对话后，这里会记录你最近一次处理的工作主题。</p></div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="recommendation-item" onclick="continueLastWork()">
+          <h4>最近任务</h4>
+          <p>${escapeHtml(lastPrompt)}</p>
+        </div>
+      `;
+    }
+
+    function continueLastWork() {
+      const lastPrompt = localStorage.getItem(smartAssistantLastPromptKey);
+      if (lastPrompt) {
+        sendMessage(lastPrompt);
+      } else {
+        addMessage('assistant', '当前还没有可继续的最近工作，你可以先告诉我今天要处理什么。');
+      }
+    }
+
     function buildWelcomeCard() {
       return `
         <div style="font-weight:700;margin-bottom:8px">你好，我是蜻蜓智能助手</div>
@@ -781,6 +977,7 @@
     }
 
     function buildTaskCard(title, steps, actions) {
+      addTasks(steps, title);
       return `
         <div style="font-weight:700;margin-bottom:8px">${title}</div>
         <div style="display:grid;gap:8px;margin-bottom:10px">
@@ -797,6 +994,43 @@
     function buildAssistantResponse(message) {
       const text = message.trim();
       const normalized = text.replace(/\s+/g, '').toLowerCase();
+      const role = getAssistantRole();
+
+      if ((/会计/.test(text) || role === 'accountant') && (/今天|今日/.test(text) && /待办|任务|工作/.test(text))) {
+        return buildTaskCard('会计今日重点工作', [
+          '复核昨日新增凭证、发票和往来余额是否已入账。',
+          '确认本周报税资料、工资表和付款单据是否齐全。',
+          '检查预算执行偏差与异常费用波动。',
+          '更新月度台账并同步经营分析口径。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if ((/出纳/.test(text) || role === 'cashier') && (/今天|今日/.test(text) && /待办|任务|工作/.test(text))) {
+        return buildTaskCard('出纳今日收付款计划', [
+          '核对银行余额、现金余额及未达账项。',
+          '确认今日付款申请、到期账单和紧急支出优先级。',
+          '跟进应收回款到账情况并同步资金日报。',
+          '复核大额支付审批、收款账户和付款用途。'
+        ], [
+          { label: '查看资金分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' }
+        ]);
+      }
+
+      if ((/老板/.test(text) || role === 'boss') && (/今天|今日/.test(text) && /待办|任务|工作|重点/.test(text))) {
+        return buildTaskCard('老板今日经营关注点', [
+          '先看现金余额、本周净流入和大额收付款安排。',
+          '关注销售回款、毛利变化和费用异常支出。',
+          '确认税务、工资、供应商付款等关键时间节点。',
+          '对高风险客户、逾期应收和融资缺口提前决策。'
+        ], [
+          { label: '查看经营分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '查看企业融资', type: 'goto', value: 'online_store.html' }
+        ]);
+      }
 
       if (/今天|今日/.test(text) && /待办|任务|工作/.test(text)) {
         return buildTaskCard('今日财务待办建议', [
@@ -903,6 +1137,7 @@
 
       if (!message) return;
 
+      rememberLastPrompt(message);
       addMessage('user', escapeHtml(message), true);
       chatInput.value = '';
 

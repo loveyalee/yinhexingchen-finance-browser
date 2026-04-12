@@ -1499,7 +1499,10 @@ ${body}`;
             ...task,
             assignee: options.assignee || task.assignee,
             deadline: options.newDeadline || task.deadline,
-            priority: options.newPriority || task.priority
+            priority: options.newPriority || task.priority,
+            status: options.newStatus || task.status,
+            done: options.newStatus ? options.newStatus === 'done' : task.done,
+            completedAt: options.newStatus === 'done' ? (task.completedAt || new Date().toLocaleString('zh-CN')) : (options.newStatus ? '' : task.completedAt)
           };
         }
         return task;
@@ -1811,6 +1814,10 @@ ${grouped[name].map(function(task) {
           setTaskFilter('today');
           return '已切换为只看今天到期任务。';
         }
+        if (/临期|风险任务/.test(text)) {
+          setTaskFilter('risk');
+          return '已切换为只看临期风险任务。';
+        }
         if (/会计/.test(text)) {
           setTaskFilter('assignee:会计');
           return '已切换为只看会计负责的任务。';
@@ -1843,6 +1850,19 @@ ${grouped[name].map(function(task) {
           renderTaskStats();
           renderTrendPanel();
           return `已删除标题中包含 <b>${escapeHtml(keyword)}</b> 的任务。`;
+        }
+      }
+
+      if (/负责人导出|专属交办|导出会计|导出出纳/.test(text)) {
+        exportAssigneeTasks();
+        return '正在生成负责人专属交办。';
+      }
+
+      if (/改成处理中|处理中/.test(text) && /税务|资金|月末|结账/.test(text)) {
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (group) {
+          batchUpdateTasks({ group, newStatus: 'doing' });
+          return `已将${taskGroupLabels[group]}相关任务批量调整为处理中。`;
         }
       }
 

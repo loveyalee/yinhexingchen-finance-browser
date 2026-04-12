@@ -585,11 +585,9 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_software.html">财务软件</a></li>
-            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
-            
-            
+            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
             <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
             <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
@@ -1164,7 +1162,8 @@
       if (filter === 'high') return tasks.filter(function(task) { return task.priority === 'high' && !task.done; });
       if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
       if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
-      if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
+      if (filter === 'status:doing') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; });
+      if (filter === 'status:done') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; });
       if (filter.startsWith('assignee:')) {
         const assignee = filter.split(':')[1];
         tasks = tasks.filter(function(task) { return task.assignee === assignee; });
@@ -1270,7 +1269,7 @@
                       ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
                       ${task.completedAt ? `<div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div>` : ''}
                       <div class="quick-action-bar" style="margin-top:8px;">
-                        <button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
+                        <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
                         <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
@@ -1305,6 +1304,17 @@
       renderTaskBoard();
     }
 
+    function updateTaskTitle(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入新的任务标题', task ? task.title : '');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, title: value } : item;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+    }
+
     function updateTaskStatus(id) {
       const value = prompt('状态：待处理 / 处理中 / 已完成');
       if (!value) return;
@@ -1319,6 +1329,42 @@
       renderTaskBoard();
       renderTaskStats();
       renderTrendPanel();
+    }
+
+    function updateTaskTitle(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入新的任务标题', task ? task.title : '');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, title: value } : item;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function updateTaskTitle(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入新的任务标题', task ? task.title : '');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, title: value } : item;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
+    function exportTasksForAssignee(name) {
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === name && !task.done; });
+      const text = tasks.length ? `${name}专属交办
+` + tasks.map(function(task) {
+        return `- ${task.title}｜状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('
+') : `${name} 当前暂无待交办任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(name)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
     }
 
     function updateTaskNote(id) {
@@ -1518,8 +1564,7 @@ ${body}`;
       renderTrendPanel();
     }
 
-    function exportAssigneeTasks() {
-      const assignee = prompt('请输入要导出的负责人，例如：会计 / 出纳 / 财务经理 / 老板');
+    function exportTasksForAssignee(assignee) {
       if (!assignee) return;
       const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === assignee && !task.done; });
       const text = tasks.length ? `${assignee}专属交办
@@ -1530,6 +1575,11 @@ ${body}`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(assignee)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
+    }
+
+    function exportAssigneeTasks() {
+      const assignee = prompt('请输入要导出的负责人，例如：会计 / 出纳 / 财务经理 / 老板');
+      exportTasksForAssignee(assignee);
     }
 
     function exportAssignmentSlip() {

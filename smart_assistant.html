@@ -732,6 +732,12 @@
             </div>
 
             <div class="card">
+              <h3>最近处理中</h3>
+              <div id="recentDoing" style="display:grid;gap:8px;"></div>
+              <div class="quick-action-bar"><button onclick="copyRecentPanel('doing')">复制最近处理中</button></div>
+            </div>
+
+            <div class="card">
               <h3>最近完成</h3>
               <div id="recentCompleted" style="display:grid;gap:8px;"></div>
               <div class="quick-action-bar"><button onclick="copyRecentPanel('completed')">复制最近完成</button></div>
@@ -924,6 +930,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
       renderSavedViews();
       renderLastWorkCard();
@@ -1280,6 +1287,8 @@
       const tasks = getFilteredTasks(getStoredTasks()).slice().sort(function(a, b) {
         const deadlineOrder = { '今天': 0, '明天': 1, '本周': 2, '下周': 3, '本月': 4 };
         const priorityOrder = { high: 0, medium: 1, low: 2 };
+        const pinScore = (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+        if (pinScore !== 0) return pinScore;
         const aScore = (priorityOrder[a.priority || 'low'] || 2) * 10 + (deadlineOrder[a.deadline || '本月'] || 4);
         const bScore = (priorityOrder[b.priority || 'low'] || 2) * 10 + (deadlineOrder[b.deadline || '本月'] || 4);
         return aScore - bScore;
@@ -1315,7 +1324,7 @@
                         <span class="task-badge priority-${task.priority || 'low'}">优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
                         <span class="task-badge">截止：${escapeHtml(task.deadline || '本月')}</span>
                         <span class="task-badge">负责人：${escapeHtml(task.assignee || '未分配')}</span>
-                        <span class="task-badge">状态：${formatTaskStatus(getTaskStatusLabel(task))}</span>
+                        <span class="task-badge">状态：${formatTaskStatus(getTaskStatusLabel(task))}</span>${task.pinned ? '<span class="task-badge" style="background:#fff4d8;color:#9a6a00;border-color:#f2dea5">已置顶</span>' : ''}
                       </div>
                       ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
                       ${isTaskTimeoutRisk(task) ? `<div class="task-item-meta" style="color:#b64a4a;font-weight:700">处理中超时风险：请尽快推进</div>` : ''}
@@ -1324,7 +1333,7 @@
                       <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
                       <div class="quick-action-bar" style="margin-top:8px;">
                         <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
-                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); markTaskDoing('${task.id}')">转处理中</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); markTaskDoing('${task.id}')">转处理中</button><button onclick="event.preventDefault(); pinTask('${task.id}')">置顶</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
                         <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
                         <button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','明天')">明天</button><button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','本周')">本周</button>
                         <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
@@ -1353,6 +1362,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1363,7 +1373,29 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
+    }
+
+    function pinTask(id) {
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, pinned: !task.pinned } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderRecentAdded();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function renderRecentDoing() {
+      const wrap = document.getElementById('recentDoing');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).slice(0, 5);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">负责人：${escapeHtml(task.assignee || '未分配')}｜截止：${escapeHtml(task.deadline || '本月')}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无最近处理中任务</div>';
     }
 
     function updateTaskTitle(id) {
@@ -1398,6 +1430,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1429,6 +1462,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1447,6 +1481,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1504,6 +1539,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1517,6 +1553,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1550,15 +1587,16 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
     function copyRecentPanel(type) {
-      const tasks = (type === 'added' ? getStoredTasks().filter(function(task) { return task.createdAt; }) : getStoredTasks().filter(function(task) { return task.done && task.completedAt; })).slice(0, 5);
-      const title = type === 'added' ? '最近新增' : '最近完成';
+      const tasks = (type === 'added' ? getStoredTasks().filter(function(task) { return task.createdAt; }) : type === 'doing' ? getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; } : getStoredTasks().filter(function(task) { return task.done && task.completedAt; })).slice(0, 5);
+      const title = type === 'added' ? '最近新增' : type === 'doing' ? '最近处理中' : '最近完成';
       const text = tasks.length ? `【${title}】
 ` + tasks.map(function(task, index) {
-        return `${index + 1}. ${task.title}｜${type === 'added' ? '创建' : '完成'}时间：${type === 'added' ? task.createdAt : task.completedAt}`;
+        return `${index + 1}. ${task.title}｜${type === 'added' ? '创建时间：' + task.createdAt : type === 'doing' ? '负责人：' + (task.assignee || '未分配') + '｜截止：' + (task.deadline || '本月') : '完成时间：' + task.completedAt}`;
       }).join('
 ') : `暂无${title}任务`;
       navigator.clipboard.writeText(text).then(function() {
@@ -1597,6 +1635,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1644,6 +1683,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1751,6 +1791,7 @@
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -1825,6 +1866,7 @@ ${body}`;
       renderTaskStats();
       renderTrendPanel();
       renderRecentAdded();
+      renderRecentDoing();
       renderRecentCompleted();
     }
 
@@ -2207,15 +2249,26 @@ ${grouped[name].map(function(task) {
         const currentTasks = getStoredTasks();
         const task = currentTasks[index];
         if (task) {
+          if (/恢复为待处理|改为待处理|改成待处理/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'todo', done: false, completedAt: '' } : item; });
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务恢复为待处理。`;
+          }
+          if (/克隆/.test(text)) {
+            const sourceTask = currentTasks[index];
+            const tasks = [{ ...sourceTask, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: sourceTask.title + '（副本）', done: false, status: 'todo', createdAt: new Date().toLocaleString('zh-CN'), completedAt: '' }].concat(currentTasks);
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentDoing(); renderRecentCompleted();
+            return `已克隆第${index + 1}个任务。`;
+          }
           if (/标记完成|设为完成|改成已完成/.test(text)) {
             const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'done', done: true, completedAt: item.completedAt || new Date().toLocaleString('zh-CN') } : item; });
-            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentCompleted();
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentDoing(); renderRecentCompleted();
             return `已把第${index + 1}个任务标记为已完成。`;
           }
           if (/删除/.test(text)) {
             stashDeletedTasks(currentTasks.filter(function(item, idx) { return idx === index; }));
             const tasks = currentTasks.filter(function(item, idx) { return idx !== index; });
-            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentCompleted();
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentDoing(); renderRecentCompleted();
             return `已删除第${index + 1}个任务。`;
           }
           if (/交给/.test(text)) {
@@ -2234,7 +2287,7 @@ ${grouped[name].map(function(task) {
           }
           if (/处理中/.test(text)) {
             const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'doing', done: false, completedAt: '' } : item; });
-            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentCompleted();
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRecentDoing(); renderRecentCompleted();
             return `已把第${index + 1}个任务改为处理中。`;
           }
           if (/本周|明天|今天|下周|本月/.test(text)) {

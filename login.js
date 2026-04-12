@@ -252,6 +252,30 @@ function closeForgotPassword() {
   if (modal) modal.remove();
 }
 
+function showResetSuccess(message, phone) {
+  const existing = document.getElementById('reset-success-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'reset-success-banner';
+  banner.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#0f9d58,#38c172);color:#fff;padding:14px 18px;border-radius:14px;box-shadow:0 10px 24px rgba(15,157,88,.25);font-size:14px;font-weight:600;max-width:90vw;text-align:center;';
+  banner.textContent = message || '密码已重置，请使用新密码登录';
+  document.body.appendChild(banner);
+  setTimeout(function() {
+    if (banner && banner.parentNode) banner.parentNode.removeChild(banner);
+  }, 3500);
+  const accountInput = document.getElementById('account');
+  const passwordInput = document.getElementById('password');
+  if (accountInput && phone) {
+    accountInput.value = phone;
+    accountInput.dispatchEvent(new Event('input'));
+    accountInput.focus();
+  }
+  if (passwordInput) {
+    passwordInput.value = '';
+    passwordInput.placeholder = '请输入刚刚重置后的新密码';
+  }
+}
+
 function sendResetCode() {
   const phone = document.getElementById('reset-phone').value;
   if (!phone) {
@@ -342,8 +366,8 @@ function resetPassword() {
       alert(result.message || '密码重置失败');
       return;
     }
-    alert('密码重置成功！请使用新密码登录');
     closeForgotPassword();
+    showResetSuccess('密码重置成功，请直接使用新密码登录', phone);
   }).catch(function(err) {
     alert('密码重置失败：' + err.message);
   });

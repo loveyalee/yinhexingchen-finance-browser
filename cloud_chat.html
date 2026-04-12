@@ -63,23 +63,21 @@
       color: #fff;
       font-weight: 600;
     }
-    
+
     /* 二级菜单样式 */
     .nav-item.has-submenu {
       position: relative;
     }
-    
+
     .nav-item.has-submenu > a::after {
-      content: ';
+      content: '▼';
       float: right;
       font-size: 12px;
       margin-left: 5px;
     }
-    
+
     .submenu {
-      position: absolute;
-      left: 0;
-      top: 100%;
+      position: relative;
       width: 100%;
       background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
@@ -87,28 +85,40 @@
       display: none;
       z-index: 1000;
       list-style: none;
+      margin-top: 5px;
     }
-    
-    .nav-item.has-submenu:hover .submenu {
+
+    .nav-item.has-submenu.active > .submenu {
       display: block;
     }
-    
+
+    .submenu-item.has-submenu.active > .submenu {
+      display: block;
+    }
+
     .submenu-item {
       margin: 0;
     }
-    
+
     .submenu-item a {
       display: block;
       padding: 10px 15px;
       color: white;
       text-decoration: none;
+      border-radius: 4px;
       transition: background-color 0.3s;
     }
-    
+
     .submenu-item a:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
-    
+
+    /* 三级菜单样式 */
+    .submenu-item .submenu {
+      margin-left: 20px;
+      margin-top: 5px;
+    }
+
     .main-content {
       flex: 1;
       display: flex;

@@ -158,12 +158,20 @@
       flex: 1;
       padding: 20px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
-    
+
+    .content-area > h2,
+    .content-area > p {
+      flex-shrink: 0;
+    }
+
     .assistant-container {
       display: flex;
       gap: 20px;
-      height: 100%;
+      flex: 1;
+      min-height: 0;
     }
     
     .chat-panel {

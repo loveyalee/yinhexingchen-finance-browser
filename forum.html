@@ -824,47 +824,88 @@
       }
     }
 
+    // 热门标签样式
+    const hotTagStyle = document.createElement('style');
+    hotTagStyle.textContent = `
+      .hot-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        background: linear-gradient(135deg, #eaf4ff, #e0ecf8);
+        border: 1px solid #d0e0f0;
+        border-radius: 15px;
+        font-size: 12px;
+        color: #1a65b8;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .hot-tag:hover {
+        background: linear-gradient(135deg, #1a65b8, #124fa0);
+        color: white;
+        border-color: #1a65b8;
+      }
+      .tab-btn {
+        padding: 8px 16px;
+        border: none;
+        background: #f5f7fa;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.3s;
+        font-size: 13px;
+        color: #666;
+      }
+      .tab-btn:hover {
+        background: #e8f0fa;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #1a65b8, #124fa0);
+        color: white;
+      }
+    `;
+    document.head.appendChild(hotTagStyle);
+
     document.addEventListener('DOMContentLoaded', function() {
-      // 模拟用户登录状      let isLoggedIn = false;
+      // 模拟用户登录状态
+      let isLoggedIn = false;
       let userType = '';
-      
+      let currentUser = null;
+
+      // 状态变量
+      let currentCategory = 'all';
+      let currentSearch = '';
+      let currentPage = 1;
+      const postsPerPage = 5;
+
       // 模拟帖子数据
       const posts = [
         {
           id: 1,
-          title: '如何做好企业财务分析,
-          content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法,
+          title: '如何做好企业财务分析？',
+          content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法和技巧？欢迎大家分享经验。',
           author: '财务专家',
-          time: '2024-01-01 10:00',
+          time: '2024-01-15 10:00',
           likes: 25,
+          category: 'finance',
+          tags: ['财务分析', '财务管理'],
+          views: 156,
           comments: [
-            {
-              author: '会计小白',
-              content: '我觉得应该关注盈利能力、运营能力和偿债能力三大指,
-              time: '2024-01-01 10:30'
-            },
-            {
-              author: '财务经理',
-              content: '除了财务指标，还要结合行业特点和企业战略进行分析',
-              time: '2024-01-01 11:00'
-            }
+            { author: '会计小白', content: '我觉得应该关注盈利能力、运营能力和偿债能力三大指标。', time: '2024-01-15 10:30' },
+            { author: '财务经理', content: '除了财务指标，还要结合行业特点和企业战略进行分析', time: '2024-01-15 11:00' }
           ],
           liked: false,
           bookmarked: false
         },
         {
           id: 2,
-          title: '税务筹划的常见方法有哪些,
-          content: '企业在合法范围内如何进行税务筹划？有哪些实用的方法和技巧？',
-          author: '税务,
-          time: '2024-01-02 14:00',
+          title: '税务筹划的常见方法有哪些？',
+          content: '企业在合法范围内如何进行税务筹划？有哪些实用的方法和技巧？希望能得到专业人士的指导。',
+          author: '税务顾问',
+          time: '2024-01-14 14:00',
           likes: 18,
+          category: 'tax',
+          tags: ['税务筹划', '增值税', '企业所得税'],
+          views: 203,
           comments: [
-            {
-              author: '企业,
-              content: '希望能分享一些具体的案例',
-              time: '2024-01-02 14:30'
-            }
+            { author: '企业会计', content: '希望能分享一些具体的案例', time: '2024-01-14 14:30' }
           ],
           liked: false,
           bookmarked: false
@@ -872,155 +913,438 @@
         {
           id: 3,
           title: '财务软件选择指南',
-          content: '如何选择适合企业的财务软件？需要考虑哪些因素,
+          content: '如何选择适合企业的财务软件？需要考虑哪些因素？市面上主流的财务软件有哪些优缺点？',
           author: 'IT顾问',
-          time: '2024-01-03 09:00',
+          time: '2024-01-13 09:00',
           likes: 32,
+          category: 'accounting',
+          tags: ['财务软件', '会计'],
+          views: 289,
+          comments: [],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 4,
+          title: '年度审计准备工作要点',
+          content: '马上要年度审计了，需要准备哪些资料？有哪些注意事项？如何与审计师有效沟通？',
+          author: '审计专员',
+          time: '2024-01-12 16:30',
+          likes: 45,
+          category: 'audit',
+          tags: ['审计', '内部控制', '年度审计'],
+          views: 312,
+          comments: [
+            { author: '财务总监', content: '建议提前整理好凭证、合同、银行对账单等核心资料。', time: '2024-01-12 17:00' }
+          ],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 5,
+          title: '增值税发票开具注意事项',
+          content: '开具增值税发票时有哪些注意事项？发票抬头、税号、金额等信息如何核对？',
+          author: '开票员',
+          time: '2024-01-11 11:20',
+          likes: 28,
+          category: 'tax',
+          tags: ['发票', '增值税'],
+          views: 178,
+          comments: [],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 6,
+          title: '企业预算编制流程分享',
+          content: '分享一套完整的企业预算编制流程，包括预算编制、执行、监控和调整四个阶段。',
+          author: '财务经理',
+          time: '2024-01-10 15:45',
+          likes: 56,
+          category: 'finance',
+          tags: ['预算管理', '财务管理'],
+          views: 421,
+          comments: [
+            { author: '预算专员', content: '非常详细，学习了！', time: '2024-01-10 16:00' },
+            { author: '会计新人', content: '请问预算执行差异分析怎么做？', time: '2024-01-10 16:30' }
+          ],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 7,
+          title: '新会计准则变化解读',
+          content: '最新会计准则有哪些重要变化？对企业财务报表有什么影响？如何应对这些变化？',
+          author: '会计专家',
+          time: '2024-01-09 09:30',
+          likes: 67,
+          category: 'accounting',
+          tags: ['会计准则', '财务报表'],
+          views: 534,
+          comments: [],
+          liked: false,
+          bookmarked: false
+        },
+        {
+          id: 8,
+          title: '报销流程优化建议',
+          content: '公司报销流程比较繁琐，想请教各位有没有好的优化建议？如何在合规的前提下提高效率？',
+          author: '行政主管',
+          time: '2024-01-08 14:15',
+          likes: 23,
+          category: 'other',
+          tags: ['报销', '流程优化'],
+          views: 145,
           comments: [],
           liked: false,
           bookmarked: false
         }
       ];
-      
-      // 模拟知识库文章数      const knowledgeBaseArticles = [
-        {
-          id: 1,
-          title: '企业会计准则解读',
-          content: '详细解读最新企业会计准则的变化和应,
-          author: '会计准则专家',
-          time: '2024-01-01'
-        },
-        {
-          id: 2,
-          title: '财务报表编制指南',
-          content: '手把手教你编制规范的财务报表',
-          author: '财务总监',
-          time: '2024-01-02'
-        },
-        {
-          id: 3,
-          title: '税务申报实务',
-          content: '各类税种的申报流程和注意事项',
-          author: '税务专家',
-          time: '2024-01-03'
-        }
+
+      // 模拟知识库文章数据
+      const knowledgeBaseArticles = [
+        { id: 1, title: '企业会计准则解读', content: '详细解读最新企业会计准则的变化和应用', author: '会计准则专家', time: '2024-01-01' },
+        { id: 2, title: '财务报表编制指南', content: '手把手教你编制规范的财务报表', author: '财务总监', time: '2024-01-02' },
+        { id: 3, title: '税务申报实务', content: '各类税种的申报流程和注意事项', author: '税务专家', time: '2024-01-03' }
       ];
-      
+
+      // 获取筛选后的帖子
+      function getFilteredPosts() {
+        let filtered = posts;
+
+        // 按分类筛选
+        if (currentCategory !== 'all') {
+          filtered = filtered.filter(p => p.category === currentCategory);
+        }
+
+        // 按搜索词筛选
+        if (currentSearch) {
+          const keyword = currentSearch.toLowerCase();
+          filtered = filtered.filter(p =>
+            p.title.toLowerCase().includes(keyword) ||
+            p.content.toLowerCase().includes(keyword) ||
+            p.tags.some(t => t.toLowerCase().includes(keyword))
+          );
+        }
+
+        return filtered;
+      }
+
       // 渲染帖子列表
       function renderPosts() {
         const forumContent = document.getElementById('forum-content');
         forumContent.innerHTML = '';
-        
-        posts.forEach(post => {
+
+        const filtered = getFilteredPosts();
+        const totalPages = Math.ceil(filtered.length / postsPerPage);
+        const start = (currentPage - 1) * postsPerPage;
+        const end = start + postsPerPage;
+        const pagePosts = filtered.slice(start, end);
+
+        if (pagePosts.length === 0) {
+          forumContent.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无相关帖子</div>';
+          renderPagination(0);
+          return;
+        }
+
+        pagePosts.forEach(post => {
           const postItem = document.createElement('div');
           postItem.className = 'post-item';
+          postItem.style.cursor = 'pointer';
+          postItem.onclick = function(e) {
+            if (!e.target.closest('.action-btn') && !e.target.closest('.comment-form') && !e.target.closest('.comments-section')) {
+              showPostDetail(post.id);
+            }
+          };
+
+          const categoryLabels = {
+            'tax': '税务',
+            'accounting': '会计',
+            'audit': '审计',
+            'finance': '财务管理',
+            'other': '其他'
+          };
+
           postItem.innerHTML = `
             <div class="post-header">
-              <div>
-                <div class="post-title">${post.title}</div>
-                <div class="post-meta">作者：${post.author} | 发布时间{post.time}</div>
+              <div style="flex:1;">
+                <div class="post-title">
+                  ${escapeHtml(post.title)}
+                  <span style="font-size:11px;padding:2px 8px;background:${getCategoryColor(post.category)};color:white;border-radius:3px;margin-left:8px;">${categoryLabels[post.category] || '其他'}</span>
+                </div>
+                <div class="post-meta">作者：${escapeHtml(post.author)} | 发布时间：${escapeHtml(post.time)} | 浏览：${post.views}</div>
               </div>
             </div>
-            <div class="post-content">${post.content}</div>
+            <div class="post-content">${escapeHtml(post.content)}</div>
+            <div style="margin-bottom:10px;">
+              ${post.tags.map(tag => `<span class="hot-tag" style="cursor:default;margin-right:5px;">${escapeHtml(tag)}</span>`).join('')}
+            </div>
             <div class="post-actions">
-              <button class="action-btn ${post.liked  'liked' : ''}" onclick="toggleLike(${post.id})">
+              <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="event.stopPropagation();toggleLike(${post.id})">
                 <span>👍</span>
                 <span>${post.likes}</span>
               </button>
-              <button class="action-btn" onclick="toggleComments(${post.id})">
+              <button class="action-btn" onclick="event.stopPropagation();toggleComments(${post.id})">
                 <span>💬</span>
                 <span>${post.comments.length}</span>
               </button>
-              <button class="action-btn ${post.bookmarked  'bookmarked' : ''}" onclick="toggleBookmark(${post.id})">
-                <span>/span>
+              <button class="action-btn ${post.bookmarked ? 'bookmarked' : ''}" onclick="event.stopPropagation();toggleBookmark(${post.id})">
+                <span>⭐</span>
                 <span>收藏</span>
               </button>
+              <button class="action-btn" onclick="event.stopPropagation();showPostDetail(${post.id})">
+                <span>👁️</span>
+                <span>详情</span>
+              </button>
             </div>
-            <div class="comments-section" id="comments-${post.id}" style="display: ${post.comments.length > 0  'block' : 'none'}">
+            <div class="comments-section" id="comments-${post.id}" style="display:none;">
               ${post.comments.map(comment => `
                 <div class="comment-item">
-                  <div class="comment-header">${comment.author} | ${comment.time}</div>
-                  <div class="comment-content">${comment.content}</div>
+                  <div class="comment-header">${escapeHtml(comment.author)} | ${escapeHtml(comment.time)}</div>
+                  <div class="comment-content">${escapeHtml(comment.content)}</div>
                 </div>
               `).join('')}
-              ${isLoggedIn  `
-                <div class="comment-form">
+              ${isLoggedIn ? `
+                <div class="comment-form" onclick="event.stopPropagation();">
                   <input type="text" placeholder="写下你的评论..." id="comment-input-${post.id}">
-                  <button class="btn btn-primary" onclick="addComment(${post.id})")>发表</button>
+                  <button class="btn btn-primary" onclick="event.stopPropagation();addComment(${post.id})">发表</button>
                 </div>
-              ` : '<p style="font-size: 12px; color: #666;">登录后可以发表评/p>'}
+              ` : '<p style="font-size: 12px; color: #666;">登录后可以发表评论</p>'}
             </div>
           `;
           forumContent.appendChild(postItem);
         });
+
+        renderPagination(totalPages);
+        renderHotPosts();
       }
-      
-      // 渲染知识库文      function renderKnowledgeBase() {
+
+      // 获取分类颜色
+      function getCategoryColor(category) {
+        const colors = {
+          'tax': '#e74c3c',
+          'accounting': '#3498db',
+          'audit': '#9b59b6',
+          'finance': '#27ae60',
+          'other': '#95a5a6'
+        };
+        return colors[category] || '#95a5a6';
+      }
+
+      // HTML转义
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // 渲染分页
+      function renderPagination(totalPages) {
+        const pagination = document.getElementById('forum-pagination');
+        if (!pagination) return;
+
+        if (totalPages <= 1) {
+          pagination.innerHTML = '';
+          return;
+        }
+
+        let html = '<div style="display:flex;gap:8px;justify-content:center;align-items:center;">';
+
+        // 上一页
+        html += `<button class="btn btn-secondary" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">上一页</button>`;
+
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === currentPage) {
+            html += `<button class="btn btn-primary">${i}</button>`;
+          } else {
+            html += `<button class="btn btn-secondary" onclick="goToPage(${i})">${i}</button>`;
+          }
+        }
+
+        // 下一页
+        html += `<button class="btn btn-secondary" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">下一页</button>`;
+
+        html += '</div>';
+        pagination.innerHTML = html;
+      }
+
+      // 跳转页面
+      window.goToPage = function(page) {
+        const totalPages = Math.ceil(getFilteredPosts().length / postsPerPage);
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          renderPosts();
+          document.getElementById('forum-content').scrollTop = 0;
+        }
+      };
+
+      // 渲染热门帖子
+      function renderHotPosts() {
+        const hotPostsContent = document.getElementById('hot-posts-content');
+        if (!hotPostsContent) return;
+
+        const hotPosts = [...posts].sort((a, b) => b.likes - a.likes).slice(0, 5);
+
+        hotPostsContent.innerHTML = hotPosts.map((post, index) => `
+          <div class="knowledge-base-item" onclick="showPostDetail(${post.id})" style="cursor:pointer;">
+            <h4 style="display:flex;align-items:center;gap:8px;">
+              <span style="background:${index < 3 ? '#f39c12' : '#95a5a6'};color:white;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;">${index + 1}</span>
+              ${escapeHtml(post.title.length > 15 ? post.title.slice(0, 15) + '...' : post.title)}
+            </h4>
+            <p>👍 ${post.likes} 赞 | 💬 ${post.comments.length} 评论</p>
+          </div>
+        `).join('');
+      }
+
+      // 渲染知识库文章
+      function renderKnowledgeBase() {
         const knowledgeBaseContent = document.getElementById('knowledge-base-content');
-        knowledgeBaseContent.innerHTML = '';
-        
-        knowledgeBaseArticles.forEach(article => {
-          const articleItem = document.createElement('div');
-          articleItem.className = 'knowledge-base-item';
-          articleItem.innerHTML = `
-            <h4>${article.title}</h4>
-            <p>${article.content}</p>
-            <p style="font-size: 11px; color: #999; margin-top: 5px;">作者：${article.author} | ${article.time}</p>
-          `;
-          knowledgeBaseContent.appendChild(articleItem);
-        });
+        if (!knowledgeBaseContent) return;
+
+        knowledgeBaseContent.innerHTML = knowledgeBaseArticles.map(article => `
+          <div class="knowledge-base-item">
+            <h4>${escapeHtml(article.title)}</h4>
+            <p>${escapeHtml(article.content)}</p>
+            <p style="font-size: 11px; color: #999; margin-top: 5px;">作者：${escapeHtml(article.author)} | ${escapeHtml(article.time)}</p>
+          </div>
+        `).join('');
       }
-      
-      // 切换点赞状      window.toggleLike = function(postId) {
+
+      // 显示帖子详情
+      window.showPostDetail = function(postId) {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        const categoryLabels = {
+          'tax': '税务',
+          'accounting': '会计',
+          'audit': '审计',
+          'finance': '财务管理',
+          'other': '其他'
+        };
+
+        const detailContent = document.getElementById('post-detail-content');
+        detailContent.innerHTML = `
+          <div style="margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:bold;color:#1a2d42;margin-bottom:10px;">${escapeHtml(post.title)}</div>
+            <div style="font-size:12px;color:#666;margin-bottom:15px;">
+              作者：${escapeHtml(post.author)} | 发布时间：${escapeHtml(post.time)} | 浏览：${post.views} |
+              <span style="background:${getCategoryColor(post.category)};color:white;padding:2px 8px;border-radius:3px;">${categoryLabels[post.category]}</span>
+            </div>
+            <div style="font-size:14px;line-height:1.8;color:#333;padding:15px;background:#f8f9fa;border-radius:8px;">${escapeHtml(post.content)}</div>
+            <div style="margin-top:10px;">
+              ${post.tags.map(tag => `<span class="hot-tag" style="cursor:default;margin-right:5px;">${escapeHtml(tag)}</span>`).join('')}
+            </div>
+          </div>
+          <div style="display:flex;gap:15px;margin-bottom:20px;">
+            <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id});showPostDetail(${post.id});">
+              <span>👍</span>
+              <span>${post.likes} 赞</span>
+            </button>
+            <button class="action-btn ${post.bookmarked ? 'bookmarked' : ''}" onclick="toggleBookmark(${post.id});showPostDetail(${post.id});">
+              <span>⭐</span>
+              <span>${post.bookmarked ? '已收藏' : '收藏'}</span>
+            </button>
+          </div>
+          <div style="border-top:1px solid #e0e0e0;padding-top:20px;">
+            <h4 style="margin-bottom:15px;">评论 (${post.comments.length})</h4>
+            ${post.comments.length > 0 ? post.comments.map(comment => `
+              <div class="comment-item" style="margin-bottom:10px;">
+                <div class="comment-header">${escapeHtml(comment.author)} | ${escapeHtml(comment.time)}</div>
+                <div class="comment-content">${escapeHtml(comment.content)}</div>
+              </div>
+            `).join('') : '<div style="color:#999;text-align:center;padding:20px;">暂无评论</div>'}
+            ${isLoggedIn ? `
+              <div style="margin-top:15px;">
+                <textarea id="detail-comment-input" placeholder="写下你的评论..." style="width:100%;min-height:80px;padding:10px;border:1px solid #ddd;border-radius:4px;resize:vertical;"></textarea>
+                <button class="btn btn-primary" style="margin-top:10px;" onclick="addCommentFromDetail(${post.id})">发表评论</button>
+              </div>
+            ` : '<p style="font-size: 13px; color: #666; margin-top:15px;">登录后可以发表评论</p>'}
+          </div>
+        `;
+
+        document.getElementById('detail-title').textContent = '帖子详情';
+        document.getElementById('post-detail-modal').style.display = 'flex';
+      };
+
+      // 从详情页添加评论
+      window.addCommentFromDetail = function(postId) {
+        if (!isLoggedIn) {
+          alert('请先登录后再发表评论');
+          return;
+        }
+
+        const commentInput = document.getElementById('detail-comment-input');
+        const content = commentInput.value.trim();
+
+        if (content) {
+          const post = posts.find(p => p.id === postId);
+          if (post) {
+            post.comments.push({
+              author: currentUser ? currentUser.name : '当前用户',
+              content: content,
+              time: new Date().toLocaleString('zh-CN')
+            });
+            commentInput.value = '';
+            renderPosts();
+            showPostDetail(postId);
+          }
+        }
+      };
+
+      // 切换点赞状态
+      window.toggleLike = function(postId) {
         if (!isLoggedIn) {
           alert('请先登录后再点赞');
           return;
         }
-        
+
         const post = posts.find(p => p.id === postId);
         if (post) {
           post.liked = !post.liked;
-          post.likes += post.liked  1 : -1;
+          post.likes += post.liked ? 1 : -1;
           renderPosts();
         }
       };
-      
-      // 切换收藏状      window.toggleBookmark = function(postId) {
+
+      // 切换收藏状态
+      window.toggleBookmark = function(postId) {
         if (!isLoggedIn) {
           alert('请先登录后再收藏');
           return;
         }
-        
+
         const post = posts.find(p => p.id === postId);
         if (post) {
           post.bookmarked = !post.bookmarked;
           renderPosts();
         }
       };
-      
+
       // 切换评论显示
       window.toggleComments = function(postId) {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection) {
-          commentsSection.style.display = commentsSection.style.display === 'none'  'block' : 'none';
+          commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
         }
       };
-      
+
       // 添加评论
       window.addComment = function(postId) {
         if (!isLoggedIn) {
           alert('请先登录后再发表评论');
           return;
         }
-        
+
         const commentInput = document.getElementById(`comment-input-${postId}`);
         const content = commentInput.value.trim();
-        
+
         if (content) {
           const post = posts.find(p => p.id === postId);
           if (post) {
             post.comments.push({
-              author: '当前用户',
+              author: currentUser ? currentUser.name : '当前用户',
               content: content,
               time: new Date().toLocaleString('zh-CN')
             });
@@ -1029,7 +1353,44 @@
           }
         }
       };
-      
+
+      // 标签筛选
+      window.filterByTag = function(tag) {
+        currentSearch = tag;
+        currentPage = 1;
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = tag;
+        renderPosts();
+      };
+
+      // 分类标签切换
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentCategory = this.dataset.category;
+          currentPage = 1;
+          renderPosts();
+        });
+      });
+
+      // 搜索功能
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          currentSearch = this.value.trim();
+          currentPage = 1;
+          renderPosts();
+        });
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            currentSearch = this.value.trim();
+            currentPage = 1;
+            renderPosts();
+          }
+        });
+      }
+
       // 打开发布新帖模态框
       document.getElementById('create-post-btn').addEventListener('click', function() {
         if (!isLoggedIn) {
@@ -1039,106 +1400,161 @@
         }
         document.getElementById('create-post-modal').style.display = 'flex';
       });
-      
+
       // 关闭模态框
       document.getElementById('modal-close').addEventListener('click', function() {
         document.getElementById('create-post-modal').style.display = 'none';
       });
-      
+
       document.getElementById('cancel-post').addEventListener('click', function() {
         document.getElementById('create-post-modal').style.display = 'none';
       });
-      
+
+      // 关闭详情模态框
+      document.getElementById('detail-modal-close').addEventListener('click', function() {
+        document.getElementById('post-detail-modal').style.display = 'none';
+      });
+
+      // 点击模态框外部关闭
+      document.getElementById('create-post-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+        }
+      });
+
+      document.getElementById('post-detail-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+        }
+      });
+
       // 发布新帖
       document.getElementById('post-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const title = document.getElementById('post-title').value.trim();
         const content = document.getElementById('post-content').value.trim();
-        
-        if (title && content) {
-          posts.unshift({
-            id: posts.length + 1,
-            title: title,
-            content: content,
-            author: '当前用户',
-            time: new Date().toLocaleString('zh-CN'),
-            likes: 0,
-            comments: [],
-            liked: false,
-            bookmarked: false
-          });
-          
-          document.getElementById('create-post-modal').style.display = 'none';
-          document.getElementById('post-form').reset();
-          renderPosts();
-          alert('帖子发布成功);
+        const category = document.getElementById('post-category').value;
+        const tagsInput = document.getElementById('post-tags').value.trim();
+        const tags = tagsInput ? tagsInput.split(/[,，]/).map(t => t.trim()).filter(t => t) : [];
+
+        if (title.length < 5) {
+          alert('标题至少需要5个字');
+          return;
         }
+        if (content.length < 20) {
+          alert('内容至少需要20个字');
+          return;
+        }
+
+        posts.unshift({
+          id: posts.length + 1,
+          title: title,
+          content: content,
+          author: currentUser ? currentUser.name : '当前用户',
+          time: new Date().toLocaleString('zh-CN'),
+          likes: 0,
+          category: category,
+          tags: tags,
+          views: 0,
+          comments: [],
+          liked: false,
+          bookmarked: false
+        });
+
+        document.getElementById('create-post-modal').style.display = 'none';
+        document.getElementById('post-form').reset();
+        currentPage = 1;
+        renderPosts();
+        alert('帖子发布成功！');
       });
-      
+
       // 登录按钮
       document.getElementById('login-btn').addEventListener('click', function() {
         window.location.href = 'login.html';
       });
-      
-      // 退出按      document.getElementById('logout-btn').addEventListener('click', function() {
-        // 清除localStorage中的用户信息
+
+      // 退出按钮
+      document.getElementById('logout-btn').addEventListener('click', function() {
         localStorage.removeItem('userInfo');
         isLoggedIn = false;
         userType = '';
+        currentUser = null;
         updateUserInfo();
-        alert('已退出登);
+        alert('已退出登录');
       });
-      
+
       // 更新用户信息
       function updateUserInfo() {
+        const userTypeEl = document.getElementById('user-type');
+        const userStatusEl = document.getElementById('user-status');
+        const userPostsEl = document.getElementById('user-posts');
+
         if (isLoggedIn) {
           document.getElementById('login-btn').style.display = 'none';
           document.getElementById('logout-btn').style.display = 'inline-block';
-          document.getElementById('user-type').textContent = `用户类型{userType === 'personal'  '个人用户' : '企业用户'}`;
-          document.getElementById('user-status').textContent = '状态：已登;
+          if (userTypeEl) userTypeEl.textContent = `用户类型：${userType === 'personal' ? '个人用户' : '企业用户'}`;
+          if (userStatusEl) userStatusEl.textContent = '状态：已登录';
+          if (userPostsEl) {
+            userPostsEl.style.display = 'block';
+            const myPostsCount = posts.filter(p => p.author === (currentUser ? currentUser.name : '当前用户')).length;
+            userPostsEl.innerHTML = `发帖数：<span>${myPostsCount}</span>`;
+          }
         } else {
           document.getElementById('login-btn').style.display = 'inline-block';
           document.getElementById('logout-btn').style.display = 'none';
-          document.getElementById('user-type').textContent = '用户类型：未登录';
-          document.getElementById('user-status').textContent = '状态：未登;
+          if (userTypeEl) userTypeEl.textContent = '用户类型：未登录';
+          if (userStatusEl) userStatusEl.textContent = '状态：未登录';
+          if (userPostsEl) userPostsEl.style.display = 'none';
         }
       }
-      
-      // 检查登录状      function checkLoginStatus() {
-        // 从localStorage中获取登录状        const userInfo = localStorage.getItem('userInfo');
+
+      // 检查登录状态
+      function checkLoginStatus() {
+        const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
           const parsedUserInfo = JSON.parse(userInfo);
           isLoggedIn = parsedUserInfo.isLoggedIn || false;
           userType = parsedUserInfo.userType || '';
+          currentUser = {
+            id: parsedUserInfo.phone || 'user',
+            name: parsedUserInfo.phone || '当前用户'
+          };
         } else {
           isLoggedIn = false;
           userType = '';
+          currentUser = null;
         }
         updateUserInfo();
       }
-      
-      // 初始      checkLoginStatus();
+
+      // 初始化
+      checkLoginStatus();
       renderPosts();
       renderKnowledgeBase();
-      
-      // 浏览器功      const searchInput = document.querySelector('.browser-bar input');
-      const searchButton = document.querySelector('.browser-bar .btn-primary');
-      
-      searchButton.addEventListener('click', function() {
-        const query = searchInput.value.trim();
-        if (query) {
-          alert('搜索: ' + query);
-        }
-      });
-      
-      searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          const query = searchInput.value.trim();
+
+      // 浏览器功能
+      const browserSearchInput = document.querySelector('.browser-bar input');
+      const browserSearchButton = document.querySelector('.browser-bar .btn-primary');
+
+      if (browserSearchButton) {
+        browserSearchButton.addEventListener('click', function() {
+          const query = browserSearchInput.value.trim();
           if (query) {
             alert('搜索: ' + query);
           }
-        }
-      });
+        });
+      }
+
+      if (browserSearchInput) {
+        browserSearchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            const query = browserSearchInput.value.trim();
+            if (query) {
+              alert('搜索: ' + query);
+            }
+          }
+        });
+      }
     });
   </script>
 <!-- 引用蜻蜓聊天-->

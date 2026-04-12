@@ -993,21 +993,30 @@
   <script src="payment.js"></script>
   <script>
     // Navigation menu functions
-    function toggleSubmenu(element) {
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
       if (navItem) {
+        // 关闭其他同级菜单
+        const parent = navItem.parentElement;
+        if (parent) {
+          parent.querySelectorAll(':scope > .nav-item.has-submenu.active, :scope > .submenu-item.has-submenu.active').forEach(item => {
+            if (item !== navItem) {
+              item.classList.remove('active');
+            }
+          });
+        }
         navItem.classList.toggle('active');
       }
-    }
+    };
 
-    function toggleMemberSubmenu(element) {
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
+    };
 
-    function handleLogout() {
+    window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userProfile');
@@ -1015,9 +1024,9 @@
         localStorage.removeItem('userTransactions');
         window.location.href = 'login.html';
       }
-    }
+    };
 
-    function showModule(module) {
+    window.showModule = function(module) {
       const moduleMap = {
         'contract-management': 'finance_software.html',
         'seal-management': 'finance_software.html',
@@ -1041,7 +1050,7 @@
       if (target) {
         window.location.href = target;
       }
-    }
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
       // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转

@@ -681,6 +681,13 @@
     };
     
     document.addEventListener('DOMContentLoaded', function() {
+      // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
+      document.querySelectorAll('.submenu-item a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      });
+
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
       const tabContents = document.querySelectorAll('.tab-content');

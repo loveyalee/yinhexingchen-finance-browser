@@ -717,11 +717,14 @@
                 <button onclick="setTaskFilter('high')">高优先级</button>
                 <button onclick="setTaskFilter('today')">今天到期</button>
                 <button onclick="setTaskFilter('assignee:会计')">会计</button>
+                <button onclick="setTaskFilter('assignee:出纳')">出纳</button>
               </div>
+              <input type="text" id="taskSearchInput" placeholder="搜索任务/负责人/来源" style="width:100%;height:38px;padding:0 12px;border:1px solid rgba(26,95,168,0.14);border-radius:12px;margin-bottom:10px;" oninput="setTaskSearch(this.value)">
               <div id="taskBoard" style="display:grid;gap:10px;"></div>
               <div class="quick-action-bar">
                 <button onclick="sendMessage('帮我生成今天的财务待办')">生成待办</button>
                 <button onclick="clearTaskBoard()">清空待办</button>
+                <button onclick="exportFilteredTasks()">导出清单</button>
               </div>
             </div>
             
@@ -864,6 +867,8 @@
       renderTaskStats();
       renderLastWorkCard();
       setTaskFilter(getTaskFilter());
+      const taskSearchInput = document.getElementById('taskSearchInput');
+      if (taskSearchInput) taskSearchInput.value = getTaskSearch();
 
       chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -958,6 +963,16 @@
       return 'today';
     }
 
+    function getTaskSearch() {
+      return localStorage.getItem('dragonflyAssistantTaskSearch') || '';
+    }
+
+    function setTaskSearch(value) {
+      localStorage.setItem('dragonflyAssistantTaskSearch', value || '');
+      renderTaskBoard();
+      renderTaskStats();
+    }
+
     function getTaskFilter() {
       return localStorage.getItem(smartAssistantTaskFilterKey) || 'all';
     }
@@ -1023,7 +1038,13 @@
       if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
       if (filter.startsWith('assignee:')) {
         const assignee = filter.split(':')[1];
-        return tasks.filter(function(task) { return task.assignee === assignee; });
+        tasks = tasks.filter(function(task) { return task.assignee === assignee; });
+      }
+      const keyword = getTaskSearch().trim();
+      if (keyword) {
+        tasks = tasks.filter(function(task) {
+          return task.title.includes(keyword) || (task.source || '').includes(keyword) || (task.assignee || '').includes(keyword);
+        });
       }
       return tasks;
     }
@@ -1032,11 +1053,18 @@
       const wrap = document.getElementById('taskStats');
       if (!wrap) return;
       const tasks = getStoredTasks();
+      const overdueRisk = tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); }).length;
+      const assigneeSet = new Set(tasks.map(function(task) { return task.assignee || '未分配'; }));
+      const completionRate = tasks.length ? Math.round((tasks.filter(function(task) { return task.done; }).length / tasks.length) * 100) : 0;
       const stats = [
         { label: '总任务', value: tasks.length },
         { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
         { label: '高优先级', value: tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).length },
-        { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length }
+        { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length },
+        { label: '完成率', value: `${completionRate}%` },
+        { label: '逾期风险', value: overdueRisk },
+        { label: '负责人数', value: assigneeSet.size },
+        { label: '当前筛选', value: getTaskFilter() === 'all' ? '全部' : getTaskFilter() }
       ];
       wrap.innerHTML = stats.map(function(item) {
         return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.label}</div><div style="font-size:22px;font-weight:700;color:#1a2d42">${item.value}</div></div>`;
@@ -1235,6 +1263,41 @@ ${pendingTasks}`;
       navigator.clipboard.writeText(text).then(function() {
         addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${label}已复制</div><div style="line-height:1.8;color:#44576b">你可以直接粘贴到群聊、邮件或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
       });
+    }
+
+    function exportFilteredTasks() {
+      const tasks = getFilteredTasks(getStoredTasks());
+      const keyword = getTaskSearch();
+      const title = `任务清单导出（筛选：${getTaskFilter()}${keyword ? ` / 搜索：${keyword}` : ''}）`;
+      const body = tasks.length ? tasks.map(function(task) {
+        return `- ${task.title}｜负责人：${task.assignee || '未分配'}｜优先级：${task.priority || '低'}｜截止：${task.deadline || '本月'}｜状态：${task.done ? '已完成' : '未完成'}`;
+      }).join('
+') : '- 当前筛选下暂无任务';
+      const text = `${title}
+${body}`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">筛选任务已复制</div><div style="line-height:1.8;color:#44576b">可直接粘贴到交办清单、群消息或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function batchUpdateTasks(options) {
+      const tasks = getStoredTasks().map(function(task) {
+        const matchPriority = !options.priority || task.priority === options.priority;
+        const matchDeadline = !options.deadline || task.deadline === options.deadline;
+        const matchGroup = !options.group || task.group === options.group;
+        if (matchPriority && matchDeadline && matchGroup) {
+          return {
+            ...task,
+            assignee: options.assignee || task.assignee,
+            deadline: options.newDeadline || task.deadline,
+            priority: options.newPriority || task.priority
+          };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
     }
 
     function generateSpecialReport(type) {
@@ -1463,33 +1526,26 @@ ${pendingTasks}`;
 
       if (/把.*交给|改成.*负责|负责人改成/.test(text)) {
         const assigneeMatch = text.match(/会计|出纳|财务经理|老板/);
+        const priority = /高优先级/.test(text) ? 'high' : null;
         const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
-        if (assigneeMatch && group) {
-          const tasks = getStoredTasks().map(function(task) {
-            return task.group === group ? { ...task, assignee: assigneeMatch[0] } : task;
-          });
-          saveTasks(tasks);
-          renderTaskBoard();
-          renderTaskStats();
-          return `已将${taskGroupLabels[group]}相关任务负责人统一调整为 <b>${assigneeMatch[0]}</b>。`;
+        if (assigneeMatch && (group || priority)) {
+          batchUpdateTasks({ group, priority, assignee: assigneeMatch[0] });
+          return `已按你的要求批量调整负责人为 <b>${assigneeMatch[0]}</b>。`;
         }
       }
 
       if (/延期到|延到/.test(text)) {
         const deadlineMatch = text.match(/今天|明天|本周|下周|本月/);
+        const priority = /高优先级/.test(text) ? 'high' : null;
+        const todayDeadline = /今天到期/.test(text) ? '今天' : null;
         const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
-        if (deadlineMatch && group) {
-          const tasks = getStoredTasks().map(function(task) {
-            return task.group === group ? { ...task, deadline: deadlineMatch[0] } : task;
-          });
-          saveTasks(tasks);
-          renderTaskBoard();
-          renderTaskStats();
-          return `已将${taskGroupLabels[group]}相关任务统一延期到 <b>${deadlineMatch[0]}</b>。`;
+        if (deadlineMatch && (group || priority || todayDeadline)) {
+          batchUpdateTasks({ group, priority, deadline: todayDeadline, newDeadline: deadlineMatch[0] });
+          return `已按你的要求批量调整截止时间为 <b>${deadlineMatch[0]}</b>。`;
         }
       }
 
-      if (/只看|筛选/.test(text)) {
+      if (/只看|筛选|搜索/.test(text)) {
         if (/高优先级/.test(text)) {
           setTaskFilter('high');
           return '已切换为只看高优先级任务。';
@@ -1502,8 +1558,27 @@ ${pendingTasks}`;
           setTaskFilter('assignee:会计');
           return '已切换为只看会计负责的任务。';
         }
+        if (/出纳/.test(text)) {
+          setTaskFilter('assignee:出纳');
+          return '已切换为只看出纳负责的任务。';
+        }
+        const keywordMatch = text.match(/搜索(.+)/);
+        if (keywordMatch) {
+          setTaskSearch(keywordMatch[1].trim());
+          const input = document.getElementById('taskSearchInput');
+          if (input) input.value = keywordMatch[1].trim();
+          return `已搜索关键词：<b>${escapeHtml(keywordMatch[1].trim())}</b>。`;
+        }
         setTaskFilter('all');
+        setTaskSearch('');
+        const input = document.getElementById('taskSearchInput');
+        if (input) input.value = '';
         return '已切换为查看全部任务。';
+      }
+
+      if (/导出清单|导出任务|复制任务/.test(text)) {
+        exportFilteredTasks();
+        return '正在导出当前筛选下的任务清单。';
       }
 
       if (/专项报告|税务风险|资金日报|月末结账摘要|工资核算摘要/.test(text)) {

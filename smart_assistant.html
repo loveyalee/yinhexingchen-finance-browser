@@ -942,6 +942,14 @@
       localStorage.setItem(smartAssistantTaskKey, JSON.stringify(tasks.slice(0, 12)));
     }
 
+    function getDefaultAssignee(group) {
+      const role = getAssistantRole();
+      if (role === 'cashier' || group === 'cashflow') return '出纳';
+      if (role === 'boss') return '老板';
+      if (group === 'tax' || group === 'monthEnd') return '会计';
+      return '财务经理';
+    }
+
     function inferTaskMeta(title, group) {
       const normalizedGroup = group || resolveTaskGroup(title);
       const priority = /税务|报税|资金|现金流|工资/.test(title) ? 'high' : (/月末|结账|发票/.test(title) ? 'medium' : 'low');
@@ -961,7 +969,8 @@
             source: source || '智能助手',
             group: meta.group,
             priority: meta.priority,
-            deadline: meta.deadline
+            deadline: meta.deadline,
+            assignee: getDefaultAssignee(meta.group)
           });
         }
       });
@@ -1000,6 +1009,11 @@
                       <div class="task-badges">
                         <span class="task-badge priority-${task.priority || 'low'}">优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
                         <span class="task-badge">截止：${escapeHtml(task.deadline || '本月')}</span>
+                        <span class="task-badge">负责人：${escapeHtml(task.assignee || '未分配')}</span>
+                      </div>
+                      <div class="quick-action-bar" style="margin-top:8px;">
+                        <button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
+                        <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
                       </div>
                     </div>
                   </label>
@@ -1021,6 +1035,26 @@
 
     function clearTaskBoard() {
       localStorage.removeItem(smartAssistantTaskKey);
+      renderTaskBoard();
+    }
+
+    function updateTaskAssignee(id) {
+      const value = prompt('请输入负责人：会计 / 出纳 / 财务经理 / 老板');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, assignee: value } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+    }
+
+    function deferTask(id) {
+      const value = prompt('延期到：今天 / 明天 / 本周 / 下周 / 本月', '明天');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, deadline: value } : task;
+      });
+      saveTasks(tasks);
       renderTaskBoard();
     }
 
@@ -1118,6 +1152,23 @@
       `;
     }
 
+    function exportReport(period) {
+      const tasks = getStoredTasks();
+      const doneCount = tasks.filter(function(task) { return task.done; }).length;
+      const pendingTasks = tasks.filter(function(task) { return !task.done; }).map(function(task) {
+        return `- ${task.title}（负责人：${task.assignee || '未分配'}，截止：${task.deadline || '本月'}）`;
+      }).join('
+') || '- 暂无待处理事项';
+      const label = period === 'weekly' ? '周报' : '日报';
+      const text = `${label}
+已完成：${doneCount} 项
+待处理事项：
+${pendingTasks}`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${label}已复制</div><div style="line-height:1.8;color:#44576b">你可以直接粘贴到群聊、邮件或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
     function generateWorkReport(period) {
       const tasks = getStoredTasks();
       const doneCount = tasks.filter(function(task) { return task.done; }).length;
@@ -1133,7 +1184,7 @@
         '将未完成事项同步到下一个工作日/周。',
         '对资金、税务、月末事项分别做一次复盘。'
       ]);
-      addMessage('assistant', report, true);
+      addMessage('assistant', report + `<div style="margin-top:10px"><button onclick="exportReport('${period}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">复制${period === 'weekly' ? '周报' : '日报'}</button></div>`, true);
     }
 
     function buildTaskCard(title, steps, actions) {
@@ -1326,26 +1377,47 @@
       }
 
       if (/日报|今日总结/.test(text)) {
+        saveContext({ topic: 'report', type: 'daily' });
         return buildResultCard('今日财务工作摘要', '今日工作重点聚焦在待办推进、税务节点和资金安排。建议下班前确认高优先级事项是否已完成。', [
           '税务或资金类任务若未完成，明日优先处理。',
           '请留意待办中截止时间为今天的事项。'
         ], [
           '生成并检查明日待办。',
-          '对未完成事项补充责任人和计划时间。'
+          '对未完成事项补充责任人和计划时间。',
+          '如需发送汇报，可点击复制日报。'
         ]);
       }
 
       if (/周报|本周总结/.test(text)) {
+        saveContext({ topic: 'report', type: 'weekly' });
         return buildResultCard('本周财务工作摘要', '本周建议重点复盘税务申报、现金流变化、月末结账准备和高风险客户回款。', [
           '若本周仍有高优先级未完成事项，需提前锁定下周计划。',
           '请关注资金缺口和异常税负波动。'
         ], [
           '生成下周优先级任务清单。',
-          '对资金和税务事项分别做专项复盘。'
+          '对资金和税务事项分别做专项复盘。',
+          '如需汇报，可点击复制周报。'
         ]);
       }
 
       if (/继续|下一步|然后|接着/.test(text)) {
+        if (context.topic === 'monthEnd') {
+          return buildTaskCard('月末结账后续动作', [
+            '复核未达账项和暂估凭证是否已处理。',
+            '确认报表勾稽关系和利润波动解释。',
+            '准备结账汇报摘要给管理层。'
+          ], []);
+        }
+        if (context.topic === 'cashflow') {
+          return buildTaskCard('资金安排后续动作', [
+            '按到期日重排付款优先级。',
+            '更新回款跟进记录和缺口预测。',
+            '把大额资金安排同步给老板与出纳。'
+          ], []);
+        }
+        if (context.topic === 'report') {
+          return '你可以继续让我“复制日报”“复制周报”或“生成下周任务清单”，我会接着当前汇报场景继续。';
+        }
         return '你可以直接告诉我想继续哪一类工作，例如“继续报税”“继续报销”“继续月末结账”或“继续资金安排”，我会沿着刚才的话题继续。';
       }
 

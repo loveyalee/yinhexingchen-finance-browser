@@ -569,7 +569,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>

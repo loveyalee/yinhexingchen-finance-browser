@@ -717,10 +717,13 @@
         });
       });
 
-      // 自动展开"财务管理"菜单
-      const financeMenu = document.querySelector('.nav-item.has-submenu:nth-child(2)');
-      if (financeMenu) {
-        financeMenu.classList.add('active');
+      // 自动展开包含当前页面的菜单
+      const activeLink = document.querySelector('.submenu-item a.active');
+      if (activeLink) {
+        const parentMenu = activeLink.closest('.nav-item.has-submenu');
+        if (parentMenu) {
+          parentMenu.classList.add('active');
+        }
       }
 
       // 标签切换功能

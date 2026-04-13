@@ -840,8 +840,19 @@
     window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
       if (navItem) {
-        // 只切换当前菜单的active状态，不影响其他菜单
+        // 移除所有导航项的高亮状态
+        document.querySelectorAll('.nav-item a.active').forEach(a => {
+          a.classList.remove('active');
+        });
+
+        // 切换当前菜单的active状态
         navItem.classList.toggle('active');
+
+        // 如果当前菜单展开，给它的高亮
+        if (navItem.classList.contains('active')) {
+          element.classList.add('active');
+        }
+
         // 确保所有子菜单（三级菜单）保持关闭状态
         const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
         subItems.forEach(item => {

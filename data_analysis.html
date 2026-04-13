@@ -689,7 +689,26 @@
         window.location.href = 'finance_management.html';
       }
     };
-    
+
+    // 切换"我的会员"二级菜单
+    window.toggleMemberSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+
+    // 处理退出登录
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        window.location.href = 'login.html';
+      }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
       // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
       document.querySelectorAll('.submenu-item a').forEach(link => {

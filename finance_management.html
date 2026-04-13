@@ -932,15 +932,34 @@
   </div>
 
   <script>
-    // 显示模块内容
+    // 显示模块内容或跳转到对应页面
     window.showModule = function(moduleId) {
-      // 隐藏所有模块
+      const moduleMap = {
+        'inventory-management': 'finance_software.html',
+        'company-management': 'member.html',
+        'finance-management': 'finance_management.html',
+        'financing-bank': 'online_store.html',
+        'financing-equity': 'online_store.html',
+        'financing-bond': 'online_store.html',
+        'financing-lease': 'online_store.html',
+        'financing-government': 'online_store.html',
+        'financing-selfservice': 'online_store.html',
+        'bidding': 'online_store.html',
+        'tax-equity': 'tax_zone.html'
+      };
+
+      const target = moduleMap[moduleId];
+      if (target) {
+        window.location.href = target;
+        return;
+      }
+
+      // 如果没有映射，尝试在当前页面内切换模块
       const modules = document.querySelectorAll('.module-content');
       modules.forEach(module => {
         module.classList.remove('active');
       });
 
-      // 显示选中的模块
       const selectedModule = document.getElementById(moduleId);
       if (selectedModule) {
         selectedModule.classList.add('active');

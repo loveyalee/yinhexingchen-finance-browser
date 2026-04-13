@@ -717,6 +717,12 @@
         });
       });
 
+      // 自动展开"财务管理"菜单
+      const financeMenu = document.querySelector('.nav-item.has-submenu:nth-child(2)');
+      if (financeMenu) {
+        financeMenu.classList.add('active');
+      }
+
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
       const tabContents = document.querySelectorAll('.tab-content');

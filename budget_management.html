@@ -671,13 +671,49 @@
   </div>
   
   <script>
-    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
+    // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
     };
-    
+
+    // 切换"我的会员"二级菜单
+    window.toggleMemberSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+
+    // 处理退出登录
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        window.location.href = 'login.html';
+      }
+    };
+
+    // showModule 函数（用于处理子菜单点击）
+    window.showModule = function(moduleName) {
+      console.log('显示模块', moduleName);
+      if (moduleName === 'inventory-management') {
+        window.location.href = 'inventory_management.html';
+      } else if (moduleName.startsWith('tax-')) {
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        window.location.href = 'enterprise_management.html';
+      } else if (moduleName === 'company-management' || moduleName === 'bidding') {
+        window.location.href = 'enterprise_management.html';
+      } else {
+        window.location.href = 'finance_management.html';
+      }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
       // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
       document.querySelectorAll('.submenu-item a').forEach(link => {

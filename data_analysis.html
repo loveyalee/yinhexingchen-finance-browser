@@ -415,13 +415,13 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
-            <li class="submenu-item"><a href="data_analysis.html" class="active">数据分析</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
-            <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
-            <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" class="active" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">

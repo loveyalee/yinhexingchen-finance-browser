@@ -665,10 +665,14 @@
       }
     };
     
-    // showModule 函数（用于处理子菜单点击    window.showModule = function(moduleName) {
-      console.log('显示模块, moduleName);
+    // showModule 函数（用于处理子菜单点击
+    window.showModule = function(moduleName) {
+      console.log('显示模块', moduleName);
       // 根据模块名跳转到相应页面
-      if (moduleName.startsWith('tax-')) {
+      if (moduleName === 'inventory-management') {
+        // 进销存模块
+        window.location.href = 'inventory_management.html';
+      } else if (moduleName.startsWith('tax-')) {
         // 税务专区模块
         window.location.href = 'tax_zone.html';
       } else if (moduleName.startsWith('financing-')) {

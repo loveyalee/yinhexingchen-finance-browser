@@ -470,7 +470,13 @@
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
-        <li class="nav-item"><a href="member.html">我的会员</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
       </ul>
     </div>
     

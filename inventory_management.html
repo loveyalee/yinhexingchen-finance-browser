@@ -867,6 +867,10 @@
     }
 
     @media print {
+      @page {
+        size: A4;
+        margin: 15mm;
+      }
       body * {
         visibility: hidden;
       }
@@ -878,6 +882,23 @@
         left: 0;
         top: 0;
         width: 100%;
+        padding: 0 !important;
+        border: none !important;
+        background: #fff !important;
+      }
+      .print-preview-doc {
+        width: 100%;
+        max-width: 210mm;
+        margin: 0 auto;
+        font-size: 12px;
+      }
+      .print-preview-doc .doc-header h2 {
+        font-size: 20px;
+      }
+      .print-preview-doc .items-table th,
+      .print-preview-doc .items-table td {
+        padding: 5px 6px;
+        font-size: 11px;
       }
       .no-print {
         display: none !important;

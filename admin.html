@@ -402,14 +402,10 @@
     <div class="sidebar">
       <div class="logo">银河星辰财务浏览器管理后台</div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="#" class="active">人员管理</a></li>
-        <li class="nav-item"><a href="#">用户管理</a></li>
-        <li class="nav-item"><a href="#">仓库管理</a></li>
-        <li class="nav-item"><a href="#">客服管理</a></li>
-        <li class="nav-item"><a href="#">投诉管理</a></li>
-        <li class="nav-item"><a href="#">内容管理</a></li>
-        <li class="nav-item"><a href="#">订单管理</a></li>
-        <li class="nav-item"><a href="#">服务器管理</a></li>
+        <li class="nav-item"><a href="#" class="active" data-module="overview">管理概览</a></li>
+        <li class="nav-item"><a href="#" data-module="users">用户管理</a></li>
+        <li class="nav-item"><a href="#" data-module="sms">短信管理</a></li>
+        <li class="nav-item"><a href="#" data-module="servers">服务器管理</a></li>
       </ul>
     </div>
     
@@ -430,51 +426,168 @@
       </div>
       
       <div class="content-area">
-        <h2>管理后台</h2>
-        <p>系统管理中心</p>
-        
-        <!-- 管理模块 -->
-        <div class="admin-modules">
-          <div class="module-grid">
-            <div class="module-card">
-              <h3>人员管理</h3>
-              <p>管理系统内部人员</p>
-              <button class="btn btn-primary">进入</button>
+        <div id="module-overview" class="module-section">
+          <h2>管理后台</h2>
+          <p>系统管理中心</p>
+          
+          <div class="admin-modules">
+            <div class="module-grid">
+              <div class="module-card">
+                <h3>用户管理</h3>
+                <p>查看注册用户、企业用户与同步状态</p>
+                <button class="btn btn-primary" data-open-module="users">进入</button>
+              </div>
+              <div class="module-card">
+                <h3>短信管理</h3>
+                <p>查看短信通道、验证码缓存和发送限制</p>
+                <button class="btn btn-primary" data-open-module="sms">进入</button>
+              </div>
+              <div class="module-card">
+                <h3>服务器管理</h3>
+                <p>预留服务器监控与运维入口</p>
+                <button class="btn btn-primary" data-open-module="servers">进入</button>
+              </div>
             </div>
-            <div class="module-card">
-              <h3>用户管理</h3>
-              <p>管理注册用户</p>
-              <button class="btn btn-primary">进入</button>
+          </div>
+        </div>
+
+        <div id="module-users" class="module-section" style="display:none;">
+          <div class="card">
+            <h3>用户管理</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>注册用户总览</h4>
+                <p id="admin-users-summary">正在加载用户数据...</p>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>手机号</th>
+                      <th>用户类型</th>
+                      <th>机构/企业</th>
+                      <th>同步状态</th>
+                      <th>注册时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-tbody">
+                    <tr><td colspan="5">正在加载...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="module-card">
-              <h3>仓库管理</h3>
-              <p>管理系统仓库</p>
-              <button class="btn btn-primary">进入</button>
+          </div>
+        </div>
+
+        <div id="module-sms" class="module-section" style="display:none;">
+          <div class="admin-overview">
+            <div class="overview-card">
+              <h4>注册短信模板</h4>
+              <div class="value" id="sms-register-config">--</div>
             </div>
-            <div class="module-card">
-              <h3>客服管理</h3>
-              <p>管理客服团队</p>
-              <button class="btn btn-primary">进入</button>
+            <div class="overview-card">
+              <h4>重置密码模板</h4>
+              <div class="value" id="sms-reset-config">--</div>
             </div>
-            <div class="module-card">
-              <h3>投诉管理</h3>
-              <p>处理用户投诉</p>
-              <button class="btn btn-primary">进入</button>
+            <div class="overview-card">
+              <h4>当前限制条数</h4>
+              <div class="value" id="sms-lock-count">0</div>
             </div>
-            <div class="module-card">
-              <h3>内容管理</h3>
-              <p>管理系统内容</p>
-              <button class="btn btn-primary">进入</button>
+            <div class="overview-card">
+              <h4>当前验证码缓存</h4>
+              <div class="value" id="sms-code-count">0</div>
             </div>
-            <div class="module-card">
-              <h3>订单管理</h3>
-              <p>管理系统订单</p>
-              <button class="btn btn-primary">进入</button>
+            <div class="overview-card">
+              <h4>最近短信事件</h4>
+              <div class="value" id="sms-log-count">0</div>
             </div>
-            <div class="module-card">
-              <h3>服务器管理</h3>
-              <p>管理系统服务器</p>
-              <button class="btn btn-primary">进入</button>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div>
+                <h3>短信管理</h3>
+                <p style="color:#666;font-size:14px;">查看短信通道状态、发送限制与验证码缓存，支持手动解除限制。</p>
+              </div>
+              <button class="btn btn-primary" id="refresh-sms-btn">刷新数据</button>
+            </div>
+            <div class="card-content" style="margin-top:16px;">
+              <div class="feature-item">
+                <h4>短信通道状态</h4>
+                <p id="sms-provider-status">正在加载短信配置状态...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>发送限制列表</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>手机号</th>
+                    <th>用途</th>
+                    <th>限制原因</th>
+                    <th>剩余秒数</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="sms-locks-tbody">
+                  <tr><td colspan="5">正在加载...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>验证码缓存</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>手机号</th>
+                    <th>用途</th>
+                    <th>验证码</th>
+                    <th>过期剩余秒数</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="sms-codes-tbody">
+                  <tr><td colspan="5">正在加载...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>最近短信事件</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>手机号</th>
+                    <th>用途</th>
+                    <th>状态</th>
+                    <th>详情</th>
+                  </tr>
+                </thead>
+                <tbody id="sms-logs-tbody">
+                  <tr><td colspan="5">正在加载...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="module-servers" class="module-section" style="display:none;">
+          <div class="card">
+            <h3>服务器管理</h3>
+            <div class="card-content">
+              <div class="feature-item">
+                <h4>运维入口预留</h4>
+                <p>当前可继续扩展部署状态、Nginx 配置、PM2 进程和日志巡检能力。</p>
+              </div>
             </div>
           </div>
         </div>
@@ -491,140 +604,207 @@
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>
   <script>
-    // 检查是否已登录
     function isLoggedIn() {
-      // 简单的登录状态检查
-      // 在实际应用中，应该使用更安全的认证方式
-      // 这里暂时返回true，允许直接访问
-      // 实际应用中应该检查登录状态，例如检查localStorage中的登录令牌
       return true;
     }
-    
-    // 浏览器功能实现
-    console.log('开始执行JavaScript');
+
+    function formatUserType(type) {
+      if (type === 'enterprise') return '企业用户';
+      if (type === 'institution') return '机构用户';
+      return '个人用户';
+    }
+
+    function formatSmsReason(reason) {
+      if (reason === 'provider_limit') return '供应商限流';
+      if (reason === 'cooldown') return '本地冷却';
+      return reason || '-';
+    }
+
+    function showModule(moduleKey) {
+      console.log('showModule called with:', moduleKey);
+      document.querySelectorAll('.module-section').forEach(function(section) {
+        section.style.display = 'none';
+      });
+      var target = document.getElementById('module-' + moduleKey);
+      if (target) {
+        target.style.display = 'block';
+        console.log('Showing module:', moduleKey);
+      } else {
+        console.error('Module not found:', moduleKey);
+      }
+      document.querySelectorAll('.nav-item a').forEach(function(link) {
+        link.classList.toggle('active', link.getAttribute('data-module') === moduleKey);
+      });
+      if (moduleKey === 'users') {
+        loadAdminUsers();
+      }
+      if (moduleKey === 'sms') {
+        loadSmsAdminData();
+      }
+    }
+
+    function loadAdminUsers() {
+      var tbody = document.getElementById('admin-users-tbody');
+      var summary = document.getElementById('admin-users-summary');
+
+      tbody.innerHTML = '<tr><td colspan="5">正在加载用户数据...</td></tr>';
+      summary.textContent = '正在加载...';
+
+      fetch('/api/admin/users')
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            tbody.innerHTML = '<tr><td colspan="5">加载失败：' + (result.message || '未知错误') + '</td></tr>';
+            summary.textContent = '用户数据加载失败';
+            return;
+          }
+          var users = (result.data && result.data.users) || [];
+          summary.textContent = '当前共有 ' + users.length + ' 个注册用户';
+          if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="5">暂无用户数据</td></tr>';
+            return;
+          }
+          tbody.innerHTML = users.map(function(user) {
+            return '<tr>' +
+              '<td>' + (user.phone || '-') + '</td>' +
+              '<td>' + formatUserType(user.user_type) + '</td>' +
+              '<td>' + (user.institution_name || '-') + '</td>' +
+              '<td>' + (user.sync_status || '-') + '</td>' +
+              '<td>' + (user.create_time || '-') + '</td>' +
+            '</tr>';
+          }).join('');
+        })
+        .catch(function(err) {
+          console.error('Load users error:', err);
+          document.getElementById('admin-users-tbody').innerHTML = '<tr><td colspan="5">加载失败：' + err.message + '</td></tr>';
+          document.getElementById('admin-users-summary').textContent = '用户数据加载失败';
+        });
+    }
+
+    function unlockSms(phone, purpose) {
+      fetch('/api/admin/sms/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone, purpose: purpose })
+      }).then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          alert(result.message || (result.success ? '已解除限制' : '操作失败'));
+          if (result.success) loadSmsAdminData();
+        });
+    }
+
+    function clearSmsCode(phone, purpose) {
+      fetch('/api/admin/sms/codes/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone, purpose: purpose })
+      }).then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          alert(result.message || (result.success ? '已清除验证码缓存' : '操作失败'));
+          if (result.success) loadSmsAdminData();
+        });
+    }
+
+    function loadSmsAdminData() {
+      fetch('/api/admin/sms')
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            document.getElementById('sms-provider-status').textContent = result.message || '加载失败';
+            document.getElementById('sms-locks-tbody').innerHTML = '<tr><td colspan="5">加载失败</td></tr>';
+            document.getElementById('sms-codes-tbody').innerHTML = '<tr><td colspan="5">加载失败</td></tr>';
+            document.getElementById('sms-logs-tbody').innerHTML = '<tr><td colspan="5">加载失败</td></tr>';
+            return;
+          }
+          var data = result.data || {};
+          var provider = data.provider || {};
+          var locks = data.locks || [];
+          var codes = data.codes || [];
+          var logs = data.logs || [];
+
+          document.getElementById('sms-register-config').textContent = provider.registerConfigured ? '已配置' : '未配置';
+          document.getElementById('sms-reset-config').textContent = provider.resetPasswordConfigured ? '已配置' : '未配置';
+          document.getElementById('sms-lock-count').textContent = String((data.stats && data.stats.activeLocks) || 0);
+          document.getElementById('sms-code-count').textContent = String((data.stats && data.stats.activeCodes) || 0);
+          document.getElementById('sms-log-count').textContent = String((data.stats && data.stats.recentEvents) || 0);
+          document.getElementById('sms-provider-status').textContent = '短信签名：' + (provider.signName || '未配置') + '；SDK：' + (provider.sdkReady ? '已就绪' : '未安装');
+
+          document.getElementById('sms-locks-tbody').innerHTML = locks.length
+            ? locks.map(function(item) {
+                return `
+                  <tr>
+                    <td>${item.phone}</td>
+                    <td>${item.purpose}</td>
+                    <td>${formatSmsReason(item.reason)}</td>
+                    <td>${item.retryAfter}</td>
+                    <td><button class="btn btn-warning" onclick="unlockSms('${item.phone}', '${item.purpose}')">解除限制</button></td>
+                  </tr>`;
+              }).join('')
+            : '<tr><td colspan="5">当前没有短信限制</td></tr>';
+
+          document.getElementById('sms-codes-tbody').innerHTML = codes.length
+            ? codes.map(function(item) {
+                return `
+                  <tr>
+                    <td>${item.phone}</td>
+                    <td>${item.purpose}</td>
+                    <td>${item.code}</td>
+                    <td>${item.expiresIn}</td>
+                    <td><button class="btn btn-danger" onclick="clearSmsCode('${item.phone}', '${item.purpose}')">清除缓存</button></td>
+                  </tr>`;
+              }).join('')
+            : '<tr><td colspan="5">当前没有验证码缓存</td></tr>';
+
+          document.getElementById('sms-logs-tbody').innerHTML = logs.length
+            ? logs.map(function(item) {
+                return `
+                  <tr>
+                    <td>${item.time || '-'}</td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${item.purpose || '-'}</td>
+                    <td>${item.status || '-'}</td>
+                    <td>${item.detail || '-'}</td>
+                  </tr>`;
+              }).join('')
+            : '<tr><td colspan="5">暂无短信事件日志</td></tr>';
+        })
+        .catch(function(err) {
+          document.getElementById('sms-provider-status').textContent = '加载失败：' + err.message;
+          document.getElementById('sms-locks-tbody').innerHTML = '<tr><td colspan="5">加载失败：' + err.message + '</td></tr>';
+          document.getElementById('sms-codes-tbody').innerHTML = '<tr><td colspan="5">加载失败：' + err.message + '</td></tr>';
+          document.getElementById('sms-logs-tbody').innerHTML = '<tr><td colspan="5">加载失败：' + err.message + '</td></tr>';
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMContentLoaded事件触发');
-      // 登录验证
       if (!isLoggedIn()) {
         window.location.href = 'admin_login.html';
         return;
       }
-      
-      const searchInput = document.querySelector('.browser-bar input');
-      const searchButton = document.querySelector('.browser-bar .btn-primary');
-      
-      searchButton.addEventListener('click', function() {
-        const query = searchInput.value.trim();
-        if (query) {
-          // 模拟搜索功能
-          alert('搜索: ' + query);
-        }
-      });
-      
-      searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          const query = searchInput.value.trim();
-          if (query) {
-            alert('搜索: ' + query);
-          }
-        }
-      });
-      
-      // 显示对应模块内容
-      function showModuleContent(moduleName) {
-        console.log('显示模块内容:', moduleName);
-        // 这里可以根据模块名称显示不同的内容
-        // 暂时使用alert来模拟
-        alert('您选择了：' + moduleName);
-      }
-      
-      // 导航菜单点击事件
-      const navItems = document.querySelectorAll('.nav-item a');
-      console.log('导航菜单项数量:', navItems.length);
-      
-      if (navItems.length === 0) {
-        console.error('未找到导航菜单项');
-      } else {
-        navItems.forEach(function(item) {
-          console.log('绑定点击事件到:', item.textContent.trim());
-          
-          // 使用onclick直接绑定，避免事件委托问题
-          item.onclick = function(e) {
-            console.log('点击了:', this.textContent.trim());
-            e.preventDefault();
-            const menuText = this.textContent.trim();
-            
-            // 移除所有active类
-            navItems.forEach(function(nav) {
-              nav.classList.remove('active');
-            });
-            // 添加当前active类
-            this.classList.add('active');
-            
-            // 显示对应模块内容
-            showModuleContent(menuText);
-            
-            return false;
-          };
-        });
-      }
-      
-      // 模块卡片"进入"按钮点击事件
-      const moduleCards = document.querySelectorAll('.module-card');
-      console.log('模块卡片数量:', moduleCards.length);
-      
-      // 模块跳转映射
-      const moduleRoutes = {
-        '人员管理': 'personnel_management.html',
-        '用户管理': 'user_management.html',
-        '仓库管理': 'warehouse_management.html',
-        '客服管理': 'customer_service.html',
-        '投诉管理': 'complaint_management.html',
-        '内容管理': 'content_management.html',
-        '订单管理': 'order_management.html',
-        '服务器管理': 'server_management.html'
-      };
-      
-      moduleCards.forEach(function(card) {
-        const enterBtn = card.querySelector('.btn-primary');
-        const moduleTitle = card.querySelector('h3').textContent;
-        
-        if (enterBtn) {
-          enterBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('点击了进入按钮:', moduleTitle);
-            
-            // 跳转到对应页面
-            const targetPage = moduleRoutes[moduleTitle];
-            if (targetPage) {
-              console.log('跳转到:', targetPage);
-              window.location.href = targetPage;
-            } else {
-              alert('页面正在开发中：' + moduleTitle);
-            }
-            
-            return false;
-          };
-        }
-      });
-      
-      // 退出登录按钮点击事件
-      const logoutBtn = document.getElementById('logout-btn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
+
+      document.querySelectorAll('.nav-item a').forEach(function(item) {
+        item.onclick = function(e) {
           e.preventDefault();
-          if (confirm('确定要退出登录吗？')) {
-            // 跳转到登录页面
-            window.location.href = 'login.html';
-          }
+          showModule(this.getAttribute('data-module'));
+          return false;
+        };
+      });
+
+      document.querySelectorAll('[data-open-module]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          showModule(this.getAttribute('data-open-module'));
+        });
+      });
+
+      var refreshSmsBtn = document.getElementById('refresh-sms-btn');
+      if (refreshSmsBtn) {
+        refreshSmsBtn.addEventListener('click', function() {
+          loadSmsAdminData();
         });
       }
-      
 
+      showModule('overview');
     });
-    
-
   </script>
   </body>
 </html>

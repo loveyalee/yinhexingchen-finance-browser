@@ -1133,6 +1133,7 @@
                   <th>联系人</th>
                   <th>状态</th>
                   <th>金额</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="delivery-note-tbody">
@@ -1144,6 +1145,7 @@
                   <td>周经理</td>
                   <td><span class="status-badge status-delivered">已送达</span></td>
                   <td>¥9,992</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(0)">删除</button></td>
                 </tr>
                 <tr>
                   <td class="delivery-note-no" onclick="editDeliveryNote(1)">SHD20260413002</td>
@@ -1153,6 +1155,7 @@
                   <td>刘会计</td>
                   <td><span class="status-badge status-pending">待送达</span></td>
                   <td>¥6,000</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(1)">删除</button></td>
                 </tr>
               </tbody>
             </table>
@@ -1659,6 +1662,7 @@
             '<td>' + (note.contact || '--') + '</td>' +
             '<td><span class="status-badge ' + getDeliveryStatusClass(note.status) + '" onclick="toggleDeliveryStatus(' + index + ')">' + note.status + '</span></td>' +
             '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
+            '<td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(' + index + ')">删除</button></td>' +
           '</tr>';
         }).join('');
         console.log('Generated HTML:', html);
@@ -2508,6 +2512,18 @@
       if (modal) {
         modal.classList.remove('show');
       }
+    };
+
+    // 删除送货单
+    window.deleteDeliveryNote = function(index) {
+      if (!confirm('确定要删除此送货单吗？')) {
+        return;
+      }
+      var notes = getDeliveryNotes();
+      notes.splice(index, 1);
+      saveDeliveryNotes(notes);
+      renderDeliveryNotes();
+      alert('送货单已删除');
     };
 
     // 打印预览功能

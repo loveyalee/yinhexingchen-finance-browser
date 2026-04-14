@@ -8,6 +8,27 @@ const crypto = require('crypto');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+
+function loadEnvFile(envFilePath) {
+  if (!fs.existsSync(envFilePath)) return;
+  const lines = fs.readFileSync(envFilePath, 'utf8').split(/\r?\n/);
+  lines.forEach(function(rawLine) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) return;
+    const idx = line.indexOf('=');
+    if (idx <= 0) return;
+    const key = line.slice(0, idx).trim();
+    if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) return;
+    let value = line.slice(idx + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[key] = value;
+  });
+}
+
+loadEnvFile(path.join(__dirname, '.env'));
+
 let Dysmsapi;
 let OpenApi;
 let Util;
@@ -77,6 +98,7 @@ function initMainDb() {
         institution_name TEXT,
         credit_code TEXT,
         contact_person TEXT,
+        industry TEXT,
         create_time TEXT NOT NULL,
         update_time TEXT NOT NULL,
         local_db_file TEXT,
@@ -85,12 +107,13 @@ function initMainDb() {
         last_sync_time TEXT
       );
     `);
-      // 设置控制台编码为UTF-8（Windows）
-  if (process.stdout && process.stdout.isTTY) {
-    process.stdout.setDefaultEncoding('utf8');
-  }
-  console.log('主账套数据库初始化完成: db/accounts.db');
-  console.log('用户主数据库初始化完成: db/users.db');
+    try { usersDb.exec(`ALTER TABLE users ADD COLUMN industry TEXT`); } catch (e) {}
+    // 设置控制台编码为UTF-8（Windows）
+    if (process.stdout && process.stdout.isTTY) {
+      process.stdout.setDefaultEncoding('utf8');
+    }
+    console.log('主账套数据库初始化完成: db/accounts.db');
+    console.log('用户主数据库初始化完成: db/users.db');
   } catch (e) {
     console.error('主账套数据库初始化失败:', e.message);
   }
@@ -253,6 +276,7 @@ function initUserLocalDb(userId, profile) {
         institution_name TEXT,
         credit_code TEXT,
         contact_person TEXT,
+        industry TEXT,
         create_time TEXT NOT NULL,
         update_time TEXT NOT NULL
       );
@@ -263,7 +287,7 @@ function initUserLocalDb(userId, profile) {
         create_time TEXT NOT NULL
       );
     `);
-    db.prepare('INSERT OR REPLACE INTO profile (id, phone, user_type, institution_type, institution_name, credit_code, contact_person, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    db.prepare('INSERT OR REPLACE INTO profile (id, phone, user_type, institution_type, institution_name, credit_code, contact_person, industry, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(
         userId,
         profile.phone,
@@ -272,6 +296,7 @@ function initUserLocalDb(userId, profile) {
         profile.institution_name || '',
         profile.credit_code || '',
         profile.contact_person || '',
+        profile.industry || '',
         profile.create_time,
         profile.update_time
       );
@@ -321,6 +346,10 @@ function syncUserProfile(user) {
     syncStatus: localDbFile && cloudBackupFile ? 'synced' : 'partial',
     lastSyncTime: new Date().toISOString()
   };
+}
+
+function isPhoneAccount(account) {
+  return /^1[3-9]\d{9}$/.test(String(account || '').trim());
 }
 
 // 云端备份：将账套元信息写入备份文件（模拟云备份，实际可替换为上传到云存储）
@@ -389,10 +418,110 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlSn3KRaaFHb2KmF/sAIojWWKeAt9tOY+mwo4
 // 订单存储（生产环境建议使用数据库）
 const orders = {};
 const smsCodes = {};
+const smsSendLocks = {};
+const smsEventLogs = [];
 const orderFile = path.join(__dirname, 'orders.json');
 
 function generateSmsCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function addSmsEventLog(event) {
+  smsEventLogs.unshift({
+    time: new Date().toISOString(),
+    phone: event.phone || '',
+    purpose: event.purpose || 'register',
+    status: event.status || 'info',
+    detail: event.detail || ''
+  });
+  if (smsEventLogs.length > 50) {
+    smsEventLogs.length = 50;
+  }
+}
+
+function getSmsLockKey(phone, purpose) {
+  return `${purpose}:${phone}`;
+}
+
+function getSmsSendLock(phone, purpose) {
+  const item = smsSendLocks[getSmsLockKey(phone, purpose)];
+  if (!item) return null;
+  if (Date.now() > item.expiresAt) {
+    delete smsSendLocks[getSmsLockKey(phone, purpose)];
+    return null;
+  }
+  return item;
+}
+
+function setSmsSendLock(phone, purpose, waitSeconds, reason) {
+  smsSendLocks[getSmsLockKey(phone, purpose)] = {
+    expiresAt: Date.now() + waitSeconds * 1000,
+    reason: reason || 'cooldown',
+    waitSeconds: waitSeconds
+  };
+}
+
+function clearSmsSendLock(phone, purpose) {
+  delete smsSendLocks[getSmsLockKey(phone, purpose)];
+}
+
+function getActiveSmsLocks() {
+  const now = Date.now();
+  return Object.entries(smsSendLocks).map(function(entry) {
+    const key = entry[0];
+    const item = entry[1];
+    if (!item || now > item.expiresAt) {
+      delete smsSendLocks[key];
+      return null;
+    }
+    const parts = key.split(':');
+    return {
+      key: key,
+      purpose: parts[0] || 'register',
+      phone: parts.slice(1).join(':'),
+      reason: item.reason || 'cooldown',
+      retryAfter: Math.max(1, Math.ceil((item.expiresAt - now) / 1000))
+    };
+  }).filter(Boolean);
+}
+
+function getActiveSmsCodes() {
+  const now = Date.now();
+  return Object.entries(smsCodes).map(function(entry) {
+    const key = entry[0];
+    const item = entry[1];
+    if (!item || now > item.expiresAt) {
+      delete smsCodes[key];
+      return null;
+    }
+    const parts = key.split(':');
+    return {
+      key: key,
+      purpose: parts[0] || 'register',
+      phone: parts.slice(1).join(':'),
+      code: item.code,
+      expiresIn: Math.max(1, Math.ceil((item.expiresAt - now) / 1000))
+    };
+  }).filter(Boolean);
+}
+
+function getSmsAdminOverview() {
+  return {
+    provider: {
+      registerConfigured: hasAliyunSmsConfig('register'),
+      resetPasswordConfigured: hasAliyunSmsConfig('reset_password'),
+      signName: process.env.ALIYUN_SMS_SIGN_NAME || '',
+      sdkReady: !!(Dysmsapi && OpenApi && Util)
+    },
+    stats: {
+      activeLocks: getActiveSmsLocks().length,
+      activeCodes: getActiveSmsCodes().length,
+      recentEvents: smsEventLogs.length
+    },
+    locks: getActiveSmsLocks(),
+    codes: getActiveSmsCodes(),
+    logs: smsEventLogs.slice(0, 20)
+  };
 }
 
 function storeSmsCode(phone, purpose) {
@@ -458,7 +587,7 @@ async function sendAliyunSms(phone, code, purpose) {
 function formatSmsErrorMessage(message) {
   const text = String(message || '');
   if (text.includes('isv.BUSINESS_LIMIT_CONTROL')) {
-    return '验证码发送过于频繁，请稍后再试';
+    return '短信发送过于频繁，请10分钟后再试';
   }
   if (text.includes('isv.AMOUNT_NOT_ENOUGH')) {
     return '短信账户余额不足，请联系管理员处理';
@@ -467,7 +596,7 @@ function formatSmsErrorMessage(message) {
     return '手机号格式不正确';
   }
   if (text.includes('isv.TEMPLATE_MISSING_PARAMETERS')) {
-    return '短信模板参数配置不正确，请联系管理员';
+    return '短信模板配置不正确，请联系管理员';
   }
   if (text.includes('isv.INVALID_PARAMETERS')) {
     return '短信配置参数无效，请联系管理员';
@@ -731,6 +860,29 @@ function scheduleCreditPrintPointsUpdate() {
   }, delay);
   
   console.log(`下次更新征信打印点数据的时间: ${nextUpdate}`);
+}
+
+// 企业搜索模拟数据库
+const enterpriseDatabase = [
+  { name: '湖南晨启数字科技有限公司', creditCode: '91430100MA4R7G5X3K', legalPerson: '陈晨', address: '湖南省长沙市岳麓区' },
+  { name: '银河星辰财务科技有限公司', creditCode: '91430100MA4R7G5X4L', legalPerson: '周星', address: '湖南省长沙市开福区' },
+  { name: '长沙慧账财税咨询有限公司', creditCode: '91430100MA4R7G5X5M', legalPerson: '李敏', address: '湖南省长沙市雨花区' },
+  { name: '湖南大科创新发展有限公司', creditCode: '91430100MA4R7G5X6N', legalPerson: '王拓', address: '湖南省长沙市天心区' },
+  { name: '长沙智联数据服务有限公司', creditCode: '91430100MA4R7G5X7P', legalPerson: '钱程', address: '湖南省长沙市望城区' },
+  { name: '深圳市腾讯计算机系统有限公司', creditCode: '9144030071526726XG', legalPerson: '马化腾', address: '广东省深圳市南山区' },
+  { name: '阿里巴巴（中国）有限公司', creditCode: '91330100799655058B', legalPerson: '蒋芳', address: '浙江省杭州市余杭区' },
+  { name: '百度在线网络技术（北京）有限公司', creditCode: '91110108717809965C', legalPerson: '李彦宏', address: '北京市海淀区' },
+  { name: '华为技术有限公司', creditCode: '914403001922038216', legalPerson: '赵明路', address: '广东省深圳市龙岗区' },
+  { name: '小米科技有限责任公司', creditCode: '91110108551385082Q', legalPerson: '雷军', address: '北京市海淀区' }
+];
+
+function generateCreditCode() {
+  const chars = '0123456789ABCDEFGHJKLMNPQRTUWXY';
+  let code = '91430100MA';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code.slice(0, 18);
 }
 
 // 微信支付工具函数
@@ -1186,6 +1338,47 @@ const server = http.createServer((req, res) => {
       message: '征信打印点数据更新成功'
     }));
 
+  } else if (pathname === '/api/enterprise/search' && req.method === 'GET') {
+    try {
+      const keyword = String(parsedUrl.query.keyword || '').trim();
+      if (!keyword || keyword.length < 2) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: [] }));
+        return;
+      }
+
+      const normalizedKeyword = keyword.toLowerCase();
+      const results = enterpriseDatabase.filter(ent =>
+        ent.name.toLowerCase().includes(normalizedKeyword) ||
+        ent.creditCode.toLowerCase().includes(normalizedKeyword)
+      ).slice(0, 10);
+
+      if (results.length === 0) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          data: [{
+            name: keyword + '有限公司',
+            creditCode: generateCreditCode(),
+            legalPerson: '待确认',
+            address: '请联系管理员补充企业注册地址'
+          }],
+          note: '未找到精确匹配，已返回智能联想结果'
+        }));
+        return;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: results }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '企业搜索失败: ' + e.message }));
+    }
+
   } else if (pathname === '/api/sms/send-code' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
@@ -1193,25 +1386,56 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.phone || !/^1[3-9]\d{9}$/.test(data.phone)) {
+          addSmsEventLog({ phone: data.phone || '', purpose: data.purpose || 'register', status: 'invalid_phone', detail: '手机号格式不正确' });
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '手机号格式不正确' }));
           return;
         }
         const purpose = data.purpose || 'register';
-        const code = storeSmsCode(data.phone, purpose);
-        if (hasAliyunSmsConfig(purpose)) {
-          await sendAliyunSms(data.phone, code, purpose);
-          res.statusCode = 200;
+        const existingLock = getSmsSendLock(data.phone, purpose);
+        if (existingLock) {
+          addSmsEventLog({ phone: data.phone, purpose: purpose, status: existingLock.reason, detail: '命中短信发送限制' });
+          res.statusCode = 429;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: true, message: '验证码已发送到您的手机' }));
+          res.end(JSON.stringify({
+            success: false,
+            message: existingLock.reason === 'provider_limit'
+              ? '短信发送过于频繁，请10分钟后再试'
+              : `请求过于频繁，请${existingLock.waitSeconds}秒后再试`,
+            retryAfter: existingLock.waitSeconds,
+            reason: existingLock.reason
+          }));
           return;
         }
+
+        setSmsSendLock(data.phone, purpose, 60, 'cooldown');
+        const code = storeSmsCode(data.phone, purpose);
+        if (hasAliyunSmsConfig(purpose)) {
+          try {
+            await sendAliyunSms(data.phone, code, purpose);
+            addSmsEventLog({ phone: data.phone, purpose: purpose, status: 'sent', detail: '短信发送成功' });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, message: '验证码已发送到您的手机', mode: 'aliyun' }));
+            return;
+          } catch (e) {
+            if (String(e.message || '').includes('isv.BUSINESS_LIMIT_CONTROL')) {
+              setSmsSendLock(data.phone, purpose, 600, 'provider_limit');
+            } else {
+              clearSmsSendLock(data.phone, purpose);
+            }
+            addSmsEventLog({ phone: data.phone, purpose: purpose, status: 'send_failed', detail: String(e.message || '短信发送失败') });
+            throw e;
+          }
+        }
         console.log(`短信验证码[${purpose}] ${data.phone}: ${code}`);
+        addSmsEventLog({ phone: data.phone, purpose: purpose, status: 'debug_code', detail: '测试模式生成验证码' });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
           success: true,
+          mode: 'debug',
           message: '验证码已生成，当前为测试模式，请联系管理员接入阿里云短信配置',
           debugCode: code
         }));
@@ -1263,7 +1487,20 @@ const server = http.createServer((req, res) => {
 
   } else if (pathname === '/api/admin/users' && req.method === 'GET') {
     try {
-      if (!usersDb) throw new Error('用户数据库未初始化');
+      if (!usersDb) {
+        // 数据库未初始化时返回空数据
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          data: {
+            total: 0,
+            users: []
+          },
+          message: '数据库服务未启动，请检查 better-sqlite3 是否正确安装'
+        }));
+        return;
+      }
       const users = usersDb.prepare('SELECT id, phone, user_type, institution_type, institution_name, create_time, sync_status, last_sync_time FROM users ORDER BY create_time DESC').all();
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1279,6 +1516,65 @@ const server = http.createServer((req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, message: '获取注册用户失败: ' + e.message }));
     }
+
+  } else if (pathname === '/api/admin/sms' && req.method === 'GET') {
+    try {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: getSmsAdminOverview() }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取短信管理数据失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/sms/unlock' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.phone) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '手机号不能为空' }));
+          return;
+        }
+        const purpose = data.purpose || 'register';
+        clearSmsSendLock(data.phone, purpose);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '短信限制已解除' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '解除短信限制失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/admin/sms/codes/clear' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.phone) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '手机号不能为空' }));
+          return;
+        }
+        const purpose = data.purpose || 'register';
+        delete smsCodes[`${purpose}:${data.phone}`];
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '验证码缓存已清除' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '清除验证码缓存失败: ' + e.message }));
+      }
+    });
 
   } else if (pathname === '/api/users/register' && req.method === 'POST') {
     let body = '';
@@ -1316,12 +1612,13 @@ const server = http.createServer((req, res) => {
           institution_name: data.institutionName || '',
           credit_code: data.creditCode || '',
           contact_person: data.contactPerson || '',
+          industry: data.industry || '',
           create_time: now,
           update_time: now
         };
         const syncInfo = syncUserProfile(user);
-        usersDb.prepare('INSERT INTO users (id, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, create_time, update_time, local_db_file, cloud_backup_file, sync_status, last_sync_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-          .run(user.id, user.phone, user.password, user.user_type, user.institution_type, user.institution_name, user.credit_code, user.contact_person, user.create_time, user.update_time, syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime);
+        usersDb.prepare('INSERT INTO users (id, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, industry, create_time, update_time, local_db_file, cloud_backup_file, sync_status, last_sync_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+          .run(user.id, user.phone, user.password, user.user_type, user.institution_type, user.institution_name, user.credit_code, user.contact_person, user.industry, user.create_time, user.update_time, syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
@@ -1362,13 +1659,27 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ success: false, message: '账号和密码不能为空' }));
           return;
         }
-        const user = usersDb.prepare('SELECT * FROM users WHERE phone = ? AND password = ?').get(data.account, data.password);
-        if (!user) {
-          res.statusCode = 401;
+        const account = String(data.account || '').trim();
+        if (!isPhoneAccount(account)) {
+          res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '账号或密码错误' }));
+          res.end(JSON.stringify({ success: false, message: '当前版本仅支持手机号登录，请输入注册手机号' }));
           return;
         }
+        const userByPhone = usersDb.prepare('SELECT * FROM users WHERE phone = ?').get(account);
+        if (!userByPhone) {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '该手机号未注册，请先注册' }));
+          return;
+        }
+        if (userByPhone.password !== data.password) {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '密码错误，请重新输入' }));
+          return;
+        }
+        const user = userByPhone;
         const syncInfo = syncUserProfile(user);
         usersDb.prepare('UPDATE users SET local_db_file = ?, cloud_backup_file = ?, sync_status = ?, last_sync_time = ?, update_time = ? WHERE id = ?')
           .run(syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime, new Date().toISOString(), user.id);
@@ -1382,6 +1693,7 @@ const server = http.createServer((req, res) => {
             userType: user.user_type,
             institutionType: user.institution_type || '',
             institutionName: user.institution_name || '',
+            industry: user.industry || '',
             localDbFile: syncInfo.localDbFile,
             cloudBackupFile: syncInfo.cloudBackupFile,
             syncStatus: syncInfo.syncStatus,
@@ -1520,40 +1832,7 @@ const server = http.createServer((req, res) => {
           return;
         }
         let accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
-        let repairedLegacyAccounts = 0;
-        let repairedDeletedAccounts = 0;
         let repairedDbFiles = 0;
-        if (!accounts.length) {
-          const legacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('active');
-          if (legacyAccounts.length) {
-            const bindLegacy = mainDb.prepare('UPDATE accounts SET user_id = ?, update_time = ? WHERE id = ? AND (user_id IS NULL OR user_id = \'\')');
-            const now = new Date().toISOString();
-            const trx = mainDb.transaction(function() {
-              legacyAccounts.forEach(function(account) {
-                bindLegacy.run(userId, now, account.id);
-              });
-            });
-            trx();
-            repairedLegacyAccounts = legacyAccounts.length;
-            accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
-          }
-        }
-        const deletedLegacyAccounts = mainDb.prepare("SELECT * FROM accounts WHERE status = ? AND (user_id IS NULL OR user_id = '') ORDER BY create_time DESC").all('deleted').filter(function(account) {
-          const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
-          return normalizedDbFile && fs.existsSync(normalizedDbFile);
-        });
-        if (deletedLegacyAccounts.length) {
-          const reviveLegacy = mainDb.prepare("UPDATE accounts SET status = 'active', user_id = ?, db_file = ?, update_time = ? WHERE id = ? AND status = 'deleted'");
-          const now = new Date().toISOString();
-          const trx = mainDb.transaction(function() {
-            deletedLegacyAccounts.forEach(function(account) {
-              reviveLegacy.run(userId, getNormalizedAccountDbFile(account.id, account.db_file), now, account.id);
-            });
-          });
-          trx();
-          repairedDeletedAccounts = deletedLegacyAccounts.length;
-          accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
-        }
         accounts = accounts.map(function(account) {
           const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
           if (normalizedDbFile !== account.db_file) {
@@ -1566,7 +1845,7 @@ const server = http.createServer((req, res) => {
         });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts, repairedLegacyAccounts: repairedLegacyAccounts, repairedDeletedAccounts: repairedDeletedAccounts, repairedDbFiles: repairedDbFiles }));
+        res.end(JSON.stringify({ success: true, data: accounts, repairedDbFiles: repairedDbFiles }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

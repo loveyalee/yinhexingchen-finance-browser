@@ -66,56 +66,66 @@ if (!fs.existsSync(userCloudBackupDir)) fs.mkdirSync(userCloudBackupDir, { recur
 let mainDb = null;
 let usersDb = null;
 
+// 内存存储作为fallback
+let memoryUsers = [];
+let memoryAccounts = [];
+
 function initMainDb() {
-  if (!Database) return;
-  try {
-    mainDb = new Database(path.join(dbDir, 'accounts.db'));
-    usersDb = new Database(path.join(dbDir, 'users.db'));
-    // 创建账套主表
-    mainDb.exec(`
-      CREATE TABLE IF NOT EXISTS accounts (
-        id TEXT PRIMARY KEY,
-        user_id TEXT,
-        name TEXT NOT NULL,
-        industry TEXT NOT NULL,
-        start_date TEXT NOT NULL,
-        accounting_system TEXT NOT NULL,
-        create_time TEXT NOT NULL,
-        update_time TEXT NOT NULL,
-        status TEXT DEFAULT 'active',
-        last_backup_time TEXT,
-        db_file TEXT
-      );
-    `);
-    try { mainDb.exec(`ALTER TABLE accounts ADD COLUMN user_id TEXT`); } catch (e) {}
-    usersDb.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        phone TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        user_type TEXT NOT NULL,
-        institution_type TEXT,
-        institution_name TEXT,
-        credit_code TEXT,
-        contact_person TEXT,
-        industry TEXT,
-        create_time TEXT NOT NULL,
-        update_time TEXT NOT NULL,
-        local_db_file TEXT,
-        cloud_backup_file TEXT,
-        sync_status TEXT DEFAULT 'synced',
-        last_sync_time TEXT
-      );
-    `);
-    try { usersDb.exec(`ALTER TABLE users ADD COLUMN industry TEXT`); } catch (e) {}
-    // 设置控制台编码为UTF-8（Windows）
-    if (process.stdout && process.stdout.isTTY) {
-      process.stdout.setDefaultEncoding('utf8');
+  if (Database) {
+    try {
+      mainDb = new Database(path.join(dbDir, 'accounts.db'));
+      usersDb = new Database(path.join(dbDir, 'users.db'));
+      // 创建账套主表
+      mainDb.exec(`
+        CREATE TABLE IF NOT EXISTS accounts (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          name TEXT NOT NULL,
+          industry TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          accounting_system TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL,
+          status TEXT DEFAULT 'active',
+          last_backup_time TEXT,
+          db_file TEXT
+        );
+      `);
+      try { mainDb.exec(`ALTER TABLE accounts ADD COLUMN user_id TEXT`); } catch (e) {}
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          username TEXT,
+          phone TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          user_type TEXT NOT NULL,
+          institution_type TEXT,
+          institution_name TEXT,
+          credit_code TEXT,
+          contact_person TEXT,
+          industry TEXT,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL,
+          local_db_file TEXT,
+          cloud_backup_file TEXT,
+          sync_status TEXT DEFAULT 'synced',
+          last_sync_time TEXT
+        );
+      `);
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN username TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN industry TEXT`); } catch (e) {}
+      // 设置控制台编码为UTF-8（Windows）
+      if (process.stdout && process.stdout.isTTY) {
+        process.stdout.setDefaultEncoding('utf8');
+      }
+      console.log('主账套数据库初始化完成: db/accounts.db');
+      console.log('用户主数据库初始化完成: db/users.db');
+    } catch (e) {
+      console.error('主账套数据库初始化失败:', e.message);
+      console.log('使用内存存储作为临时解决方案');
     }
-    console.log('主账套数据库初始化完成: db/accounts.db');
-    console.log('用户主数据库初始化完成: db/users.db');
-  } catch (e) {
-    console.error('主账套数据库初始化失败:', e.message);
+  } else {
+    console.log('better-sqlite3 未安装，使用内存存储作为临时解决方案');
   }
 }
 
@@ -1581,12 +1591,6 @@ const server = http.createServer((req, res) => {
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
     req.on('end', function() {
       try {
-        if (!usersDb) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '用户数据库未初始化' }));
-          return;
-        }
         const data = JSON.parse(body || '{}');
         if (!data.phone || !data.password || !data.userType) {
           res.statusCode = 400;
@@ -1594,17 +1598,27 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ success: false, message: '手机号、密码、用户类型为必填项' }));
           return;
         }
-        const exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
+
+        // 检查手机号是否已注册
+        let exists = false;
+        if (usersDb) {
+          exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
+        } else {
+          exists = memoryUsers.some(user => user.phone === data.phone);
+        }
+
         if (exists) {
           res.statusCode = 409;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '该手机号已注册' }));
           return;
         }
+
         const userId = 'USER_' + Date.now();
         const now = new Date().toISOString();
         const user = {
           id: userId,
+          username: data.username || data.phone, // 用户名默认为手机号
           phone: data.phone,
           password: data.password,
           user_type: data.userType,
@@ -1616,9 +1630,25 @@ const server = http.createServer((req, res) => {
           create_time: now,
           update_time: now
         };
+
         const syncInfo = syncUserProfile(user);
-        usersDb.prepare('INSERT INTO users (id, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, industry, create_time, update_time, local_db_file, cloud_backup_file, sync_status, last_sync_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-          .run(user.id, user.phone, user.password, user.user_type, user.institution_type, user.institution_name, user.credit_code, user.contact_person, user.industry, user.create_time, user.update_time, syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime);
+
+        // 保存用户数据
+        if (usersDb) {
+          usersDb.prepare('INSERT INTO users (id, username, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, industry, create_time, update_time, local_db_file, cloud_backup_file, sync_status, last_sync_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            .run(user.id, user.username, user.phone, user.password, user.user_type, user.institution_type, user.institution_name, user.credit_code, user.contact_person, user.industry, user.create_time, user.update_time, syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime);
+        } else {
+          // 使用内存存储
+          memoryUsers.push({
+            ...user,
+            local_db_file: syncInfo.localDbFile,
+            cloud_backup_file: syncInfo.cloudBackupFile,
+            sync_status: syncInfo.syncStatus,
+            last_sync_time: syncInfo.lastSyncTime
+          });
+          console.log('用户数据已保存到内存存储:', user.id, user.phone);
+        }
+
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
@@ -1646,12 +1676,6 @@ const server = http.createServer((req, res) => {
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
     req.on('end', function() {
       try {
-        if (!usersDb) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '用户数据库未初始化' }));
-          return;
-        }
         const data = JSON.parse(body || '{}');
         if (!data.account || !data.password) {
           res.statusCode = 400;
@@ -1666,23 +1690,51 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ success: false, message: '当前版本仅支持手机号登录，请输入注册手机号' }));
           return;
         }
-        const userByPhone = usersDb.prepare('SELECT * FROM users WHERE phone = ?').get(account);
-        if (!userByPhone) {
+
+        // 查找用户
+        let user = null;
+        if (usersDb) {
+          user = usersDb.prepare('SELECT * FROM users WHERE phone = ?').get(account);
+        } else {
+          user = memoryUsers.find(user => user.phone === account);
+        }
+
+        if (!user) {
           res.statusCode = 401;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '该手机号未注册，请先注册' }));
           return;
         }
-        if (userByPhone.password !== data.password) {
+
+        if (user.password !== data.password) {
           res.statusCode = 401;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '密码错误，请重新输入' }));
           return;
         }
-        const user = userByPhone;
+
         const syncInfo = syncUserProfile(user);
-        usersDb.prepare('UPDATE users SET local_db_file = ?, cloud_backup_file = ?, sync_status = ?, last_sync_time = ?, update_time = ? WHERE id = ?')
-          .run(syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime, new Date().toISOString(), user.id);
+
+        // 更新用户数据
+        if (usersDb) {
+          usersDb.prepare('UPDATE users SET local_db_file = ?, cloud_backup_file = ?, sync_status = ?, last_sync_time = ?, update_time = ? WHERE id = ?')
+            .run(syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime, new Date().toISOString(), user.id);
+        } else {
+          // 更新内存存储中的用户数据
+          const userIndex = memoryUsers.findIndex(u => u.id === user.id);
+          if (userIndex !== -1) {
+            memoryUsers[userIndex] = {
+              ...memoryUsers[userIndex],
+              local_db_file: syncInfo.localDbFile,
+              cloud_backup_file: syncInfo.cloudBackupFile,
+              sync_status: syncInfo.syncStatus,
+              last_sync_time: syncInfo.lastSyncTime,
+              update_time: new Date().toISOString()
+            };
+            console.log('用户数据已更新到内存存储:', user.id, user.phone);
+          }
+        }
+
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
@@ -2151,6 +2203,9 @@ const server = http.createServer((req, res) => {
     });
   }
 });
+
+// 初始化数据库
+initMainDb();
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {

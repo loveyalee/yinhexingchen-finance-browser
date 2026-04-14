@@ -1655,7 +1655,7 @@
             '<td>' + renderProductTags(note.items) + '</td>' +
             '<td>' + note.date + '</td>' +
             '<td>' + (note.contact || '--') + '</td>' +
-            '<td><span class="status-badge ' + getDeliveryStatusClass(note.status) + '">' + note.status + '</span></td>' +
+            '<td><span class="status-badge ' + getDeliveryStatusClass(note.status) + '" onclick="toggleDeliveryStatus(' + index + ')">' + note.status + '</span></td>' +
             '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
           '</tr>';
         }).join('');
@@ -2572,16 +2572,16 @@
           '<thead>' +
             '<tr>' +
               '<th style="width:30px;">序号</th>' +
-              '<th>商品名称</th>' +
+              '<th style="width:90px;">商品名称</th>' +
               '<th style="width:50px;">型号</th>' +
               '<th style="width:40px;">长度</th>' +
               '<th style="width:40px;">瓦数</th>' +
-              '<th style="width:50px;">单/双亮</th>' +
+              '<th style="width:60px;">单/双亮</th>' +
               '<th style="width:60px;">感应</th>' +
               '<th style="width:40px;">数量</th>' +
               '<th style="width:40px;">单位</th>' +
               '<th style="width:70px;">单价</th>' +
-              '<th style="width:80px;">小计</th>' +
+              '<th style="width:70px;">小计</th>' +
             '</tr>' +
           '</thead>' +
           '<tbody>' + itemsHtml + '</tbody>' +
@@ -2802,6 +2802,22 @@
     window.saveInventoryCheck = function() {
       alert('盘点结果已保存，库存数据已更新');
       closeInventoryCheckModal();
+    };
+
+    // 切换送货单状态
+    window.toggleDeliveryStatus = function(index) {
+      var notes = getDeliveryNotes();
+      var note = notes[index];
+      if (!note) return;
+      
+      // 切换状态
+      note.status = note.status === '已送达' ? '待送达' : '已送达';
+      saveDeliveryNotes(notes);
+      renderDeliveryNotes();
+      
+      // 显示成功提示
+      var statusText = note.status === '已送达' ? '已标记为已送达' : '已标记为待送达';
+      alert('送货单 ' + note.no + ' ' + statusText);
     };
 
     // ==================== 客户管理功能 ====================
@@ -3234,6 +3250,23 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOMContentLoaded event fired');
+      
+      // 定义toggleDeliveryStatus函数
+      window.toggleDeliveryStatus = function(index) {
+        var notes = getDeliveryNotes();
+        var note = notes[index];
+        if (!note) return;
+        
+        // 切换状态
+        note.status = note.status === '已送达' ? '待送达' : '已送达';
+        saveDeliveryNotes(notes);
+        renderDeliveryNotes();
+        
+        // 显示成功提示
+        var statusText = note.status === '已送达' ? '已标记为已送达' : '已标记为待送达';
+        alert('送货单 ' + note.no + ' ' + statusText);
+      };
+      console.log('toggleDeliveryStatus function defined');
       
       // 客户搜索功能
       initCustomerSearch();

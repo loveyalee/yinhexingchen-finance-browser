@@ -160,6 +160,42 @@
       overflow-y: auto;
     }
     
+    .page-entry-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #eef6ff, #f9fcff);
+      border: 1px solid #d8e7f5;
+      box-shadow: 0 12px 24px rgba(16, 39, 63, 0.06);
+    }
+
+    .page-entry-banner.show {
+      display: flex;
+    }
+
+    .page-entry-banner strong {
+      display: block;
+      font-size: 15px;
+      color: #17324b;
+      margin-bottom: 4px;
+    }
+
+    .page-entry-banner span {
+      font-size: 12px;
+      color: #60758f;
+      line-height: 1.8;
+    }
+
+    .page-entry-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .budget-header {
       display: flex;
       justify-content: space-between;
@@ -422,7 +458,7 @@
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
     ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
-</style>
+.center-top-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#0f2742,#184a79);box-shadow:0 14px 32px rgba(15,39,66,.16);color:#fff}.center-top-meta{display:grid;gap:4px}.center-top-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72)}.center-top-meta strong{font-size:18px;line-height:1.2}.center-top-meta em{font-style:normal;font-size:12px;color:rgba(255,255,255,.76);line-height:1.8}.center-top-actions{display:flex;gap:10px;flex-wrap:wrap}@media(max-width:1080px){.center-top-strip{flex-direction:column;align-items:flex-start}}</style>
 </head>
 <body>
   <div class="container">
@@ -515,8 +551,9 @@
       </div>
       
       <div class="content-area">
+        <div class="center-top-strip"><div class="center-top-meta"><span class="center-top-kicker">智能工作台联动中心</span><strong>预算中心</strong><em>统一承接首页入口、预算执行与继续动作</em></div><div class="center-top-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><a href="index.html" class="btn btn-secondary" style="text-decoration:none">返回首页总览</a></div></div><div id="budgetEntryBanner" class="page-entry-banner"><div><strong id="budgetEntryTitle">来自蜻蜓智能工作台</strong><span id="budgetEntryDesc">已为你切换到预算中心视角，可继续查看预算执行、偏差与资源配置重点。</span></div><div class="page-entry-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><button class="btn btn-primary" type="button" onclick="runBudgetEntryAction()">继续当前任务</button></div></div>
         <div class="budget-header">
-          <h2>预算管理</h2>
+          <h2>预算中心</h2>
           <div class="budget-period">
             <select>
               <option>2024/option>
@@ -530,10 +567,10 @@
               <option>第三季度</option>
               <option>第四季度</option>
             </select>
-            <button class="btn btn-primary">新建预算</button>
+            <button class="btn btn-primary">新建预算方案</button>
           </div>
         </div>
-        <p>设置和跟踪企业预算执行情况，优化资源配置</p>
+        <p>设置和跟踪企业预算执行情况，快速聚焦偏差与资源配置重点</p>
         
         <div class="budget-dashboard">
           <div class="budget-card">
@@ -575,8 +612,8 @@
         
         <div class="budget-table">
           <div class="budget-table-header">
-            <h3>预算执行明细</h3>
-            <button class="btn btn-primary">导出</button>
+            <h3>预算执行台账</h3>
+            <button class="btn btn-primary">导出预算台账</button>
           </div>
           <div class="budget-table-content">
             <table>
@@ -598,8 +635,8 @@
                   <td>¥90,000</td>
                   <td>70%</td>
                   <td class="budget-actions">
-                    <button class="btn btn-success">查看</button>
-                    <button class="btn btn-warning">编辑</button>
+                    <button class="btn btn-success">查看明细</button>
+                    <button class="btn btn-warning">调整预算</button>
                   </td>
                 </tr>
                 <tr>
@@ -609,8 +646,8 @@
                   <td>¥110,000</td>
                   <td>45%</td>
                   <td class="budget-actions">
-                    <button class="btn btn-success">查看</button>
-                    <button class="btn btn-warning">编辑</button>
+                    <button class="btn btn-success">查看明细</button>
+                    <button class="btn btn-warning">调整预算</button>
                   </td>
                 </tr>
                 <tr>
@@ -620,8 +657,8 @@
                   <td>¥45,000</td>
                   <td>85%</td>
                   <td class="budget-actions">
-                    <button class="btn btn-success">查看</button>
-                    <button class="btn btn-warning">编辑</button>
+                    <button class="btn btn-success">查看明细</button>
+                    <button class="btn btn-warning">调整预算</button>
                   </td>
                 </tr>
                 <tr>
@@ -631,8 +668,8 @@
                   <td>¥25,000</td>
                   <td>75%</td>
                   <td class="budget-actions">
-                    <button class="btn btn-success">查看</button>
-                    <button class="btn btn-warning">编辑</button>
+                    <button class="btn btn-success">查看明细</button>
+                    <button class="btn btn-warning">调整预算</button>
                   </td>
                 </tr>
                 <tr>
@@ -642,8 +679,8 @@
                   <td>¥40,000</td>
                   <td>60%</td>
                   <td class="budget-actions">
-                    <button class="btn btn-success">查看</button>
-                    <button class="btn btn-warning">编辑</button>
+                    <button class="btn btn-success">查看明细</button>
+                    <button class="btn btn-warning">调整预算</button>
                   </td>
                 </tr>
               </tbody>
@@ -671,6 +708,35 @@
   </div>
   
   <script>
+    function getBudgetEntryMeta() {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get('from') || '';
+      const view = params.get('view') || '';
+      const map = {
+        budget: { title: '来自蜻蜓智能工作台：预算中心', desc: '已切换到预算总览视角，适合继续查看预算执行率、偏差与资源配置。', action: '请生成当前预算执行偏差与控制建议' },
+        cost: { title: '来自蜻蜓智能工作台：成本预算协同', desc: '当前更适合优先查看成本执行、费用偏差与预算消耗速度。', action: '请输出当前成本预算偏差与压降建议' },
+        reports: { title: '来自蜻蜓智能工作台：预算复盘', desc: '当前更适合从预算视角补充经营复盘与部门执行情况。', action: '请输出预算复盘摘要和管理建议' }
+      };
+      const meta = map[view] || map.budget;
+      return { from: from, title: meta.title, desc: meta.desc, action: meta.action };
+    }
+
+    function renderBudgetEntryBanner() {
+      const meta = getBudgetEntryMeta();
+      if (meta.from !== 'smart_assistant') return;
+      const banner = document.getElementById('budgetEntryBanner');
+      const title = document.getElementById('budgetEntryTitle');
+      const desc = document.getElementById('budgetEntryDesc');
+      if (!banner || !title || !desc) return;
+      title.textContent = meta.title;
+      desc.textContent = meta.desc;
+      banner.classList.add('show');
+    }
+
+    function runBudgetEntryAction() {
+      alert(getBudgetEntryMeta().action);
+    }
+
     // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
     window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
@@ -721,6 +787,8 @@
           e.stopPropagation();
         });
       });
+
+      renderBudgetEntryBanner();
 
       // 模拟预算数据更新
       setInterval(function() {

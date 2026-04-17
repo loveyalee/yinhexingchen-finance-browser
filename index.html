@@ -396,13 +396,11 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
-            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
-            <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
-            <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -428,7 +426,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
@@ -439,8 +437,8 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">财务快聘·个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">财务快聘·企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
@@ -454,7 +452,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
@@ -473,7 +471,7 @@
           <button class="btn btn-primary">搜索</button>
         </div>
         <div>
-          <button class="btn btn-primary">登录</button>
+          <a href="login.html" class="btn btn-primary" id="login-button" style="display: inline-block; text-decoration: none; color: white; text-align: center; line-height: 1.5;">登录</a>
         </div>
       </div>
       
@@ -497,8 +495,8 @@
               <h3>🎯 智能工具</h3>
               <div class="card-content">
                 <div class="feature-item">
-                  <h4><a href="risk_management.html" style="text-decoration: none; color: inherit;">风险预警</a></h4>
-                  <p>财务风险监测，异常交易识别，及时预警</p>
+                  <h4><a href="finance_software.html" style="text-decoration: none; color: inherit;">分析预警</a></h4>
+                  <p>从财务软件中心统一进入经营分析与风险预警场景</p>
                 </div>
                 <div class="feature-item">
                   <h4><a href="budget_management.html" style="text-decoration: none; color: inherit;">预算管理</a></h4>
@@ -604,6 +602,17 @@
         }
       }
       
+      // 检查登录状态并跳转
+      window.checkLoginAndRedirect = function(url) {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+        if (userInfo && userInfo.isLoggedIn) {
+          window.location.href = url;
+        } else {
+          alert('请先登录后再访问');
+          window.location.href = 'login.html';
+        }
+      }
+      
       // 处理退出登录
       window.handleLogout = function() {
         if (confirm('确定要退出登录吗？')) {
@@ -612,6 +621,7 @@
           localStorage.removeItem('userProfile');
           localStorage.removeItem('userWallet');
           localStorage.removeItem('userTransactions');
+          localStorage.removeItem('userInfo');
 
           // 跳转到登录页面
           window.location.href = 'login.html';
@@ -707,11 +717,11 @@
         { id: 'accounting', name: '记账凭证', icon: '📊', url: 'accounting.html', order: 1 },
         { id: 'finance_management', name: '财务报表', icon: '📈', url: 'finance_management.html', order: 2 },
         { id: 'tax_reporting', name: '一键报税', icon: '💳', url: 'tax_reporting.html', order: 3 },
-        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'accounting.html#invoice-list', order: 4 },
+        { id: 'invoice_management', name: '发票管理', icon: '🧾', url: 'invoice_management.html', order: 4 },
         { id: 'contract_management', name: '合同管理', icon: '📋', url: 'contract_management.html', order: 5 },
         { id: 'online_store', name: '在线商城', icon: '🛒', url: 'online_store.html', order: 6 },
         { id: 'smart_assistant', name: '蜻蜓助手', icon: '🤖', url: 'smart_assistant.html', order: 7 },
-        { id: 'data_analysis', name: '数据分析', icon: '📊', url: 'data_analysis.html', order: 8 },
+        { id: 'finance_software_center', name: '财务软件中心', icon: '💼', url: 'finance_software.html', order: 8 },
         { id: 'finance_academy', name: '财会学堂', icon: '📚', url: 'finance_academy.html', order: 9 },
         { id: 'templates_tools', name: '模板专区', icon: '📝', url: 'templates_tools.html', order: 10 },
         { id: 'cloud_chat', name: '个人云盘', icon: '☁️', url: 'cloud_chat.html', order: 11 },
@@ -786,12 +796,30 @@
       renderFeatureCards();
 
       const currentUserInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
-      const loginButton = document.querySelector('.header .btn.btn-primary');
+      // 兼容旧版登录数据（旧版可能未设置isLoggedIn字段，但有id字段）
+      if (currentUserInfo && currentUserInfo.id && !currentUserInfo.isLoggedIn) {
+        currentUserInfo.isLoggedIn = true;
+        localStorage.setItem('userInfo', JSON.stringify(currentUserInfo));
+      }
+      const loginButton = document.getElementById('login-button');
       if (loginButton) {
         if (currentUserInfo && currentUserInfo.isLoggedIn) {
-          loginButton.textContent = (currentUserInfo.phone || currentUserInfo.institutionName || '已登录').slice(0, 10);
+          // 根据用户类型显示不同的名称
+          let displayName = '已登录';
+          if (currentUserInfo.userType === 'enterprise') {
+            // 企业用户优先显示企业名称，其次用户名，最后手机号
+            displayName = currentUserInfo.enterpriseName || currentUserInfo.username || currentUserInfo.phone || '企业用户';
+          } else if (currentUserInfo.userType === 'institution') {
+            // 机构用户显示机构名称
+            displayName = currentUserInfo.institutionName || currentUserInfo.username || currentUserInfo.phone || '机构用户';
+          } else {
+            // 个人用户显示用户名或手机号
+            displayName = currentUserInfo.username || currentUserInfo.phone || '用户';
+          }
+          loginButton.textContent = displayName.slice(0, 10);
           loginButton.onclick = function() { window.location.href = 'member.html'; };
         } else {
+          loginButton.textContent = '登录';
           loginButton.onclick = function() { window.location.href = 'login.html'; };
         }
       }
@@ -970,19 +998,44 @@
         }
       });
       
-      // toggleSubmenu 函数（用于切换二级菜单显示/隐藏）
+      function closeSiblingMenus(navItem) {
+        const isTopLevel = navItem.classList.contains('nav-item');
+        const siblingSelector = isTopLevel ? ':scope > .nav-item.has-submenu' : ':scope > .submenu-item.has-submenu';
+        const container = navItem.parentElement;
+        if (!container) return;
+
+        container.querySelectorAll(siblingSelector).forEach(item => {
+          if (item === navItem) return;
+          item.classList.remove('active');
+          item.querySelectorAll('.submenu-item.has-submenu').forEach(child => child.classList.remove('active'));
+        });
+      }
+
+      // toggleSubmenu 函数：只在用户点击一级/二级菜单标题时折叠，切换同级菜单时自动收起其他菜单
       window.toggleSubmenu = function(element) {
         const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
-        if (navItem) {
-          // 只切换当前菜单的active状态，不影响其他菜单
-          navItem.classList.toggle('active');
-          // 确保所有子菜单（三级菜单）保持关闭状态
-          const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
-          subItems.forEach(item => {
+        if (!navItem) return;
+
+        const willOpen = !navItem.classList.contains('active');
+        if (willOpen) {
+          closeSiblingMenus(navItem);
+        }
+
+        navItem.classList.toggle('active', willOpen);
+
+        if (!willOpen) {
+          navItem.querySelectorAll('.submenu-item.has-submenu').forEach(item => {
             item.classList.remove('active');
           });
         }
       };
+
+      // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
+      document.querySelectorAll('.submenu-item a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      });
 
       window.handleLogout = function() {
         localStorage.removeItem('userInfo');
@@ -991,11 +1044,33 @@
         window.location.href = 'login.html';
       };
       
+      // 检查登录状态并跳转
+      window.checkLoginAndRedirect = function(url) {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+        // 兼容旧版登录数据（旧版可能未设置isLoggedIn，但有id字段）
+        const isLoggedIn = userInfo && (userInfo.isLoggedIn || userInfo.id);
+        if (!isLoggedIn) {
+          if (confirm('您还未登录，请先登录后再访问')) {
+            window.location.href = 'login.html';
+          }
+          return false;
+        }
+        // 补全isLoggedIn字段确保一致性
+        if (userInfo && !userInfo.isLoggedIn) {
+          userInfo.isLoggedIn = true;
+          localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        }
+        window.location.href = url;
+      };
+      
       // showModule 函数（用于处理子菜单点击）
       window.showModule = function(moduleName) {
         console.log('显示模块：', moduleName);
         // 根据模块名跳转到相应页面
-        if (moduleName.startsWith('tax-')) {
+        if (moduleName === 'inventory-management') {
+          // 进销存模块
+          window.location.href = 'inventory_management.html';
+        } else if (moduleName.startsWith('tax-')) {
           // 税务专区模块
           window.location.href = 'tax_zone.html';
         } else if (moduleName.startsWith('financing-')) {

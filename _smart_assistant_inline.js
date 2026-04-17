@@ -1,0 +1,4671 @@
+    let isRecording = false;
+
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+
+    window.toggleMemberSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu');
+      if (navItem) {
+        navItem.classList.toggle('active');
+      }
+    };
+
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        window.location.href = 'login.html';
+      }
+    };
+
+    function showRealNameAuth() {
+      alert('实名认证功能开发中');
+    }
+
+    window.showModule = function(module) {
+      const moduleMap = {
+        'contract-management': 'contract_management.html',
+        'seal-management': 'seal_management.html',
+        'inventory-management': 'inventory_management.html',
+        'company-management': 'member.html',
+        'financing-bank': 'enterprise_management.html',
+        'financing-equity': 'enterprise_management.html',
+        'financing-bond': 'enterprise_management.html',
+        'financing-lease': 'enterprise_management.html',
+        'financing-government': 'enterprise_management.html',
+        'financing-selfservice': 'enterprise_management.html',
+        'bidding': 'enterprise_management.html',
+        'invoice-management': 'invoice_management.html',
+        'tax-plan': 'tax_reporting.html',
+        'tax-consult': 'tax_reporting.html',
+        'tax-risk': 'tax_reporting.html',
+        'tax-equity': 'tax_reporting.html'
+      };
+
+      const target = moduleMap[module];
+      if (target) {
+        window.location.href = target;
+      }
+    };
+
+
+    function openWorkbenchPage(page, params) {
+      const query = params ? '?' + new URLSearchParams(params).toString() : '';
+      window.location.href = page + query;
+    }
+
+    function navigateFinanceCenter(center) {
+      const map = {
+        voucher: { page: 'finance_software.html', params: { from: 'smart_assistant', tab: 'voucher' } },
+        ledger: { page: 'finance_software.html', params: { from: 'smart_assistant', tab: 'ledger' } },
+        detail: { page: 'accounting_v2.html', params: { from: 'smart_assistant', tab: 'detail' } },
+        reports: { page: 'data_analysis.html', params: { from: 'smart_assistant', view: 'reports' } },
+        tax: { page: 'tax_reporting.html', params: { from: 'smart_assistant', view: 'tax' } },
+        risk: { page: 'risk_management.html', params: { from: 'smart_assistant', view: 'risk' } },
+        budget: { page: 'budget_management.html', params: { from: 'smart_assistant', view: 'budget' } },
+        invoice: { page: 'invoice_management.html', params: { from: 'smart_assistant', view: 'invoice' } },
+        close: { page: 'finance_software.html', params: { from: 'smart_assistant', tab: 'closing' } },
+        receivable: { page: 'finance_bp.html', params: { from: 'smart_assistant', view: 'receivable' } },
+        cashflow: { page: 'data_analysis.html', params: { from: 'smart_assistant', view: 'cashflow' } }
+      };
+      const target = map[center];
+      if (target) openWorkbenchPage(target.page, target.params);
+    }
+
+    const smartAssistantStorageKey = 'dragonflyAssistantMessages';
+    const smartAssistantTaskKey = 'dragonflyAssistantTasks';
+    const smartAssistantRoleKey = 'dragonflyAssistantRole';
+    const smartAssistantLastPromptKey = 'dragonflyAssistantLastPrompt';
+    const smartAssistantContextKey = 'dragonflyAssistantContext';
+    const smartAssistantTaskFilterKey = 'dragonflyAssistantTaskFilter';
+    const smartAssistantSavedViewsKey = 'dragonflyAssistantSavedViews';
+    const smartAssistantTrendKey = 'dragonflyAssistantTrend';
+    const smartAssistantDeletedTasksKey = 'dragonflyAssistantDeletedTasks';
+    const smartAssistantReportHeaderKey = 'dragonflyAssistantReportHeader';
+    const smartAssistantReportTemplateKey = 'dragonflyAssistantReportTemplate';
+    const smartAssistantRiskTemplateKey = 'dragonflyAssistantRiskTemplate';
+    const smartAssistantReminderToneKey = 'dragonflyAssistantReminderTone';
+    const smartAssistantPinnedBriefTemplateKey = 'dragonflyAssistantPinnedBriefTemplate';
+    const smartAssistantPinnedDailyTemplateKey = 'dragonflyAssistantPinnedDailyTemplate';
+    const smartAssistantPinnedEmailTemplateKey = 'dragonflyAssistantPinnedEmailTemplate';
+    const smartAssistantRiskMorningTemplateKey = 'dragonflyAssistantRiskMorningTemplate';
+    const smartAssistantRiskWechatTemplateKey = 'dragonflyAssistantRiskWechatTemplate';
+    const taskGroupLabels = {
+      today: '今日',
+      week: '本周',
+      monthEnd: '月末',
+      tax: '税务',
+      cashflow: '资金'
+    };
+    const roleProfiles = {
+      accountant: '当前模式：会计。更偏向凭证、报税、结账、报销和台账处理。',
+      cashier: '当前模式：出纳。更偏向收付款、资金计划、银行余额和现金日记账。',
+      boss: '当前模式：老板。更偏向利润、回款、现金流、风险与经营决策。'
+    };
+    const assistantQuickPrompts = [
+      '帮我生成今天的财务待办',
+      '整理本月报税清单',
+      '生成费用报销处理步骤',
+      '分析本周现金流风险'
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const chatInput = document.getElementById('chatInput');
+      const voiceBtn = document.getElementById('voiceBtn');
+
+      restoreMessages();
+      restoreRoleMode();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      renderSavedViews();
+      renderLastWorkCard();
+      setTaskFilter(getTaskFilter());
+      const taskSearchInput = document.getElementById('taskSearchInput');
+      if (taskSearchInput) taskSearchInput.value = getTaskSearch();
+
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      voiceBtn.addEventListener('click', function() {
+        toggleVoiceRecording();
+      });
+    });
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function saveMessages() {
+      const chatMessages = document.getElementById('chatMessages');
+      const items = Array.from(chatMessages.querySelectorAll('.message')).map(function(node) {
+        return {
+          type: node.classList.contains('user') ? 'user' : 'assistant',
+          html: node.querySelector('.message-content').innerHTML,
+          time: node.querySelector('.message-time').textContent
+        };
+      });
+      localStorage.setItem(smartAssistantStorageKey, JSON.stringify(items.slice(-30)));
+    }
+
+    function restoreMessages() {
+      const chatMessages = document.getElementById('chatMessages');
+      const saved = JSON.parse(localStorage.getItem(smartAssistantStorageKey) || '[]');
+      if (!saved.length) {
+        chatMessages.innerHTML = '';
+        addMessage('assistant', buildWelcomeCard(), true);
+        return;
+      }
+      chatMessages.innerHTML = '';
+      saved.forEach(function(item) {
+        addMessage(item.type, item.html, true, item.time);
+      });
+    }
+
+    function getAssistantRole() {
+      return localStorage.getItem(smartAssistantRoleKey) || 'accountant';
+    }
+
+    function restoreRoleMode() {
+      updateRoleModeUI(getAssistantRole());
+    }
+
+    function setAssistantRole(role) {
+      localStorage.setItem(smartAssistantRoleKey, role);
+      updateRoleModeUI(role);
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      const prompts = {
+        accountant: '请以会计视角帮我安排今天的重点工作',
+        cashier: '请以出纳视角帮我安排今天的收付款工作',
+        boss: '请以老板视角帮我总结今天需要关注的经营重点'
+      };
+      sendMessage(prompts[role]);
+    }
+
+    function updateRoleModeUI(role) {
+      const hint = document.getElementById('roleModeHint');
+      const roleButtons = document.querySelectorAll('#roleModeButtons button');
+      roleButtons.forEach(function(button) {
+        button.classList.toggle('active-role', button.getAttribute('onclick').includes(`'${role}'`));
+      });
+      if (hint) {
+        hint.textContent = roleProfiles[role] || roleProfiles.accountant;
+      }
+    }
+
+    function saveContext(context) {
+      localStorage.setItem(smartAssistantContextKey, JSON.stringify(context || {}));
+    }
+
+    function getContext() {
+      return JSON.parse(localStorage.getItem(smartAssistantContextKey) || '{}');
+    }
+
+    function resolveTaskGroup(title) {
+      if (/报税|税务|发票/.test(title)) return 'tax';
+      if (/月末|结账|工资/.test(title)) return 'monthEnd';
+      if (/现金流|资金|回款|付款|出纳/.test(title)) return 'cashflow';
+      if (/本周/.test(title)) return 'week';
+      return 'today';
+    }
+
+    function getTaskSearch() {
+      return localStorage.getItem('dragonflyAssistantTaskSearch') || '';
+    }
+
+    function setTaskSearch(value) {
+      localStorage.setItem('dragonflyAssistantTaskSearch', value || '');
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+    }
+
+    function getTaskStatusLabel(task) {
+      if (task.done) return 'done';
+      return task.status || 'todo';
+    }
+
+    function formatTaskStatus(status) {
+      return status === 'done' ? '已完成' : status === 'doing' ? '处理中' : '待处理';
+    }
+
+    function getTaskFilter() {
+      return localStorage.getItem(smartAssistantTaskFilterKey) || 'all';
+    }
+
+    function setTaskFilter(filter) {
+      localStorage.setItem(smartAssistantTaskFilterKey, filter);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      const buttons = document.querySelectorAll('#taskFilters button');
+      buttons.forEach(function(button) {
+        button.classList.toggle('active-role', button.getAttribute('onclick').includes(`'${filter}'`));
+      });
+    }
+
+    function getSavedViews() {
+      return JSON.parse(localStorage.getItem(smartAssistantSavedViewsKey) || '[]');
+    }
+
+    function renameSavedView(index) {
+      const views = getSavedViews();
+      if (!views[index]) return;
+      const name = prompt('请输入新的视图名称', views[index].name);
+      if (!name) return;
+      views[index].name = name;
+      localStorage.setItem(smartAssistantSavedViewsKey, JSON.stringify(views));
+      renderSavedViews();
+    }
+
+    function deleteSavedView(index) {
+      const views = getSavedViews();
+      views.splice(index, 1);
+      localStorage.setItem(smartAssistantSavedViewsKey, JSON.stringify(views));
+      renderSavedViews();
+    }
+
+    function saveCurrentView() {
+      const views = getSavedViews();
+      const name = prompt('请输入视图名称，例如：我的高优先级');
+      if (!name) return;
+      views.unshift({ name, filter: getTaskFilter(), search: getTaskSearch() });
+      localStorage.setItem(smartAssistantSavedViewsKey, JSON.stringify(views.slice(0, 6)));
+      renderSavedViews();
+    }
+
+    function applySavedView(index) {
+      const view = getSavedViews()[index];
+      if (!view) return;
+      setTaskFilter(view.filter || 'all');
+      setTaskSearch(view.search || '');
+      const input = document.getElementById('taskSearchInput');
+      if (input) input.value = view.search || '';
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+    }
+
+    function renderSavedViews() {
+      const wrap = document.getElementById('savedViews');
+      if (!wrap) return;
+      const views = getSavedViews();
+      if (!views.length) {
+        wrap.innerHTML = '<div class="task-item-meta">暂无常用视图</div>';
+        return;
+      }
+      wrap.innerHTML = views.map(function(view, index) {
+        return `<div style="display:flex;gap:6px;align-items:center;"><button onclick="applySavedView(${index})">${escapeHtml(view.name)}</button><button onclick="renameSavedView(${index})" style="padding:6px 8px">改名</button><button onclick="deleteSavedView(${index})" style="padding:6px 8px">删</button></div>`;
+      }).join('');
+    }
+
+    function getTrendRecords() {
+      return JSON.parse(localStorage.getItem(smartAssistantTrendKey) || '[]');
+    }
+
+    function getDeletedTasks() {
+      return JSON.parse(localStorage.getItem(smartAssistantDeletedTasksKey) || '[]');
+    }
+
+    function stashDeletedTasks(tasks) {
+      localStorage.setItem(smartAssistantDeletedTasksKey, JSON.stringify(tasks.slice(0, 12)));
+    }
+
+    function recordTaskTrend() {
+      const tasks = getStoredTasks();
+      const today = new Date().toISOString().slice(0, 10);
+      const records = getTrendRecords().filter(function(item) { return item.date !== today; });
+      records.push({
+        date: today,
+        total: tasks.length,
+        done: tasks.filter(function(task) { return task.done; }).length
+      });
+      localStorage.setItem(smartAssistantTrendKey, JSON.stringify(records.slice(-7)));
+    }
+
+    function getStoredTasks() {
+      return JSON.parse(localStorage.getItem(smartAssistantTaskKey) || '[]');
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem(smartAssistantTaskKey, JSON.stringify(tasks.slice(0, 12)));
+    }
+
+    function getDefaultAssignee(group) {
+      const role = getAssistantRole();
+      if (role === 'cashier' || group === 'cashflow') return '出纳';
+      if (role === 'boss') return '老板';
+      if (group === 'tax' || group === 'monthEnd') return '会计';
+      return '财务经理';
+    }
+
+    function inferTaskMeta(title, group) {
+      const normalizedGroup = group || resolveTaskGroup(title);
+      const priority = /税务|报税|资金|现金流|工资/.test(title) ? 'high' : (/月末|结账|发票/.test(title) ? 'medium' : 'low');
+      const deadline = normalizedGroup === 'today' ? '今天' : (normalizedGroup === 'week' ? '本周' : '本月');
+      return { priority, deadline, group: normalizedGroup };
+    }
+
+    function addTasks(taskTitles, source, group) {
+      const tasks = getStoredTasks();
+      taskTitles.forEach(function(title) {
+        if (!tasks.some(function(item) { return item.title === title; })) {
+          const meta = inferTaskMeta(title, group);
+          tasks.unshift({
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            title: title,
+            done: false,
+            status: 'todo',
+            createdAt: new Date().toLocaleString('zh-CN'),
+            completedAt: '',
+            note: '',
+            source: source || '智能助手',
+            group: meta.group,
+            priority: meta.priority,
+            deadline: meta.deadline,
+            assignee: getDefaultAssignee(meta.group)
+          });
+        }
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+    }
+
+    function getFilteredTasks(tasks) {
+      const filter = getTaskFilter();
+      if (filter === 'high') return tasks.filter(function(task) { return task.priority === 'high' && !task.done; });
+      if (filter === 'today') return tasks.filter(function(task) { return task.deadline === '今天' && !task.done; });
+      if (filter === 'risk') return tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); });
+      if (filter === 'timeout') return tasks.filter(function(task) { return isTaskTimeoutRisk(task); });
+      if (filter === 'status:doing') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; });
+      if (filter === 'status:done') return tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; });
+      if (filter.startsWith('assignee:')) {
+        const assignee = filter.split(':')[1];
+        tasks = tasks.filter(function(task) { return task.assignee === assignee; });
+      }
+      const keyword = getTaskSearch().trim();
+      if (keyword) {
+        tasks = tasks.filter(function(task) {
+          return task.title.includes(keyword) || (task.source || '').includes(keyword) || (task.assignee || '').includes(keyword);
+        });
+      }
+      return tasks;
+    }
+
+
+    function renderFinanceCockpit() {
+      const wrap = document.getElementById('financeCockpit');
+      if (!wrap) return;
+      const tasks = getStoredTasks();
+      const total = tasks.length || 1;
+      const high = tasks.filter(function(task) { return !task.done && task.priority === 'high'; }).length;
+      const dueToday = tasks.filter(function(task) { return !task.done && task.deadline === '今天'; }).length;
+      const doing = tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length;
+      const done = tasks.filter(function(task) { return task.done; }).length;
+      const completion = Math.round((done / total) * 100);
+      const cashScore = Math.max(58, 92 - dueToday * 8 - high * 5 + done * 2);
+      const taxScore = Math.max(55, 90 - tasks.filter(function(task) { return /税|票|申报/.test(task.title) && !task.done; }).length * 9);
+      const closeScore = Math.max(52, 88 - tasks.filter(function(task) { return /月末|结账|对账|工资/.test(task.title) && !task.done; }).length * 7);
+      const metrics = [
+        { label: '资金健康度', value: cashScore + '分', sub: '结合今天到期、高优先级、已完成任务动态估算' },
+        { label: '税务就绪度', value: taxScore + '分', sub: '未完成涉税事项越多，系统评分越谨慎' },
+        { label: '关账成熟度', value: closeScore + '分', sub: '基于月结、对账、工资与结账事项推演' },
+        { label: '今日推进率', value: completion + '%', sub: '当前处理中 ' + doing + ' 项，今天到期 ' + dueToday + ' 项，高优先级 ' + high + ' 项' }
+      ];
+      wrap.innerHTML = metrics.map(function(item) {
+        return '<div class="cockpit-metric"><div class="label">' + escapeHtml(item.label) + '</div><div class="value">' + escapeHtml(item.value) + '</div><div class="sub">' + escapeHtml(item.sub) + '</div></div>';
+      }).join('');
+    }
+
+    function renderPopularFinanceTools() {
+      const wrap = document.getElementById('popularFinanceTools');
+      if (!wrap) return;
+      const tools = [
+        { key: 'cashflow-forecast', name: 'AI 现金流预测', desc: '预测今日至本周资金缺口与优先调度动作' },
+        { key: 'tax-health', name: '税负健康扫描', desc: '识别涉税事项、申报压力与风险窗口' },
+        { key: 'receivable-risk', name: '应收回款雷达', desc: '聚焦高优先级、临期与待跟进回款事项' },
+        { key: 'close-check', name: '月结智能预检', desc: '检查关账、对账、工资与票据准备度' },
+        { key: 'invoice-audit', name: '发票稽核助手', desc: '生成待核验清单与异常核对建议' },
+        { key: 'budget-watch', name: '预算偏差监控', desc: '给出预算偏差观察点与控制建议' }
+      ];
+      wrap.innerHTML = tools.map(function(tool) {
+        return '<div class="finance-tool-card" onclick="runPopularFinanceTool(\'' + tool.key + '\')"><strong>' + escapeHtml(tool.name) + '</strong><span>' + escapeHtml(tool.desc) + '</span></div>';
+      }).join('');
+    }
+
+    function buildFinanceToolReport(tool) {
+      const tasks = getStoredTasks();
+      const high = tasks.filter(function(task) { return !task.done && task.priority === 'high'; });
+      const today = tasks.filter(function(task) { return !task.done && task.deadline === '今天'; });
+      const taxTasks = tasks.filter(function(task) { return !task.done && /税|票|申报/.test(task.title); });
+      const closeTasks = tasks.filter(function(task) { return !task.done && /月末|结账|对账|工资/.test(task.title); });
+      const receivableTasks = tasks.filter(function(task) { return !task.done && /回款|应收|催收|客户/.test(task.title); });
+      const map = {
+        'cashflow-forecast': {
+          title: 'AI 现金流预测',
+          lines: [
+            '预测结论：未来 3 天资金关注点主要集中在 ' + (today[0] ? today[0].title : '日常结算与付款安排') + '。',
+            '建议动作：优先处理今天到期 ' + today.length + ' 项，并把高优先级 ' + high.length + ' 项纳入日内资金排程。',
+            '系统建议：建立收支优先级、回款确认、付款审批三段式看板。'
+          ]
+        },
+        'tax-health': {
+          title: '税负健康扫描',
+          lines: [
+            '扫描结果：当前涉税待办 ' + taxTasks.length + ' 项，建议优先复核申报口径与票据完整性。',
+            '风险提示：若今天或本周存在涉税任务，建议提前预留复核窗口。',
+            '系统建议：使用申报前预检 + 发票状态复核 + 税负波动解释三联表。'
+          ]
+        },
+        'receivable-risk': {
+          title: '应收回款雷达',
+          lines: [
+            '识别结论：高关注回款事项 ' + receivableTasks.length + ' 项，需重点盯催回款节点。',
+            '建议动作：将高优先级客户回款与今天到期事项合并跟踪。',
+            '系统建议：建立回款承诺日、责任人、催办节奏三维台账。'
+          ]
+        },
+        'close-check': {
+          title: '月结智能预检',
+          lines: [
+            '预检结果：月结相关待办 ' + closeTasks.length + ' 项，当前关账成熟度需持续提升。',
+            '建议动作：先清理对账、工资、结账与票据归档事项。',
+            '系统建议：月结前执行凭证完整性检查、科目余额核对、报表勾稽校验。'
+          ]
+        },
+        'invoice-audit': {
+          title: '发票稽核助手',
+          lines: [
+            '稽核提示：建议按未完成涉票任务、报销凭证、供应商发票三类建立核验池。',
+            '建议动作：优先核对高优先级票据、抬头税号与入账状态一致性。',
+            '系统建议：生成异常票据清单并按责任人闭环。'
+          ]
+        },
+        'budget-watch': {
+          title: '预算偏差监控',
+          lines: [
+            '偏差观察：结合高优先级、资金、回款与月结事项，当前更适合做滚动预算复盘。',
+            '建议动作：跟踪本周新增与本周完成，识别预算执行偏差来源。',
+            '系统建议：按部门、项目、费用类目建立偏差解释卡。'
+          ]
+        }
+      };
+      return map[tool] || map['cashflow-forecast'];
+    }
+
+    function runPopularFinanceTool(tool) {
+      const report = buildFinanceToolReport(tool);
+      const text = ['【' + report.title + '】'].concat(report.lines).join('\n');
+      addMessage('assistant', '<div class="report-card"><div style="font-weight:700">' + escapeHtml(report.title) + '</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">' + escapeHtml(text) + '</div></div>', true);
+    }
+
+    function renderFinanceScenarioDefault() {
+      const output = document.getElementById('financeScenarioOutput');
+      if (!output) return;
+      output.textContent = '选择周期与主题后，系统将生成 AI 推演建议、风险提示和优先动作。';
+    }
+
+    function runFinanceScenario() {
+      const period = (document.getElementById('financeScenarioPeriod') || {}).value || 'today';
+      const focus = (document.getElementById('financeScenarioFocus') || {}).value || 'cashflow';
+      const periodLabelMap = { today: '今天', tomorrow: '明天', week: '本周', month: '本月' };
+      const focusLabelMap = { cashflow: '资金调度', tax: '税务申报', close: '月结关账', receivable: '应收回款' };
+      const tasks = getStoredTasks();
+      const focusTasks = tasks.filter(function(task) {
+        if (focus === 'cashflow') return /资金|付款|现金流|出纳|回款/.test(task.title);
+        if (focus === 'tax') return /税|票|申报/.test(task.title);
+        if (focus === 'close') return /月末|结账|对账|工资/.test(task.title);
+        return /回款|应收|客户|催收/.test(task.title);
+      }).filter(function(task) { return !task.done; });
+      const text = ['模拟周期：' + periodLabelMap[period], '模拟主题：' + focusLabelMap[focus], 'AI 判断：当前相关待办 ' + focusTasks.length + ' 项。', '优先动作：' + (focusTasks[0] ? '先推进“' + focusTasks[0].title + '”。' : '先建立优先级台账与负责人节奏。'), '风险提示：' + (focusTasks.length >= 3 ? '当前事项较集中，建议设置日内复盘点。' : '当前压力可控，建议保持前置预警。')].join('\n');
+      const output = document.getElementById('financeScenarioOutput');
+      if (output) output.textContent = text;
+      addMessage('assistant', '<div class="report-card"><div style="font-weight:700">AI 场景模拟器</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">' + escapeHtml(text) + '</div></div>', true);
+    }
+
+    function copyFinanceScenario() {
+      const output = document.getElementById('financeScenarioOutput');
+      const text = output ? output.textContent.trim() : '';
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', '<div class="report-card"><div style="font-weight:700">AI 场景结论已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">' + escapeHtml(text) + '</div></div>', true);
+      });
+    }
+
+    function renderWorkspaceCommandCenter() {
+      const wrap = document.getElementById('workspaceCommandCenter');
+      if (!wrap) return;
+      const tasks = getStoredTasks();
+      const pending = tasks.filter(function(task) { return !task.done; }).length;
+      const high = tasks.filter(function(task) { return !task.done && task.priority === 'high'; }).length;
+      const risks = tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天' || isTaskTimeoutRisk(task)); }).length;
+      wrap.innerHTML = `
+        <h4>六大业务中心总入口</h4>
+        <p>从首页直达财务软件、数据分析、税务、风险、预算与财务BP中心。</p>
+        <div class="workspace-kpi-row">
+          <div class="workspace-kpi"><div class="num">${pending}</div><div class="txt">待推进事项</div></div>
+          <div class="workspace-kpi"><div class="num">${high}</div><div class="txt">高优先级焦点</div></div>
+          <div class="workspace-kpi"><div class="num">${risks}</div><div class="txt">风险预警</div></div>
+        </div>
+        <div class="quick-action-bar">
+          <button onclick="navigateFinanceCenter('cashflow')">进入数据分析中心</button>
+          <button onclick="navigateFinanceCenter('close')">进入财务软件中心</button>
+          <button onclick="sendMessage('请生成今天的智能工作台总入口行动清单')">生成行动清单</button>
+        </div>
+      `;
+    }
+
+    function renderWorkspaceModules() {
+      const wrap = document.getElementById('workspaceModules');
+      if (!wrap) return;
+      const modules = [
+        { title: '财务BP中心', desc: '承接回款、业务利润、经营复盘与协同分析', action: "navigateFinanceCenter('receivable')" },
+        { title: '数据分析中心', desc: '承接报表、现金流、趋势与经营数据洞察', action: "navigateFinanceCenter('cashflow')" },
+        { title: '税务中心', desc: '承接申报、票据状态、税负扫描与复核处理', action: "navigateFinanceCenter('tax')" },
+        { title: '财务软件中心', desc: '承接账套、凭证、总账与期末结账处理', action: "navigateFinanceCenter('close')" },
+        { title: '风险中心', desc: '承接异常预警、风险解释与优先级判断', action: "navigateFinanceCenter('risk')" },
+        { title: '预算中心', desc: '承接预算执行、成本偏差与资源配置判断', action: "navigateFinanceCenter('budget')" }
+      ];
+      wrap.innerHTML = modules.map(function(item) {
+        return '<div class="workspace-module" onclick="' + item.action + '"><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.desc) + '</span></div>';
+      }).join('');
+    }
+
+    function renderWorkspaceFeed() {
+      const wrap = document.getElementById('workspaceFeed');
+      if (!wrap) return;
+      const tasks = getStoredTasks();
+      const pending = tasks.filter(function(task) { return !task.done; });
+      const topHigh = pending.filter(function(task) { return task.priority === 'high'; }).slice(0, 2);
+      const today = pending.filter(function(task) { return task.deadline === '今天'; }).slice(0, 2);
+      const tax = pending.filter(function(task) { return /税|票|申报/.test(task.title); }).slice(0, 2);
+      const items = [
+        '经营观察：当前未完成事项 ' + pending.length + ' 项，适合使用经营驾驶舱统筹优先级。',
+        '高压事项：' + (topHigh.length ? topHigh.map(function(task) { return task.title; }).join('、') : '暂无显著高压事项。'),
+        '今日节点：' + (today.length ? today.map(function(task) { return task.title; }).join('、') : '今天暂无关键到期节点。'),
+        '税务关注：' + (tax.length ? tax.map(function(task) { return task.title; }).join('、') : '当前涉税任务压力可控。')
+      ];
+      wrap.innerHTML = items.map(function(item) { return '<div class="workspace-feed-item">' + escapeHtml(item) + '</div>'; }).join('');
+    }
+
+    function renderErpPanels() {
+      const tasks = getStoredTasks();
+      const renderList = function(id, items, emptyText) {
+        const wrap = document.getElementById(id);
+        if (!wrap) return;
+        wrap.innerHTML = items.length ? items.map(function(item) { return '<div class="erp-mini-item">' + escapeHtml(item) + '</div>'; }).join('') : '<div class="erp-mini-item">' + escapeHtml(emptyText) + '</div>';
+      };
+      const receivable = tasks.filter(function(task) { return /回款|应收|客户|催收/.test(task.title) && !task.done; }).slice(0, 3).map(function(task) { return task.title + '｜' + (task.deadline || '本月') + '｜' + (task.assignee || '未分配'); });
+      const payable = tasks.filter(function(task) { return /付款|供应商|报销|支出/.test(task.title) && !task.done; }).slice(0, 3).map(function(task) { return task.title + '｜' + (task.deadline || '本月') + '｜优先级' + (task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'); });
+      const bank = [
+        '主账户：建议重点关注今日付款与回款平衡',
+        '一般户：建议用于非紧急支出隔离',
+        '票据户：建议核对应付与票据到期节奏'
+      ];
+      const invoice = tasks.filter(function(task) { return /票|发票|报销/.test(task.title) && !task.done; }).slice(0, 3).map(function(task) { return task.title + '｜状态待核验'; });
+      const tax = tasks.filter(function(task) { return /税|申报/.test(task.title) && !task.done; }).slice(0, 3).map(function(task) { return task.title + '｜建议预留复核窗口'; });
+      const close = tasks.filter(function(task) { return /月末|结账|对账|工资/.test(task.title) && !task.done; }).slice(0, 3).map(function(task) { return task.title + '｜建议列入月结清单'; });
+      renderList('erpReceivablePanel', receivable, '暂无高关注应收账龄事项');
+      renderList('erpPayablePanel', payable, '暂无高关注应付到期事项');
+      renderList('erpBankPanel', bank, '暂无账户建议');
+      renderList('erpInvoicePanel', invoice, '暂无待处理发票事项');
+      renderList('erpTaxCalendar', tax, '暂无临近税务事项');
+      renderList('erpClosePanel', close, '暂无月结关键事项');
+    }
+
+    function renderAiInsights() {
+      const tasks = getStoredTasks();
+      const pending = tasks.filter(function(task) { return !task.done; });
+      const high = pending.filter(function(task) { return task.priority === 'high'; });
+      const profitWrap = document.getElementById('profitInsightCard');
+      const costWrap = document.getElementById('costInsightCard');
+      const anomalyWrap = document.getElementById('anomalyInsightCard');
+      if (profitWrap) profitWrap.innerHTML = '<strong>利润变化归因</strong><span>' + escapeHtml(high.length ? '当前利润敏感事项主要集中在：' + high.slice(0, 2).map(function(task) { return task.title; }).join('、') : '当前暂无显著利润波动任务，建议结合回款与费用控制观察。') + '</span><div class="quick-action-bar"><button onclick="sendMessage(\'请解释本周利润变化的主要原因\')">一键解释</button></div>';
+      if (costWrap) costWrap.innerHTML = '<strong>成本偏差分析</strong><span>' + escapeHtml(pending.length ? '建议关注付款、报销、票据与月结类事项对成本节奏的影响。' : '暂无明显成本偏差压力。') + '</span><div class="quick-action-bar"><button onclick="sendMessage(\'请分析本周成本偏差及控制建议\')">生成分析</button></div>';
+      if (anomalyWrap) anomalyWrap.innerHTML = '<strong>异常波动解释</strong><span>' + escapeHtml(pending.filter(function(task) { return task.deadline === '今天' || task.deadline === '明天'; }).length ? '系统检测到临期事项偏多，建议先解释波动来源再安排动作。' : '当前波动水平可控，建议持续监控。') + '</span><div class="quick-action-bar"><button onclick="sendMessage(\'请解释当前财务异常波动和风险来源\')">异常解释</button></div>';
+    }
+
+
+    function runRoleShortcut(role) {
+      const promptMap = {
+        boss: '请给老板输出今天最该关注的经营、利润和现金流摘要',
+        accountant: '请给会计输出今天的月结、报税、发票和凭证行动清单',
+        cashier: '请给出纳输出今天的收付款、余额和资金调度安排',
+        report: '请生成一份适合管理层看的智能财务工作台晨报'
+      };
+      if (promptMap[role]) sendMessage(promptMap[role]);
+    }
+
+    function renderVisualPanels() {
+      const trendWrap = document.getElementById('visualTrendPanel');
+      const heatWrap = document.getElementById('riskHeatPanel');
+      const shortcutWrap = document.getElementById('aiShortcutPanel');
+      const tasks = getStoredTasks();
+      const records = getTrendRecords();
+      if (trendWrap) {
+        const items = (records.length ? records : [{ date: '今日', total: tasks.length || 1, done: tasks.filter(function(task) { return task.done; }).length }]).slice(-7);
+        trendWrap.innerHTML = items.map(function(item) {
+          const rate = item.total ? Math.max(8, Math.round((item.done / item.total) * 100)) : 8;
+          return '<div class="spark-bar-item"><div class="spark-bar" style="height:' + rate + 'px"></div><div class="spark-label">' + escapeHtml(String(item.date).slice(5)) + '</div></div>';
+        }).join('');
+      }
+      if (heatWrap) {
+        const groups = [
+          { label: '税务', count: tasks.filter(function(task) { return !task.done && /税|申报|票/.test(task.title); }).length },
+          { label: '资金', count: tasks.filter(function(task) { return !task.done && /资金|付款|回款|出纳/.test(task.title); }).length },
+          { label: '月结', count: tasks.filter(function(task) { return !task.done && /月末|结账|对账|工资/.test(task.title); }).length },
+          { label: '经营', count: tasks.filter(function(task) { return !task.done && /预算|利润|客户|成本/.test(task.title); }).length }
+        ];
+        const max = Math.max.apply(null, groups.map(function(item) { return item.count; }).concat([1]));
+        heatWrap.innerHTML = groups.map(function(item) {
+          const ratio = Math.max(6, Math.round((item.count / max) * 100));
+          return '<div class="heat-row"><div class="heat-row-top"><span>' + escapeHtml(item.label) + '</span><span>' + item.count + '项</span></div><div class="heat-track"><div class="heat-fill" style="width:' + ratio + '%"></div></div></div>';
+        }).join('');
+      }
+      if (shortcutWrap) {
+        const shortcuts = [
+          { key: 'boss', title: '老板速览', desc: '一键生成老板经营摘要、风险与拍板重点' },
+          { key: 'accountant', title: '会计工作流', desc: '快速生成凭证、报税、月结与发票清单' },
+          { key: 'cashier', title: '出纳调度', desc: '快速生成收付款与余额调度安排' },
+          { key: 'report', title: '管理层晨报', desc: '一键输出高层可读的智能财务晨报' }
+        ];
+        shortcutWrap.innerHTML = shortcuts.map(function(item) {
+          return '<button class="shortcut-pill" onclick="runRoleShortcut(\'' + item.key + '\')"><strong>' + escapeHtml(item.title) + '</strong>' + escapeHtml(item.desc) + '</button>';
+        }).join('');
+      }
+    }
+
+
+    function renderSidebarQuickNav() {
+      const wrap = document.getElementById('sidebarQuickNav');
+      if (!wrap) return;
+      const links = [
+        { label: '工作台', action: "window.scrollTo({ top: 0, behavior: 'smooth' })" },
+        { label: '财务软件中心', action: "navigateFinanceCenter('voucher')" },
+        { label: '总账中心', action: "navigateFinanceCenter('ledger')" },
+        { label: '明细账', action: "navigateFinanceCenter('detail')" },
+        { label: '数据分析中心', action: "navigateFinanceCenter('reports')" },
+        { label: 'AI 智能中心', action: "window.scrollTo({ top: 520, behavior: 'smooth' })" },
+        { label: '期末结账', action: "navigateFinanceCenter('close')" }
+      ];
+      wrap.innerHTML = links.map(function(item, index) {
+        return '<div class="sidebar-quick-link ' + (index === 0 ? 'active' : '') + '" onclick="' + item.action + '">' + escapeHtml(item.label) + '</div>';
+      }).join('');
+    }
+
+    function renderTopKpiStrip() {
+      const wrap = document.getElementById('topKpiStrip');
+      if (!wrap) return;
+      const role = getAssistantRole();
+      const tasks = getStoredTasks();
+      const pending = tasks.filter(function(task) { return !task.done; });
+      const high = pending.filter(function(task) { return task.priority === 'high'; }).length;
+      const dueToday = pending.filter(function(task) { return task.deadline === '今天'; }).length;
+      const done = tasks.filter(function(task) { return task.done; }).length;
+      const roleMap = {
+        accountant: ['待复核凭证', pending.filter(function(task) { return /凭证|发票|报税|结账/.test(task.title); }).length || pending.length, '会计视角聚焦凭证、报税、结账与台账'],
+        cashier: ['待调度资金', pending.filter(function(task) { return /资金|付款|回款|出纳/.test(task.title); }).length || pending.length, '出纳视角聚焦收付款、余额与资金节奏'],
+        boss: ['经营关注点', high || pending.length, '老板视角聚焦利润、现金流与风险事项']
+      };
+      const roleMain = roleMap[role] || roleMap.accountant;
+      const items = [
+        { label: roleMain[0], value: roleMain[1], sub: roleMain[2] },
+        { label: '今日关键节点', value: dueToday, sub: '今天到期事项越多，越需要前置统筹' },
+        { label: '高优先级任务', value: high, sub: '适合作为首页第一推进队列' },
+        { label: '已完成事项', value: done, sub: '反映当前团队推进速度与闭环情况' }
+      ];
+      wrap.innerHTML = items.map(function(item) {
+        return '<div class="top-kpi-card"><div class="kpi-label">' + escapeHtml(String(item.label)) + '</div><div class="kpi-value">' + escapeHtml(String(item.value)) + '</div><div class="kpi-sub">' + escapeHtml(String(item.sub)) + '</div></div>';
+      }).join('');
+    }
+
+    function renderHomeFocusPanel() {
+      const wrap = document.getElementById('homeFocusPanel');
+      if (!wrap) return;
+      const role = getAssistantRole();
+      const roleMeta = {
+        accountant: {
+          name: '会计模式',
+          title: '今日工作焦点：财务软件中心 / 税务中心',
+          actions: [
+            { title: '财务软件中心', desc: '进入账务、凭证、总账与期末结账', action: "navigateFinanceCenter('voucher')" },
+            { title: '税务中心', desc: '进入申报、发票、状态与税务风险处理', action: "navigateFinanceCenter('tax')" },
+            { title: '期末结账中心', desc: '继续关账、对账、工资与月结推进', action: "navigateFinanceCenter('close')" }
+          ]
+        },
+        cashier: {
+          name: '出纳模式',
+          title: '今日工作焦点：数据分析中心 / 财务BP中心',
+          actions: [
+            { title: '数据分析中心', desc: '进入现金流、报表与趋势分析', action: "navigateFinanceCenter('cashflow')" },
+            { title: '财务BP中心', desc: '进入回款、经营与业务利润分析', action: "navigateFinanceCenter('receivable')" },
+            { title: '风险中心', desc: '进入风险预警、异常交易与风险处理', action: "navigateFinanceCenter('risk')" }
+          ]
+        },
+        boss: {
+          name: '老板模式',
+          title: '今日工作焦点：财务BP中心 / 风险中心',
+          actions: [
+            { title: '财务BP中心', desc: '进入经营分析、管理复盘与业务利润分析', action: "navigateFinanceCenter('receivable')" },
+            { title: '风险中心', desc: '进入回款风险、税务风险与经营风险处理', action: "navigateFinanceCenter('risk')" },
+            { title: '数据分析中心', desc: '进入报表、利润、现金流与趋势分析', action: "navigateFinanceCenter('reports')" }
+          ]
+        }
+      };
+      const meta = roleMeta[role] || roleMeta.accountant;
+      wrap.innerHTML = '<div class="home-focus-title"><h3>' + escapeHtml(meta.title) + '</h3><span class="focus-role-badge">' + escapeHtml(meta.name) + '</span></div><div class="focus-action-list">' + meta.actions.map(function(item) { return '<div class="focus-action-card" onclick="' + item.action + '"><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.desc) + '</span></div>'; }).join('') + '</div>';
+    }
+
+    function renderTrendPanel() {
+      const wrap = document.getElementById('trendPanel');
+      if (!wrap) return;
+      const records = getTrendRecords();
+      if (!records.length) {
+        wrap.innerHTML = '<div class="task-item-meta">暂无趋势数据，开始勾选任务后会累计最近 7 天走势。</div>';
+        return;
+      }
+      wrap.innerHTML = records.map(function(item) {
+        const rate = item.total ? Math.round((item.done / item.total) * 100) : 0;
+        return `<div class="report-card" style="padding:10px 12px;gap:6px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${item.date}</span><span>${rate}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${rate}%"></div></div><div style="font-size:13px;font-weight:700;color:#1a2d42">完成 ${item.done}/${item.total}</div></div>`;
+      }).join('');
+    }
+
+    function renderTaskStats() {
+      const wrap = document.getElementById('taskStats');
+      if (!wrap) return;
+      const tasks = getStoredTasks();
+      const overdueRisk = tasks.filter(function(task) { return !task.done && (task.deadline === '今天' || task.deadline === '明天'); }).length;
+      const assigneeSet = new Set(tasks.map(function(task) { return task.assignee || '未分配'; }));
+      const completionRate = tasks.length ? Math.round((tasks.filter(function(task) { return task.done; }).length / tasks.length) * 100) : 0;
+      const assigneeCount = {};
+      tasks.forEach(function(task) {
+        const key = task.assignee || '未分配';
+        assigneeCount[key] = (assigneeCount[key] || 0) + 1;
+      });
+      const statusCount = {
+        todo: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'todo'; }).length,
+        doing: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).length,
+        done: tasks.filter(function(task) { return getTaskStatusLabel(task) === 'done'; }).length
+      };
+      const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const pinnedCount = tasks.filter(function(task) { return task.pinned; }).length;
+      const stats = [
+        { label: '总任务', value: tasks.length },
+        { label: '已完成', value: tasks.filter(function(task) { return task.done; }).length },
+        { label: '高优先级', value: tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).length },
+        { label: '今天到期', value: tasks.filter(function(task) { return task.deadline === '今天' && !task.done; }).length },
+        { label: '本周新增', value: weeklyNew },
+        { label: '本周完成', value: weeklyDone },
+        { label: '置顶任务', value: pinnedCount },
+        { label: '完成率', value: `${completionRate}%` },
+        { label: '逾期风险', value: overdueRisk },
+        { label: '负责人数', value: assigneeSet.size },
+        { label: '当前筛选', value: getTaskFilter() === 'all' ? '全部' : getTaskFilter() }
+      ];
+      const topAssignees = Object.keys(assigneeCount).map(function(name) {
+        const value = assigneeCount[name];
+        const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
+        return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${name}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
+      }).join('');
+      const assigneeCompletion = Object.keys(assigneeCount).map(function(name) {
+        const total = tasks.filter(function(task) { return (task.assignee || '未分配') === name; }).length;
+        const done = tasks.filter(function(task) { return (task.assignee || '未分配') === name && task.done; }).length;
+        const ratio = total ? Math.round((done / total) * 100) : 0;
+        return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${name}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
+      }).join('');
+      const statusChart = ['todo','doing','done'].map(function(key) {
+        const value = statusCount[key];
+        const ratio = tasks.length ? Math.round((value / tasks.length) * 100) : 0;
+        return `<div style="display:grid;gap:4px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7f91"><span>${formatTaskStatus(key)}</span><span>${ratio}%</span></div><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${ratio}%"></div></div></div>`;
+      }).join('');
+      wrap.innerHTML = stats.map(function(item) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-size:11px;color:#6e7f91">${item.label}</div><div style="font-size:22px;font-weight:700;color:#1a2d42">${item.value}</div></div>`;
+      }).join('') + `<div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人分布</div>${topAssignees || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">负责人完成率</div>${assigneeCompletion || '<div class="task-item-meta">暂无负责人数据</div>'}</div><div class="report-card" style="grid-column:1 / -1;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">状态占比</div>${statusChart}</div>`;
+    }
+
+    function renderTaskBoard() {
+      const board = document.getElementById('taskBoard');
+      if (!board) return;
+      const tasks = getFilteredTasks(getStoredTasks()).slice().sort(function(a, b) {
+        const deadlineOrder = { '今天': 0, '明天': 1, '本周': 2, '下周': 3, '本月': 4 };
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        const pinScore = (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+        if (pinScore !== 0) return pinScore;
+        const aScore = (priorityOrder[a.priority || 'low'] || 2) * 10 + (deadlineOrder[a.deadline || '本月'] || 4);
+        const bScore = (priorityOrder[b.priority || 'low'] || 2) * 10 + (deadlineOrder[b.deadline || '本月'] || 4);
+        return aScore - bScore;
+      });
+      if (!tasks.length) {
+        board.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无待办</h4><p>你可以让助手生成今日待办、报税清单或月末结账步骤。</p></div>';
+        return;
+      }
+
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.group || 'today';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+
+      board.innerHTML = Object.keys(grouped).map(function(group) {
+        const lanes = { todo: [], doing: [], done: [] };
+        grouped[group].forEach(function(task) { lanes[getTaskStatusLabel(task)] = lanes[getTaskStatusLabel(task)] || []; lanes[getTaskStatusLabel(task)].push(task); });
+        return `
+          <div>
+            <div class="task-item-meta" style="margin-bottom:8px;font-size:12px;color:#1a65b8;font-weight:700">${taskGroupLabels[group] || '分组'}</div>
+            <div style="display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));">
+              ${['todo','doing','done'].map(function(statusKey) {
+                return `<div style="display:grid;gap:10px;align-content:start;"><div class="task-item-meta" style="font-size:11px;font-weight:700;color:#5f7590">${formatTaskStatus(statusKey)}（${(lanes[statusKey] || []).length}）</div>${(lanes[statusKey] || []).map(function(task) {
+                return `
+                  <label class="task-item ${task.done ? 'done' : ''} ${!task.done && (task.deadline === '今天' || task.deadline === '明天') ? 'risk-due' : ''}">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                    <div>
+                      <div class="task-item-title">${escapeHtml(task.title)}</div>
+                      <div class="task-item-meta">来源：${escapeHtml(task.source || '智能助手')}</div>
+                      <div class="task-badges">
+                        <span class="task-badge priority-${task.priority || 'low'}">优先级：${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>
+                        <span class="task-badge">截止：${escapeHtml(task.deadline || '本月')}</span>
+                        <span class="task-badge">负责人：${escapeHtml(task.assignee || '未分配')}</span>
+                        <span class="task-badge">状态：${formatTaskStatus(getTaskStatusLabel(task))}</span>${task.pinned ? '<span class="task-badge" style="background:#fff4d8;color:#9a6a00;border-color:#f2dea5">已置顶</span>' : ''}
+                      </div>
+                      ${task.note ? `<div class="task-item-meta">备注：${escapeHtml(task.note)}</div>` : ''}
+                      ${isTaskTimeoutRisk(task) ? `<div class="task-item-meta" style="color:#b64a4a;font-weight:700">处理中超时风险：请尽快推进</div>` : ''}
+                      ${task.createdAt ? `<div class="task-item-meta">创建时间：${escapeHtml(task.createdAt)}</div>` : ''}
+                      ${task.completedAt ? `<div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div>` : ''}
+                      <textarea oninput="setInlineTaskNote('${task.id}', this.value)" placeholder="可直接填写备注..." style="margin-top:8px;width:100%;min-height:54px;border:1px solid #dbe7f2;border-radius:10px;padding:8px 10px;resize:vertical;font-size:12px;color:#34506a">${escapeHtml(task.note || '')}</textarea>
+                      <div class="quick-action-bar" style="margin-top:8px;">
+                        <button onclick="event.preventDefault(); updateTaskTitle('${task.id}')">改标题</button><button onclick="event.preventDefault(); updateTaskAssignee('${task.id}')">改负责人</button>
+                        <button onclick="event.preventDefault(); updateTaskStatus('${task.id}')">改状态</button><button onclick="event.preventDefault(); markTaskDoing('${task.id}')">转处理中</button><button onclick="event.preventDefault(); pinTask('${task.id}')">${task.pinned ? '取消置顶' : '置顶'}</button><button onclick="event.preventDefault(); moveTaskToFront('${task.id}')">移到最前</button><button onclick="event.preventDefault(); copyTaskAsDailyEntry('${task.id}')">日报条目</button><button onclick="event.preventDefault(); updateTaskPriority('${task.id}')">改优先级</button><button onclick="event.preventDefault(); cloneTask('${task.id}')">克隆</button><button onclick="event.preventDefault(); copyTaskCard('${task.id}')">复制</button>
+                        <button onclick="event.preventDefault(); updateTaskNote('${task.id}')">备注</button>
+                        <button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','明天')">明天</button><button onclick="event.preventDefault(); quickUpdateTaskDeadline('${task.id}','本周')">本周</button>
+                        <button onclick="event.preventDefault(); deferTask('${task.id}')">延期</button>
+                        <button onclick="event.preventDefault(); deleteTask('${task.id}')">删除</button>
+                      </div>
+                    </div>
+                  </label>
+                `;
+              }).join('') || '<div class="task-item-meta">暂无任务</div>'}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTask(id) {
+      const tasks = getStoredTasks().map(function(task) {
+        if (task.id !== id) return task;
+        const nextDone = !task.done;
+        return { ...task, done: nextDone, status: nextDone ? 'done' : 'todo', completedAt: nextDone ? new Date().toLocaleString('zh-CN') : '' };
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function clearTaskBoard() {
+      stashDeletedTasks(getStoredTasks());
+      localStorage.removeItem(smartAssistantTaskKey);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function getReportTemplate() {
+      return localStorage.getItem(smartAssistantReportTemplateKey) || 'standard';
+    }
+
+    function switchReportTemplate() {
+      const current = getReportTemplate();
+      const next = current === 'standard' ? 'brief' : (current === 'brief' ? 'boss_brief' : 'standard');
+      localStorage.setItem(smartAssistantReportTemplateKey, next);
+      const label = next === 'standard' ? '正式版' : (next === 'brief' ? '简版' : '老板简报版');
+      addMessage('assistant', `已切换汇报模板为 <b>${label}</b>。`, true);
+    }
+
+    function copyPinnedPanel() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 6);
+      const text = tasks.length ? `【置顶任务】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') : '暂无置顶任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return task.pinned; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【置顶任务-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task) { return `- ${task.title}`; }).join('\n');
+      }).join('\n\n') : '暂无置顶任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已按负责人复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function exportRiskSummary() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const template = getRiskReportTemplate();
+      const text = tasks.length ? (template === 'boss' ? `【风险专项汇报-老板版】
+日期：${new Date().toLocaleString('zh-CN')}
+1. 当前风险任务 ${tasks.length} 项。
+2. 最需关注：${tasks.slice(0,3).map(function(task) { return task.title; }).join('、')}。
+3. 建议今日优先跟进高优先级与到期事项。` : `【风险专项汇报】
+日期：${new Date().toLocaleString('zh-CN')}
+
+重点风险：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') + `\n\n建议：
+- 优先跟进今天到期与高优先级事项
+- 对处理中任务逐项确认推进节点`) : '当前暂无需要专项汇报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险专项汇报已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function renderPinnedPanel() {
+      const wrap = document.getElementById('pinnedPanel');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 6);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#9a6a00">${escapeHtml(task.title)}</div><div class="task-item-meta">负责人：${escapeHtml(task.assignee || '未分配')}｜截止：${escapeHtml(task.deadline || '本月')}</div><div class="quick-action-bar"><button onclick="updateTaskAssignee('${task.id}')">改负责人</button><button onclick="updateTaskPriority('${task.id}')">改优先级</button><button onclick="updateTaskStatus('${task.id}')">改状态</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无置顶任务</div>';
+    }
+
+    function copyRecentByAssignee(type) {
+      const tasks = (type === 'added' ? getStoredTasks().filter(function(task) { return task.createdAt; }) : getStoredTasks().filter(function(task) { return task.done && task.completedAt; })).slice(0, 8);
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const title = type === 'added' ? '最近新增-按负责人' : '最近完成-按负责人';
+      const text = Object.keys(grouped).length ? `【${title}】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task) { return `- ${task.title}`; }).join('\n');
+      }).join('\n\n') : `暂无${title}任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${title}已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getTaskFeedbackState(task) {
+      return task.feedbackState || 'pending';
+    }
+
+    function resetRiskTasksFeedbackForAccountant() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '会计') {
+          return { ...task, feedbackState: 'pending' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已取消会计负责风险任务的反馈标记。', true);
+    }
+
+    function resetRiskTasksFeedbackForCashier() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '出纳') {
+          return { ...task, feedbackState: 'pending' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已取消出纳负责风险任务的反馈标记。', true);
+    }
+
+    function resetRiskTasksFeedbackForManager() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '财务经理') {
+          return { ...task, feedbackState: 'pending' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已取消财务经理负责风险任务的反馈标记。', true);
+    }
+
+    function resetAllRiskTasksFeedback() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, feedbackState: 'pending' } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已取消全部风险任务的反馈标记。', true);
+    }
+
+    function resetRiskTasksFeedbackForBoss() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '老板') {
+          return { ...task, feedbackState: 'pending' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已取消老板负责风险任务的反馈标记。', true);
+    }
+
+    function markRiskTasksFeedbackDoneForAccountant() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '会计') {
+          return { ...task, feedbackState: 'done' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将会计负责的风险任务标记为已反馈。', true);
+    }
+
+    function markRiskTasksFeedbackDoneForCashier() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '出纳') {
+          return { ...task, feedbackState: 'done' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将出纳负责的风险任务标记为已反馈。', true);
+    }
+
+    function markRiskTasksFeedbackDoneForManager() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '财务经理') {
+          return { ...task, feedbackState: 'done' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将财务经理负责的风险任务标记为已反馈。', true);
+    }
+
+    function markRiskTasksFeedbackDoneForBoss() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天') && task.assignee === '老板') {
+          return { ...task, feedbackState: 'done' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将老板负责的风险任务标记为已反馈。', true);
+    }
+
+    function markAllRiskTasksFeedbackDone() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, feedbackState: 'done' } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将全部风险任务标记为已反馈。', true);
+    }
+
+    function markRiskTasksFeedbackDoneByAssignee() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, feedbackState: 'done' } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将当前风险任务标记为已反馈。', true);
+    }
+
+    function copyRiskBossBriefByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【风险任务老板简报-按负责人】
+日期：${new Date().toLocaleString('zh-CN')}
+` + Object.keys(grouped).map(function(name) {
+        return `${name}：${grouped[name].join('、')}`;
+      }).join('\n') : '当前暂无需要老板关注的分组风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险任务已按负责人生成老板简报</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getRiskWechatTemplate() {
+      return localStorage.getItem(smartAssistantRiskWechatTemplateKey) || 'execute';
+    }
+
+    function switchRiskWechatTemplate() {
+      const current = getRiskWechatTemplate();
+      const next = current === 'execute' ? 'boss' : 'execute';
+      localStorage.setItem(smartAssistantRiskWechatTemplateKey, next);
+      addMessage('assistant', `已切换群通报模板为 <b>${next === 'execute' ? '执行版' : '老板版'}</b>。`, true);
+    }
+
+    function getBossSummaryLengthMode() {
+      return localStorage.getItem(smartAssistantBossSummaryLengthKey) || 'standard';
+    }
+
+    function switchBossSummaryLengthMode() {
+      const current = getBossSummaryLengthMode();
+      const next = current === 'standard' ? 'short' : 'standard';
+      localStorage.setItem(smartAssistantBossSummaryLengthKey, next);
+      addMessage('assistant', `已切换一句话老板摘要长度为 <b>${next === 'standard' ? '标准版' : '超短版'}</b>。`, true);
+    }
+
+    function getBossSummaryMode() {
+      return localStorage.getItem(smartAssistantBossSummaryModeKey) || 'auto';
+    }
+
+    function switchBossSummaryMode() {
+      const current = getBossSummaryMode();
+      const next = current === 'auto' ? 'group' : (current === 'group' ? 'private' : 'auto');
+      localStorage.setItem(smartAssistantBossSummaryModeKey, next);
+      const label = next === 'auto' ? '自动版' : (next === 'group' ? '群内版' : '私发版');
+      addMessage('assistant', `已切换一句话老板摘要模式为 <b>${label}</b>。`, true);
+    }
+
+    function getRiskMorningTemplate() {
+      return localStorage.getItem(smartAssistantRiskMorningTemplateKey) || 'standard';
+    }
+
+    function switchRiskMorningTemplate() {
+      const current = getRiskMorningTemplate();
+      const next = current === 'standard' ? 'boss' : 'standard';
+      localStorage.setItem(smartAssistantRiskMorningTemplateKey, next);
+      addMessage('assistant', `已切换晨会稿模板为 <b>${next === 'standard' ? '执行版' : '老板版'}</b>。`, true);
+    }
+
+    function copyRiskWechatBulletin() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const text = tasks.length ? `【风险任务微信群通报】
+请相关负责人重点关注以下事项：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '待定'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') + `\n请于今日反馈推进进展。` : '当前暂无需要在微信群通报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险微信群通报版已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskMorningBossDigest() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const todayCount = tasks.filter(function(task) { return task.deadline === '今天'; }).length;
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const urgentTitle = tasks[0] ? tasks[0].title : '暂无';
+      const secondaryUrgentTitle = tasks[1] ? tasks[1].title : '暂无';
+      const blockerTitle = tasks[2] ? tasks[2].title : '暂无明显阻塞';
+      const decisionTitle = tasks[3] ? tasks[3].title : '暂无需要老板拍板事项';
+      const decisionAdvice = tasks[3] ? `建议决策：请老板优先确认“${tasks[3].title}”资源与时点。` : '建议决策：当前暂无需要老板补充决策的事项。';
+      const text = tasks.length ? `【老板晨报摘要】
+一、风险任务总览：今日风险任务 ${tasks.length} 项，其中今天到期 ${todayCount} 项。
+二、重点事项：${tasks.slice(0,3).map(function(task) { return task.title; }).join('、')}。
+三、责任分布：${Object.keys(grouped).map(function(name) { return `${name}${grouped[name].length}项`; }).join('；')}。
+四、今日最紧急事项：${urgentTitle}。
+五、今日次紧急事项：${secondaryUrgentTitle}。
+六、今日阻塞点：${blockerTitle}。
+七、需要老板拍板事项：${decisionTitle}。
+八、建议决策：${decisionAdvice}
+九、今日外部依赖：${tasks[4] ? tasks[4].title : '暂无明显外部依赖'}。
+十、今日资源缺口：${tasks[5] ? tasks[5].title : '暂无明显资源缺口'}。
+十一、今日关键节点：${tasks[6] ? tasks[6].title : '暂无明显关键节点'}。
+十二、今日关键卡点：${tasks[7] ? tasks[7].title : '暂无明显关键卡点'}。
+十三、今日外部协同：${tasks[8] ? tasks[8].title : '暂无明显外部协同事项'}。
+十四、今日决策时点：${tasks[9] ? tasks[9].title : '暂无明显决策时点'}。
+十五、今日拍板顺序：${tasks[10] ? tasks[10].title : '暂无明显拍板顺序'}。
+十六、今日确认顺序：${tasks[11] ? tasks[11].title : '暂无明显确认顺序'}。
+十七、建议动作：先确认今天到期任务，再追踪负责人反馈。` : '今日暂无需要老板关注的晨报摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板晨报摘要已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskMorningBriefByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const assigneeCount = Object.keys(grouped).length;
+      const allRiskTasks = Object.keys(grouped).reduce(function(arr, name) { return arr.concat(grouped[name]); }, []);
+      const doneCount = allRiskTasks.filter(function(task) { return getTaskFeedbackState(task) === 'done'; }).length;
+      const pendingCount = allRiskTasks.length - doneCount;
+      const template = getRiskMorningTemplate();
+      const assigneeSummary = Object.keys(grouped).map(function(name) {
+        const done = grouped[name].filter(function(task) { return getTaskFeedbackState(task) === 'done'; }).length;
+        const pending = grouped[name].length - done;
+        return `${name}：已反馈${done}项 / 未反馈${pending}项`;
+      }).join('\n');
+      const text = assigneeCount ? (template === 'boss' ? `【风险任务晨会播报稿-按负责人老板版】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}：${grouped[name].map(function(task) { return task.title; }).join('、')}`;
+      }).join('\n') + `
+负责人反馈统计：
+${assigneeSummary}
+已反馈分栏：${doneCount} 项
+未反馈分栏：${pendingCount} 项` : `【风险任务晨会播报稿-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task, index) { return `${index + 1}. ${task.title}（${task.deadline || '本月'} / ${getTaskFeedbackState(task) === 'done' ? '已反馈' : '未反馈'}）`; }).join('\n');
+      }).join('\n\n') + `
+负责人反馈统计：
+${assigneeSummary}
+已反馈分栏：${doneCount} 项
+未反馈分栏：${pendingCount} 项`) : '今日暂无需要按负责人播报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">按负责人晨会稿已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossOneLineSummary() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const selectedMode = getBossSummaryMode();
+      const mode = selectedMode === 'auto' ? (getRiskWechatTemplate() === 'boss' ? 'group' : 'private') : selectedMode;
+      const lengthMode = getBossSummaryLengthMode();
+      const titles = lengthMode === 'short' ? (tasks[0] ? tasks[0].title : '暂无') : tasks.map(function(task) { return task.title; }).join('、');
+      const text = tasks.length ? (mode === 'group' ? (lengthMode === 'short' ? `一句话老板摘要（群内版）：盯紧${titles}。` : `一句话老板摘要（群内版）：今日风险 ${tasks.length} 项，请群内同步盯紧 ${titles}。`) : (lengthMode === 'short' ? `一句话老板摘要（私发版）：老板，盯紧${titles}。` : `一句话老板摘要（私发版）：老板，今日风险 ${tasks.length} 项，请重点关注 ${titles}。`)) : '当前暂无可生成的一句话老板摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">一句话老板摘要已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryReminder() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板催办版：请立即盯紧 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板催办版摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板催办版摘要已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryDecisionStrong() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板决策强提醒：请立刻拍板 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板决策强提醒';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板决策强提醒已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryDecisionSoft() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板决策温和提醒：请优先关注 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板决策温和提醒';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板决策温和提醒已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTodayFocus() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '今天'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看今天】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板今日关注摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看今天已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossMonthRiskOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本月' && (task.priority === 'high' || isTaskTimeoutRisk(task)); }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本月风险】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本月风险摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本月风险已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTomorrowFocusOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '明天'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看明天重点】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板明天重点摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看明天重点已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTodayTopOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '今天'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看今日重点】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板今日重点摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看今日重点已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossNextWeekFocusOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '下周'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看下周重点】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板下周重点摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看下周重点已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossWeekFocusOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本周'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本周重点】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本周重点摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本周重点已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossMonthFocusOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本月'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本月重点】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本月重点摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本月重点已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTodoOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && getTaskStatusLabel(task) === 'todo'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看待处理】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板待处理摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看待处理已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossDoingOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && getTaskStatusLabel(task) === 'doing'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看处理中】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板处理中摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看处理中已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossUnassignedOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && !task.assignee; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看未分配】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板未分配摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看未分配已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossPinnedOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.pinned; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看置顶】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板置顶摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看置顶已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossRiskOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 3);
+      const text = tasks.length ? `【老板只看风险任务】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板风险任务摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看风险任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossQuarterOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本月'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本阶段】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本阶段摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本阶段已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossLowPriorityOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'low'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看低优先级】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板低优先级摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看低优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossMediumPriorityOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'medium'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看中优先级】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板中优先级摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看中优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossHighPriorityOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'high'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看高优先级】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板高优先级摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看高优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossDoneOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return task.done || getTaskStatusLabel(task) === 'done'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看已完成】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板已完成摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看已完成已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossBacklogOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && getTaskStatusLabel(task) === 'todo'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看待处理】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板待处理摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看待处理已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossThisMonthOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本月'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本月】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本月摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本月已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossNextWeekOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '下周'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看下周】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板下周摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看下周已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossThisWeekOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本周'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看本周】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板本周摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看本周已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTodayOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '今天'; }).slice(0, 3);
+      const text = tasks.length ? `【老板只看今天】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板今日摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板只看今天已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossConfirmMini() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 3);
+      const text = tasks.length ? `【只看确认顺序】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的确认顺序摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看确认顺序已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossTopThree() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 3);
+      const text = tasks.length ? `【只看风险前三项】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的风险前三项摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看风险前三项已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossApproveMini() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 3);
+      const text = tasks.length ? `【只看拍板事项】${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的只看拍板事项摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看拍板事项已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryApprove() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板拍板版：请老板直接确认 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板拍板版摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板拍板版已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryDecision() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板决策版：请优先拍板 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板决策版摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板决策版摘要已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossSummaryReport() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板汇报版：今日风险 ${tasks.length} 项，重点 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板汇报版摘要';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板汇报版摘要已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossShortBulletin() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 5);
+      const text = tasks.length ? `老板摘要：今日风险 ${tasks.length} 项，重点 ${tasks.map(function(task) { return task.title; }).join('、')}。` : '当前暂无可生成的老板汇报短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板汇报短版已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeTomorrowOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee && task.deadline === '明天'; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人明天任务】
+` + names.map(function(name) {
+        return `${name}：${grouped[name].join('、')}`;
+      }).join('\n') : '当前暂无可生成的负责人明天任务短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人明天任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeWeekOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee && task.deadline === '本周'; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人本周任务】
+` + names.map(function(name) {
+        return `${name}：${grouped[name].join('、')}`;
+      }).join('\n') : '当前暂无可生成的负责人本周任务短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人本周任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeTodayOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee && task.deadline === '今天'; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人今日任务】
+` + names.map(function(name) {
+        return `${name}：${grouped[name].join('、')}`;
+      }).join('\n') : '当前暂无可生成的负责人今日任务短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人今日任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeHighOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee && task.priority === 'high'; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人高优先级】
+` + names.map(function(name) {
+        return `${name}：${grouped[name].join('、')}`;
+      }).join('\n') : '当前暂无可生成的负责人高优先级短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人高优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeLoadOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || { count: 0, high: 0 };
+        acc[key].count += 1;
+        if (task.priority === 'high') acc[key].high += 1;
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人负载】
+` + names.map(function(name) {
+        return `${name}：共${grouped[name].count}项，高优先级${grouped[name].high}项`;
+      }).join('\n') : '当前暂无可生成的负责人负载短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人负载已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeCountOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 6);
+      const text = names.length ? `【只看负责人数量】
+` + names.map(function(name) {
+        return `${name}：${grouped[name]}项`;
+      }).join('\n') : '当前暂无可生成的负责人数量短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人数量已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssigneeGroupOnly() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee; }).reduce(function(acc, task) {
+        const key = task.assignee;
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const names = Object.keys(grouped).slice(0, 4);
+      const text = names.length ? `【只看负责人分组】
+` + names.map(function(name) {
+        return `${name}：${grouped[name].map(function(task) { return task.title; }).join('、')}`;
+      }).join('\n') : '当前暂无可生成的负责人分组短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看负责人分组已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAssignedOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && !!task.assignee; }).slice(0, 4);
+      const text = tasks.length ? `【只看已分配】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee}`;
+      }).join('') : '当前暂无可生成的已分配短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看已分配已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionPinnedOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.pinned; }).slice(0, 4);
+      const text = tasks.length ? `【只看置顶】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的置顶短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看置顶已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionUnassignedOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && !task.assignee; }).slice(0, 4);
+      const text = tasks.length ? `【只看未分配】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜待分配`;
+      }).join('') : '当前暂无可生成的未分配短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看未分配已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionBossDecisionOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'high'; }).slice(0, 4);
+      const text = tasks.length ? `【只看待老板拍板】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的待老板拍板短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看待老板拍板已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionRiskOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 4);
+      const text = tasks.length ? `【只看风险任务】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的风险任务短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看风险任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionThisMonthOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本月'; }).slice(0, 4);
+      const text = tasks.length ? `【只看本月】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的本月短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看本月已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionTodoOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && getTaskStatusLabel(task) === 'todo'; }).slice(0, 4);
+      const text = tasks.length ? `【只看待处理】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的待处理短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看待处理已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionDoneOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return task.done || getTaskStatusLabel(task) === 'done'; }).slice(0, 4);
+      const text = tasks.length ? `【只看已完成】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的已完成短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看已完成已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionNextWeekOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '下周'; }).slice(0, 4);
+      const text = tasks.length ? `【只看下周】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的下周短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看下周已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionDoingOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && getTaskStatusLabel(task) === 'doing'; }).slice(0, 4);
+      const text = tasks.length ? `【只看处理中】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的处理中短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看处理中已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionLowOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'low'; }).slice(0, 4);
+      const text = tasks.length ? `【只看低优先级】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的低优先级短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看低优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionMediumOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'medium'; }).slice(0, 4);
+      const text = tasks.length ? `【只看中优先级】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的中优先级短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看中优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionTomorrowOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '明天'; }).slice(0, 4);
+      const text = tasks.length ? `【只看明天】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的明天短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看明天已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionThisWeek() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '本周'; }).slice(0, 4);
+      const text = tasks.length ? `【只看本周】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的本周短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看本周已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionTodayHighPriority() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'high' && task.deadline === '今天'; }).slice(0, 4);
+      const text = tasks.length ? `【只看今天高优先级】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的今天高优先级短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看今天高优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionHighPriorityOnly() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.priority === 'high'; }).slice(0, 4);
+      const text = tasks.length ? `【只看高优先级】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的高优先级短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看高优先级已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionDueTodayShort() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && task.deadline === '今天'; }).slice(0, 4);
+      const text = tasks.length ? `【只看今天到期】` + tasks.map(function(task) {
+        return `
+- ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的今天到期短版';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">只看今天到期已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionShortReminder() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 4);
+      const text = tasks.length ? `【执行短催办】` + tasks.map(function(task) {
+        return `
+- 盯 ${task.title}｜${task.assignee || '待定'}`;
+      }).join('') : '当前暂无可生成的执行短催办';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">执行短催办已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskExecutionAction() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 6);
+      const text = tasks.length ? `【执行动作清单】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. 立即跟进 ${task.title}｜负责人：${task.assignee || '待定'}｜节点：${task.deadline || '本月'}`;
+      }).join('\n') : '当前暂无可生成的执行动作清单';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">执行动作清单已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskWechatBulletinByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const template = getRiskWechatTemplate();
+      const text = Object.keys(grouped).length ? (template === 'boss' ? `【风险任务微信群通报-按负责人老板摘要】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}：${grouped[name].map(function(task) { return task.title; }).join('、')}`;
+      }).join('\n') + `\n一句话老板摘要：今日请盯紧到期与高优先级任务。` : `【风险任务微信群通报-按负责人执行明细】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task, index) { return `${index + 1}. ${task.title}｜截止：${task.deadline || '本月'}`; }).join('\n');
+      }).join('\n\n')) : '当前暂无需要分组通报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">分组群通报已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskMorningBrief() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const template = getRiskMorningTemplate();
+      const text = tasks.length ? (template === 'boss' ? `【风险任务晨会播报稿-老板版】
+今天共有 ${tasks.length} 项风险任务，重点事项：${tasks.slice(0,3).map(function(task) { return task.title; }).join('、')}。
+请负责人今日内反馈推进结果。` : `【风险任务晨会播报稿】
+各位早上好，今日需重点关注 ${tasks.length} 项风险任务：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}，负责人${task.assignee || '待定'}，当前截止${task.deadline || '本月'}。`;
+      }).join('\n') + `\n请相关负责人在今日内反馈推进情况。`) : '今日暂无需要晨会播报的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险晨会播报稿已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyRiskBossBrief() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const text = tasks.length ? `【风险任务老板专项简报】
+日期：${new Date().toLocaleString('zh-CN')}
+1. 当前风险任务 ${tasks.length} 项。
+2. 重点关注：${tasks.slice(0,3).map(function(task) { return task.title; }).join('、')}。
+3. 按负责人：
+${Object.keys(grouped).map(function(name) { return `- ${name}：${grouped[name].join('、')}`; }).join('\n')}
+4. 建议今日优先处理到期与高优先级事项。` : '当前暂无需要老板关注的风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险老板专项简报已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function markRiskTasksDoingByAssignee() {
+      const tasks = getStoredTasks().map(function(task) {
+        if (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) {
+          return { ...task, status: 'doing', done: false, completedAt: '' };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      copyRiskAssignmentByAssignee();
+      addMessage('assistant', '已将风险任务按负责人转为处理中，并同步生成分组交办。', true);
+    }
+
+    function copyRiskAssignmentByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【风险任务交办单-按负责人】
+导出时间：${new Date().toLocaleString('zh-CN')}
+
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task, index) { return `${index + 1}. ${task.title}｜${formatTaskStatus(getTaskStatusLabel(task))}｜${task.deadline || '本月'}`; }).join('\n');
+      }).join('\n\n') : '暂无风险任务可按负责人生成交办单';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险任务已按负责人生成交办单</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function boostRiskTasks() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, priority: 'high', pinned: true } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将当前风险任务统一调整为高优先级并置顶。', true);
+    }
+
+    function copyRiskAssignmentSlip() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 8);
+      const text = tasks.length ? `【风险任务交办单】
+导出时间：${new Date().toLocaleString('zh-CN')}
+
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}
+   负责人：${task.assignee || '未分配'}｜状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') : '暂无风险任务可生成交办单';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险交办单已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function markRiskTasksDoing() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, status: 'doing', done: false, completedAt: '' } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将当前风险任务一键转为处理中。', true);
+    }
+
+    function getPinnedEmailTemplate() {
+      return localStorage.getItem(smartAssistantPinnedEmailTemplateKey) || 'execute';
+    }
+
+    function switchPinnedEmailTemplate() {
+      const current = getPinnedEmailTemplate();
+      const next = current === 'execute' ? 'boss' : 'execute';
+      localStorage.setItem(smartAssistantPinnedEmailTemplateKey, next);
+      addMessage('assistant', `已切换邮件版模板为 <b>${next === 'execute' ? '执行版' : '老板版'}</b>。`, true);
+    }
+
+    function copyPinnedDailyEmailByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return task.pinned; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const template = getPinnedEmailTemplate();
+      const text = Object.keys(grouped).length ? (template === 'boss' ? `主题：今日重点事项负责人汇总
+
+老板好，今日重点事项按负责人如下：
+` + Object.keys(grouped).map(function(name) {
+        return `${name}：${grouped[name].map(function(task) { return task.title; }).join('、')}`;
+      }).join('\n') + `\n建议动作：请逐人确认关键事项反馈。` : `主题：今日重点任务负责人同步
+
+各位好，以下为按负责人整理的重点任务：
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task, index) { return `${index + 1}. ${task.title}｜截止：${task.deadline || '本月'}`; }).join('\n');
+      }).join('\n\n') + `\n\n建议动作：请各负责人按时回复推进进度。`) : '主题：今日重点任务负责人同步
+
+当前暂无置顶任务需要通过邮件同步。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">按负责人邮件版已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyEmailBossFixed() {
+      const current = getPinnedEmailTemplate();
+      localStorage.setItem(smartAssistantPinnedEmailTemplateKey, 'boss');
+      copyPinnedDailyEmail();
+      localStorage.setItem(smartAssistantPinnedEmailTemplateKey, current);
+    }
+
+    function copyPinnedDailyEmailBossLite() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 5);
+      const text = tasks.length ? `主题：老板简版邮件
+
+老板好，今日重点 ${tasks.length} 项：${tasks.map(function(task) { return task.title; }).join('、')}。` : '主题：老板简版邮件
+
+当前暂无置顶任务。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板简版邮件已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyEmailExecuteLite() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 5);
+      const text = tasks.length ? `主题：执行简版邮件
+
+各位好，今日重点 ${tasks.length} 项：${tasks.map(function(task) { return task.title; }).join('、')}。` : '主题：执行简版邮件
+
+当前暂无置顶任务。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">执行简版邮件已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyEmailExecuteFull() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 8);
+      const text = tasks.length ? `主题：执行完整版邮件
+
+各位好，以下为今日重点任务明细：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') + `\n\n请逐项反馈推进进度与卡点。` : '主题：执行完整版邮件
+
+当前暂无置顶任务。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">执行完整版邮件已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyEmailBossFull() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 8);
+      const text = tasks.length ? `主题：老板完整版邮件
+
+老板好，以下为今日重点事项明细：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') + `\n\n请重点关注关键节点与负责人反馈。` : '主题：老板完整版邮件
+
+当前暂无置顶任务。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">老板完整版邮件已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyEmailExecuteFixed() {
+      const current = getPinnedEmailTemplate();
+      localStorage.setItem(smartAssistantPinnedEmailTemplateKey, 'execute');
+      copyPinnedDailyEmail();
+      localStorage.setItem(smartAssistantPinnedEmailTemplateKey, current);
+    }
+
+    function markAllRiskTasksDoing() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, status: 'doing', done: false, completedAt: '' } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将全部风险任务转为处理中。', true);
+    }
+
+    function copyPinnedDailyEmail() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 8);
+      const template = getPinnedEmailTemplate();
+      const highCount = tasks.filter(function(task) { return task.priority === 'high'; }).length;
+      const mediumCount = tasks.filter(function(task) { return task.priority === 'medium'; }).length;
+      const lowCount = tasks.filter(function(task) { return task.priority === 'low'; }).length;
+      const text = tasks.length ? (template === 'boss' ? `主题：老板重点事项私发汇报
+
+老板好，今日重点事项共 ${tasks.length} 项。
+优先级分布：高 ${highCount} 项 / 中 ${mediumCount} 项 / 低 ${lowCount} 项。
+最需关注：${tasks.slice(0,3).map(function(task) { return task.title; }).join('、')}。
+请重点关注关键节点与负责人反馈。` : `主题：执行团队重点任务同步
+
+各位好，以下为今日重点推进事项：
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}｜优先级：${task.priority === 'high' ? '高' : (task.priority === 'medium' ? '中' : '低')}`;
+      }).join('\n') + `
+
+执行建议：高优先级 ${highCount} 项先处理，中优先级 ${mediumCount} 项持续推进，低优先级 ${lowCount} 项安排收尾。`) : '主题：执行团队重点任务同步
+
+当前暂无置顶任务需要通过邮件同步。';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务邮件版已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyPinnedDailyFocusByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return task.pinned; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const template = getPinnedDailyTemplate();
+      const text = Object.keys(grouped).length ? (template === 'boss' ? `【今日重点-按负责人老板版】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}：${grouped[name].map(function(task) { return task.title; }).join('、')}`;
+      }).join('\n') : `【今日重点-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task, index) { return `${index + 1}. ${task.title}（${task.deadline || '本月'}）`; }).join('\n');
+      }).join('\n\n')) : '暂无置顶任务可按负责人转为日报重点';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已按负责人转为日报重点</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyDueTodayHighPriorityReminderGrouped() {
+      const tone = getReminderTone();
+      const grouped = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing' && task.priority === 'high' && task.deadline === '今天'; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【今天到期高优先级催办-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        const rows = grouped[name].map(function(task) {
+          if (tone === 'firm') return `- 今日务必完成“${task.title}”`;
+          if (tone === 'boss') return `- 今日优先推进“${task.title}”`;
+          if (tone === 'boss_only') return `- 老板仅关注：${task.title}`;
+          return `- 今日跟进“${task.title}”`;
+        }).join('\n');
+        return `${name}
+${rows}`;
+      }).join('\n\n') : '暂无今天到期的高优先级处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">今天到期分组催办已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyDueTodayHighPriorityReminder() {
+      const tone = getReminderTone();
+      const tasks = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing' && task.priority === 'high' && task.deadline === '今天'; }).slice(0, 6);
+      const text = tasks.length ? `【今天到期高优先级催办】
+` + tasks.map(function(task) {
+        if (tone === 'firm') return `请${task.assignee || '相关负责人'}今日务必完成“${task.title}”，不要延误。`;
+        if (tone === 'boss') return `请今天优先推进“${task.title}”，负责人：${task.assignee || '待定'}。`;
+        if (tone === 'boss_only') return `老板仅关注今日到期：${task.title}｜负责人：${task.assignee || '待定'}。`;
+        return `请今天优先跟进“${task.title}”。`;
+      }).join('\n') : '暂无今天到期的高优先级处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">今天到期高优先级催办已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyHighPriorityDoingReminderGrouped() {
+      const tone = getReminderTone();
+      const grouped = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing' && task.priority === 'high'; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【高优先级处理中催办-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        const lines = grouped[name].map(function(task) {
+          if (tone === 'firm') return `- 务必优先完成“${task.title}”，截止：${task.deadline || '本月'}`;
+          if (tone === 'boss') return `- 优先推进“${task.title}”，节点：${task.deadline || '本月'}`;
+          if (tone === 'boss_only') return `- 老板仅关注：${task.title}｜${task.deadline || '本月'}`;
+          return `- 请优先跟进“${task.title}”，截止：${task.deadline || '本月'}`;
+        }).join('\n');
+        return `${name}
+${lines}`;
+      }).join('\n\n') : '暂无高优先级处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">高优先级分组催办已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyHighPriorityDoingReminder() {
+      const tone = getReminderTone();
+      const tasks = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing' && task.priority === 'high'; }).slice(0, 6);
+      const text = tasks.length ? `【高优先级处理中催办】
+` + tasks.map(function(task) {
+        if (tone === 'firm') return `请${task.assignee || '相关负责人'}务必优先完成“${task.title}”，当前截止：${task.deadline || '本月'}。`;
+        if (tone === 'boss') return `请优先推进“${task.title}”，负责人：${task.assignee || '待定'}，节点：${task.deadline || '本月'}。`;
+        if (tone === 'boss_only') return `老板关注高优先级：${task.title}｜负责人：${task.assignee || '待定'}｜节点：${task.deadline || '本月'}。`;
+        return `请优先跟进“${task.title}”，截止：${task.deadline || '本月'}。`;
+      }).join('\n') : '暂无高优先级处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">高优先级催办已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getPinnedDailyTemplate() {
+      return localStorage.getItem(smartAssistantPinnedDailyTemplateKey) || 'standard';
+    }
+
+    function switchPinnedDailyTemplate() {
+      const current = getPinnedDailyTemplate();
+      const next = current === 'standard' ? 'boss' : 'standard';
+      localStorage.setItem(smartAssistantPinnedDailyTemplateKey, next);
+      addMessage('assistant', `已切换日报重点模板为 <b>${next === 'standard' ? '标准版' : '老板版'}</b>。`, true);
+    }
+
+    function copyPinnedAsDailyFocus() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 6);
+      const template = getPinnedDailyTemplate();
+      const text = tasks.length ? (template === 'boss' ? `【今日重点-老板版】
+重点共 ${tasks.length} 项：${tasks.map(function(task) { return task.title; }).join('、')}。` : `【今日重点-置顶任务】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}（${task.assignee || '未分配'} / ${task.deadline || '本月'}）`;
+      }).join('\n')) : '暂无置顶任务可转为日报重点';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务已转为日报重点</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getPinnedBriefTemplate() {
+      return localStorage.getItem(smartAssistantPinnedBriefTemplateKey) || 'boss';
+    }
+
+    function switchPinnedBriefTemplate() {
+      const current = getPinnedBriefTemplate();
+      const next = current === 'boss' ? 'brief' : 'boss';
+      localStorage.setItem(smartAssistantPinnedBriefTemplateKey, next);
+      addMessage('assistant', `已切换置顶简报模板为 <b>${next === 'boss' ? '老板版' : '简版'}</b>。`, true);
+    }
+
+    function copyDoingReminderGrouped() {
+      const tone = getReminderTone();
+      const grouped = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【按负责人催办消息】
+` + Object.keys(grouped).map(function(name) {
+        const rows = grouped[name].map(function(task) {
+          if (tone === 'firm') return `- 请务必于${task.deadline || '本月'}前完成“${task.title}”并反馈进度`;
+          if (tone === 'boss') return `- 请尽快推进“${task.title}”，当前节点：${task.deadline || '本月'}`;
+          if (tone === 'boss_only') return `- 老板关注：${task.title}｜节点：${task.deadline || '本月'}`;
+          return `- 请今天跟进“${task.title}”，截止：${task.deadline || '本月'}`;
+        }).join('\n');
+        return `${name}
+${rows}`;
+      }).join('\n\n') : '暂无可催办的处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">按负责人催办消息已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getReminderTone() {
+      return localStorage.getItem(smartAssistantReminderToneKey) || 'gentle';
+    }
+
+    function switchReminderTone() {
+      const current = getReminderTone();
+      const next = current === 'gentle' ? 'firm' : (current === 'firm' ? 'boss' : (current === 'boss' ? 'boss_only' : 'gentle'));
+      localStorage.setItem(smartAssistantReminderToneKey, next);
+      const label = next === 'gentle' ? '温和版' : (next === 'firm' ? '强提醒版' : (next === 'boss' ? '老板版' : '仅老板关心版'));
+      addMessage('assistant', `已切换催办语气为 <b>${label}</b>。`, true);
+    }
+
+    function exportPinnedBossBrief() {
+      const tasks = getStoredTasks().filter(function(task) { return task.pinned; }).slice(0, 6);
+      const template = getPinnedBriefTemplate();
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task.title);
+        return acc;
+      }, {});
+      const text = tasks.length ? (template === 'brief' ? `【置顶任务简版】
+日期：${new Date().toLocaleString('zh-CN')}
+置顶共 ${tasks.length} 项：${tasks.map(function(task) { return task.title; }).join('、')}。` : `【置顶任务老板简报】
+日期：${new Date().toLocaleString('zh-CN')}
+1. 当前置顶任务 ${tasks.length} 项。
+2. 重点事项：${tasks.map(function(task) { return task.title; }).join('、')}。
+3. 按负责人分组：
+${Object.keys(grouped).map(function(name) { return `- ${name}：${grouped[name].join('、')}`; }).join('\n')}
+4. 建议对置顶任务逐项确认负责人和推进节点。`) : '当前暂无置顶任务可生成老板简报';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">置顶任务老板简报已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function pinRiskTasks() {
+      const tasks = getStoredTasks().map(function(task) {
+        return (!task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天')) ? { ...task, pinned: true } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+      addMessage('assistant', '已将当前风险任务一键置顶。', true);
+    }
+
+    function getRiskReportTemplate() {
+      return localStorage.getItem(smartAssistantRiskTemplateKey) || 'standard';
+    }
+
+    function switchRiskReportTemplate() {
+      const current = getRiskReportTemplate();
+      const next = current === 'standard' ? 'boss' : 'standard';
+      localStorage.setItem(smartAssistantRiskTemplateKey, next);
+      addMessage('assistant', `已切换风险汇报模板为 <b>${next === 'standard' ? '正式版' : '老板版'}</b>。`, true);
+    }
+
+    function copyDoingReminder() {
+      const tasks = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).slice(0, 5);
+      const tone = getReminderTone();
+      const text = tasks.length ? `【处理中催办消息】
+` + tasks.map(function(task) {
+        if (tone === 'firm') return `请${task.assignee || '相关负责人'}务必于${task.deadline || '本月'}前完成“${task.title}”，请立即反馈进度。`;
+        if (tone === 'boss') return `请尽快推进“${task.title}”，负责人：${task.assignee || '待定'}，当前节点：${task.deadline || '本月'}。`;
+        if (tone === 'boss_only') return `老板关注：${task.title}｜负责人：${task.assignee || '待定'}｜节点：${task.deadline || '本月'}。`;
+        return `请${task.assignee || '相关负责人'}今天跟进“${task.title}”，当前截止时间：${task.deadline || '本月'}。`;
+      }).join('\n') : '暂无需要催办的处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">催办消息已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function getReportHeaderName() {
+      return localStorage.getItem(smartAssistantReportHeaderKey) || '蜻蜓财务协作中心';
+    }
+
+    function configureReportHeader() {
+      const value = prompt('请输入报告页眉名称', getReportHeaderName());
+      if (value) localStorage.setItem(smartAssistantReportHeaderKey, value);
+    }
+
+    function copyRiskZone() {
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 6);
+      const text = tasks.length ? `【风险任务专区】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}`;
+      }).join('\n') : '暂无高风险任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">风险任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function moveTaskToFront(id) {
+      const tasks = getStoredTasks();
+      const index = tasks.findIndex(function(task) { return task.id === id; });
+      if (index <= 0) return;
+      const picked = tasks.splice(index, 1)[0];
+      tasks.unshift(picked);
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function renderRiskZone() {
+      const wrap = document.getElementById('riskZone');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return !task.done && (task.priority === 'high' || isTaskTimeoutRisk(task) || task.deadline === '今天'); }).slice(0, 6);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;border:1px solid #f2d6d6;background:#fff8f6"><div style="font-weight:700;color:#8f4343">${escapeHtml(task.title)}</div><div class="task-item-meta">负责人：${escapeHtml(task.assignee || '未分配')}｜截止：${escapeHtml(task.deadline || '本月')}</div><div class="quick-action-bar"><button onclick="pinTask('${task.id}')">${task.pinned ? '取消置顶' : '置顶'}</button><button onclick="updateTaskAssignee('${task.id}')">改负责人</button><button onclick="updateTaskPriority('${task.id}')">改优先级</button><button onclick="updateTaskStatus('${task.id}')">改状态</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无高风险任务</div>';
+    }
+
+    function copyDoingByAssignee() {
+      const grouped = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? `【最近处理中-按负责人】
+` + Object.keys(grouped).map(function(name) {
+        return `${name}
+` + grouped[name].map(function(task) { return `- ${task.title}｜截止：${task.deadline || '本月'}`; }).join('\n');
+      }).join('\n\n') : '暂无处理中任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">最近处理中已按负责人复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function copyTaskAsDailyEntry(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const text = `- ${task.title}（${formatTaskStatus(getTaskStatusLabel(task))} / ${task.assignee || '未分配'} / ${task.deadline || '本月'}）`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">日报条目已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function pinTask(id) {
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, pinned: !task.pinned } : task;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function renderRecentDoing() {
+      const wrap = document.getElementById('recentDoing');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; }).slice(0, 5);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">负责人：${escapeHtml(task.assignee || '未分配')}｜截止：${escapeHtml(task.deadline || '本月')}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button><button onclick="updateTaskAssignee('${task.id}')">改负责人</button><button onclick="updateTaskPriority('${task.id}')">改优先级</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无最近处理中任务</div>';
+    }
+
+    function updateTaskTitle(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入新的任务标题', task ? task.title : '');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, title: value } : item;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+      renderPinnedPanel();
+    }
+
+    function cloneTask(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const tasks = getStoredTasks();
+      tasks.unshift({
+        ...task,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: task.title + '（副本）',
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: ''
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function copyTaskCard(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const text = `【单条任务卡】
+标题：${task.title}
+状态：${formatTaskStatus(getTaskStatusLabel(task))}
+负责人：${task.assignee || '未分配'}
+截止：${task.deadline || '本月'}${task.note ? `
+备注：${task.note}` : ''}`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">单条任务已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function findTaskByKeyword(keyword) {
+      return getStoredTasks().find(function(task) { return task.title.includes(keyword); });
+    }
+
+    function markTaskDoing(id) {
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, status: 'doing', done: false, completedAt: '' } : task;
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function updateTaskStatus(id) {
+      const value = prompt('状态：待处理 / 处理中 / 已完成');
+      if (!value) return;
+      const statusMap = value.includes('处理') && !value.includes('已') ? 'doing' : (value.includes('完成') ? 'done' : 'todo');
+      const tasks = getStoredTasks().map(function(task) {
+        if (task.id !== id) return task;
+        const done = statusMap === 'done';
+        return { ...task, status: statusMap, done: done, completedAt: done ? (task.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function exportTasksForAssignee(name) {
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === name && !task.done; });
+      const text = tasks.length ? `【${name}专属交办单】\n导出时间：${new Date().toLocaleString('zh-CN')}\n\n` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}\n   状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('\n') : `${name} 当前暂无待交办任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(name)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function setInlineTaskNote(id, value) {
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, note: value } : item;
+      });
+      saveTasks(tasks);
+    }
+
+    function isTaskTimeoutRisk(task) {
+      return getTaskStatusLabel(task) === 'doing' && (task.deadline === '今天' || task.deadline === '明天');
+    }
+
+    function exportTasksByStatus(status) {
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return getTaskStatusLabel(task) === status; });
+      const text = tasks.length ? `【${formatTaskStatus(status)}任务清单】\n导出时间：${new Date().toLocaleString('zh-CN')}\n\n` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}\n   负责人：${task.assignee || '未分配'}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('\n') : `${formatTaskStatus(status)} 当前暂无任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${formatTaskStatus(status)}任务已复制</div><div style="line-height:1.8;color:#44576b">适合按状态做分列汇报或交办。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function updateTaskNote(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      const value = prompt('请输入任务备注', task && task.note ? task.note : '');
+      if (value === null) return;
+      const tasks = getStoredTasks().map(function(item) {
+        return item.id === id ? { ...item, note: value } : item;
+      });
+      saveTasks(tasks);
+      renderTaskBoard();
+    }
+
+    function updateTaskAssignee(id) {
+      const value = prompt('请输入负责人：会计 / 出纳 / 财务经理 / 老板');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, assignee: value } : task;
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function deleteTask(id) {
+      const current = getStoredTasks();
+      stashDeletedTasks(current.filter(function(task) { return task.id === id; }));
+      const tasks = current.filter(function(task) { return task.id !== id; });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function deferTask(id) {
+      const value = prompt('延期到：今天 / 明天 / 本周 / 下周 / 本月', '明天');
+      if (!value) return;
+      const tasks = getStoredTasks().map(function(task) {
+        return task.id === id ? { ...task, deadline: value } : task;
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+    }
+
+    function cloneTask(id) {
+      const task = getStoredTasks().find(function(item) { return item.id === id; });
+      if (!task) return;
+      const cloned = {
+        ...task,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: `${task.title}（复制）`,
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: ''
+      };
+      saveTasks([cloned].concat(getStoredTasks()));
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function copyRecentPanel(type) {
+      const tasks = (type === 'added' ? getStoredTasks().filter(function(task) { return task.createdAt; }) : type === 'doing' ? getStoredTasks().filter(function(task) { return getTaskStatusLabel(task) === 'doing'; } : getStoredTasks().filter(function(task) { return task.done && task.completedAt; })).slice(0, 5);
+      const title = type === 'added' ? '最近新增' : type === 'doing' ? '最近处理中' : '最近完成';
+      const text = tasks.length ? `【${title}】
+` + tasks.map(function(task, index) {
+        return `${index + 1}. ${task.title}｜${type === 'added' ? '创建时间：' + task.createdAt : type === 'doing' ? '负责人：' + (task.assignee || '未分配') + '｜截止：' + (task.deadline || '本月') : '完成时间：' + task.completedAt}`;
+      }).join('\n') : `暂无${title}任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${title}已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function createManualTask() {
+      const title = prompt('请输入任务标题');
+      if (!title) return;
+      const assignee = prompt('请输入负责人：会计 / 出纳 / 财务经理 / 老板', '会计') || '会计';
+      const priorityText = prompt('请输入优先级：高 / 中 / 低', '中') || '中';
+      const groupText = prompt('请输入分组：today / tax / monthEnd / cashflow / week', resolveTaskGroup(title)) || resolveTaskGroup(title);
+      const deadlineText = prompt('请输入截止：今天 / 明天 / 本周 / 下周 / 本月', inferTaskMeta(title, groupText).deadline) || inferTaskMeta(title, groupText).deadline;
+      const noteText = prompt('请输入备注（可留空）', '') || '';
+      const priority = priorityText.includes('高') ? 'high' : (priorityText.includes('低') ? 'low' : 'medium');
+      const meta = inferTaskMeta(title, groupText);
+      const tasks = getStoredTasks();
+      tasks.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        title: title,
+        done: false,
+        status: 'todo',
+        createdAt: new Date().toLocaleString('zh-CN'),
+        completedAt: '',
+        note: noteText,
+        source: '手动新增',
+        group: meta.group,
+        priority: priority,
+        deadline: deadlineText,
+        assignee: assignee
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function renderRecentAdded() {
+      const wrap = document.getElementById('recentAdded');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return task.createdAt; }).slice(0, 5);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">创建时间：${escapeHtml(task.createdAt)}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无最近新增任务</div>';
+    }
+
+    function renderRecentCompleted() {
+      const wrap = document.getElementById('recentCompleted');
+      if (!wrap) return;
+      const tasks = getStoredTasks().filter(function(task) { return task.done && task.completedAt; }).slice(0, 5);
+      wrap.innerHTML = tasks.length ? tasks.map(function(task) {
+        return `<div class="report-card" style="padding:10px 12px;gap:4px;"><div style="font-weight:700;color:#1a2d42">${escapeHtml(task.title)}</div><div class="task-item-meta">完成时间：${escapeHtml(task.completedAt)}</div><div class="quick-action-bar"><button onclick="copyTaskCard('${task.id}')">复制</button></div></div>`;
+      }).join('') : '<div class="task-item-meta">暂无最近完成任务</div>';
+    }
+
+    function updateTaskPriority(id) {
+      const value = prompt('优先级：高 / 中 / 低');
+      if (!value) return;
+      const priority = value.includes('高') ? 'high' : (value.includes('中') ? 'medium' : 'low');
+      const tasks = getStoredTasks().map(function(task) { return task.id === id ? { ...task, priority: priority } : task; });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderRecentAdded();
+    }
+
+    function quickUpdateTaskDeadline(id, deadline) {
+      const tasks = getStoredTasks().map(function(task) { return task.id === id ? { ...task, deadline: deadline } : task; });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+    }
+
+    function clearFilteredTasks() {
+      const filteredIds = new Set(getFilteredTasks(getStoredTasks()).map(function(task) { return task.id; }));
+      const tasks = getStoredTasks().filter(function(task) { return !filteredIds.has(task.id); });
+      saveTasks(tasks);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function generateTemplateTasks(group) {
+      const templates = {
+        today: {
+          title: '今日模板',
+          steps: ['检查当日待审核凭证', '确认付款与回款节点', '核对税务与工资时间点', '复盘利润和现金流异常']
+        },
+        tax: {
+          title: '税务模板',
+          steps: ['整理增值税申报资料', '核对销项与进项勾选状态', '检查异常税负与红字发票', '留存申报截图和底稿']
+        },
+        monthEnd: {
+          title: '月末模板',
+          steps: ['完成过账和对账', '计提折旧摊销与工资', '结转损益并复核报表', '归档底稿和凭证附件']
+        },
+        cashflow: {
+          title: '资金模板',
+          steps: ['梳理未来7天收付款', '优先催收逾期应收', '复核大额付款审批', '更新资金日报和缺口预测']
+        }
+      };
+      const template = templates[group];
+      if (!template) return;
+      addTasks(template.steps, template.title, group);
+      addMessage('assistant', buildTaskCard(`${taskGroupLabels[group] || ''}工作模板`, template.steps, []), true);
+    }
+
+    function rememberLastPrompt(prompt) {
+      localStorage.setItem(smartAssistantLastPromptKey, prompt);
+      renderLastWorkCard();
+    }
+
+    function renderLastWorkCard() {
+      const wrap = document.getElementById('continueLastWork');
+      if (!wrap) return;
+      const lastPrompt = localStorage.getItem(smartAssistantLastPromptKey);
+      if (!lastPrompt) {
+        wrap.innerHTML = '<div class="reminder-item" style="border-left-color:#1a65b8"><h4>暂无最近工作</h4><p>和助手对话后，这里会记录你最近一次处理的工作主题。</p></div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="recommendation-item" onclick="continueLastWork()">
+          <h4>最近任务</h4>
+          <p>${escapeHtml(lastPrompt)}</p>
+        </div>
+      `;
+    }
+
+    function continueLastWork() {
+      const lastPrompt = localStorage.getItem(smartAssistantLastPromptKey);
+      if (lastPrompt) {
+        sendMessage(lastPrompt);
+      } else {
+        addMessage('assistant', '当前还没有可继续的最近工作，你可以先告诉我今天要处理什么。');
+      }
+    }
+
+    function buildWelcomeCard() {
+      return `
+        <div style="font-weight:700;margin-bottom:8px">你好，我是蜻蜓智能助手</div>
+        <div style="line-height:1.8;color:#44576b">我可以通过对话帮你处理常见财务日常工作：报税准备、费用报销、月末结账、发票核对、现金流分析、待办整理。</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          ${assistantQuickPrompts.map(function(prompt) {
+            return `<button onclick="injectPrompt('${prompt}')" style="border:none;border-radius:999px;padding:6px 12px;background:#eaf4ff;color:#1a65b8;cursor:pointer;font-size:12px">${prompt}</button>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function injectPrompt(prompt) {
+      const chatInput = document.getElementById('chatInput');
+      chatInput.value = prompt;
+      chatInput.focus();
+    }
+
+    function buildResultCard(title, summary, risks, nextSteps) {
+      return `
+        <div class="report-card">
+          <div style="font-weight:700;color:#17324b">${title}</div>
+          <div style="line-height:1.8;color:#44576b">${summary}</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1a65b8;margin-bottom:6px">风险提示</div>
+            <div style="display:grid;gap:6px;">${risks.map(function(item) {
+              return `<div style="padding:7px 10px;border-radius:10px;background:#fff5f5;border:1px solid #f2d6d6;color:#8f4343">• ${item}</div>`;
+            }).join('')}</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1a65b8;margin-bottom:6px">下一步建议</div>
+            <div style="display:grid;gap:6px;">${nextSteps.map(function(item) {
+              return `<div style="padding:7px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;color:#34506a">• ${item}</div>`;
+            }).join('')}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function restoreDeletedTasks() {
+      const deleted = getDeletedTasks();
+      if (!deleted.length) return;
+      const merged = deleted.concat(getStoredTasks()).slice(0, 12);
+      saveTasks(merged);
+      localStorage.removeItem(smartAssistantDeletedTasksKey);
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function exportReport(period) {
+      const tasks = getStoredTasks();
+      const doneCount = tasks.filter(function(task) { return task.done; }).length;
+      const pendingCount = tasks.filter(function(task) { return !task.done; }).length;
+      const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+      const pendingTasks = tasks.filter(function(task) { return !task.done; }).map(function(task, index) {
+        return `${index + 1}. ${task.title}（负责人：${task.assignee || '未分配'}，截止：${task.deadline || '本月'}）`;
+      }).join('\n') || '1. 暂无待处理事项';
+      const label = period === 'weekly' ? '周报' : '日报';
+      const text = `${getReportHeaderName()}
+【财务部${label}】
+日期：${new Date().toLocaleString('zh-CN')}
+制表：智能助手
+
+一、核心指标
+- 已完成：${doneCount} 项
+- 待处理：${pendingCount} 项
+- 本周新增：${weeklyNew} 项
+- 本周完成：${weeklyDone} 项
+
+二、待处理事项
+${pendingTasks}
+
+三、建议动作
+- 优先推进高优先级与临期事项
+- 对未完成任务明确责任人与截止时间`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${label}已复制</div><div style="line-height:1.8;color:#44576b">你可以直接粘贴到群聊、邮件或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function exportFilteredTasks() {
+      const tasks = getFilteredTasks(getStoredTasks());
+      const keyword = getTaskSearch();
+      const title = `任务清单导出（筛选：${getTaskFilter()}${keyword ? ` / 搜索：${keyword}` : ''}）`;
+      const body = tasks.length ? tasks.map(function(task) {
+        return `- ${task.title}｜负责人：${task.assignee || '未分配'}｜优先级：${task.priority || '低'}｜截止：${task.deadline || '本月'}｜状态：${task.done ? '已完成' : '未完成'}`;
+      }).join('\n') : '- 当前筛选下暂无任务';
+      const text = `${title}
+${body}`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">筛选任务已复制</div><div style="line-height:1.8;color:#44576b">可直接粘贴到交办清单、群消息或汇报文档中。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function batchUpdateTasks(options) {
+      const tasks = getStoredTasks().map(function(task) {
+        const matchPriority = !options.priority || task.priority === options.priority;
+        const matchDeadline = !options.deadline || task.deadline === options.deadline;
+        const matchGroup = !options.group || task.group === options.group;
+        if (matchPriority && matchDeadline && matchGroup) {
+          return {
+            ...task,
+            assignee: options.assignee || task.assignee,
+            deadline: options.newDeadline || task.deadline,
+            priority: options.newPriority || task.priority,
+            status: options.newStatus || task.status,
+            done: options.newStatus ? options.newStatus === 'done' : task.done,
+            completedAt: options.newStatus === 'done' ? (task.completedAt || new Date().toLocaleString('zh-CN')) : (options.newStatus ? '' : task.completedAt)
+          };
+        }
+        return task;
+      });
+      saveTasks(tasks);
+      recordTaskTrend();
+      renderTaskBoard();
+      renderTaskStats();
+      renderFinanceCockpit();
+      renderWorkspaceCommandCenter();
+      renderWorkspaceFeed();
+      renderErpPanels();
+      renderAiInsights();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderVisualPanels();
+      renderTopKpiStrip();
+      renderHomeFocusPanel();
+      renderSidebarQuickNav();
+      renderTrendPanel();
+      renderPopularFinanceTools();
+      renderFinanceScenarioDefault();
+      renderWorkspaceModules();
+      renderRecentAdded();
+      renderPinnedPanel();
+      renderRiskZone();
+      renderRecentDoing();
+      renderRecentCompleted();
+    }
+
+    function exportTasksForAssignee(assignee) {
+      if (!assignee) return;
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return task.assignee === assignee && !task.done; });
+      const text = tasks.length ? `${assignee}专属交办
+` + tasks.map(function(task) {
+        return `- ${task.title}｜状态：${formatTaskStatus(getTaskStatusLabel(task))}｜截止：${task.deadline || '本月'}${task.note ? `｜备注：${task.note}` : ''}`;
+      }).join('\n') : `${assignee} 当前暂无待交办任务`;
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">${escapeHtml(assignee)}专属交办已复制</div><div style="line-height:1.8;color:#44576b">适合直接发给负责人本人。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function exportAssigneeTasks() {
+      const assignee = prompt('请输入要导出的负责人，例如：会计 / 出纳 / 财务经理 / 老板');
+      exportTasksForAssignee(assignee);
+    }
+
+    function exportAssignmentSlip() {
+      const tasks = getFilteredTasks(getStoredTasks()).filter(function(task) { return !task.done; });
+      const grouped = tasks.reduce(function(acc, task) {
+        const key = task.assignee || '未分配';
+        acc[key] = acc[key] || [];
+        acc[key].push(task);
+        return acc;
+      }, {});
+      const text = Object.keys(grouped).length ? Object.keys(grouped).map(function(name) {
+        return `${name}
+${grouped[name].map(function(task) {
+          const priorityLabel = task.priority === 'high' ? '高优先级' : task.priority === 'medium' ? '中优先级' : '低优先级';
+          return `- ${task.title}（${priorityLabel} / ${task.deadline || '本月'}）`;
+        }).join('\n')}`;
+      }).join('\n\n') : '当前筛选下暂无可交办任务';
+      navigator.clipboard.writeText(text).then(function() {
+        addMessage('assistant', `<div class="report-card"><div style="font-weight:700">任务交办单已复制</div><div style="line-height:1.8;color:#44576b">已按负责人整理，可直接分发到群聊或邮件。</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(text)}</div></div>`, true);
+      });
+    }
+
+    function generateSpecialReport(type) {
+      const tasks = getStoredTasks();
+      const groups = {
+        tax: { label: '税务风险摘要', match: function(task) { return task.group === 'tax'; } },
+        cashflow: { label: '资金日报', match: function(task) { return task.group === 'cashflow'; } },
+        monthEnd: { label: '月末结账摘要', match: function(task) { return task.group === 'monthEnd'; } },
+        payroll: { label: '工资核算摘要', match: function(task) { return /工资|个税|社保/.test(task.title); } }
+      };
+      const config = groups[type];
+      if (!config) return;
+      const filtered = tasks.filter(config.match);
+      const summary = filtered.length ? `当前共涉及 ${filtered.length} 项相关任务，未完成 ${filtered.filter(function(task) { return !task.done; }).length} 项。` : '当前暂无相关任务，可先生成对应场景清单。';
+      addMessage('assistant', buildResultCard(config.label, summary, [
+        filtered.some(function(task) { return task.priority === 'high' && !task.done; }) ? '仍有高优先级事项未完成，请尽快处理。' : '当前高风险事项较少。',
+        '建议同步关注负责人和截止时间是否匹配。'
+      ], [
+        '如需细化，请继续让我生成该场景的专项清单。',
+        '如需汇报，可再生成日报或周报。'
+      ]), true);
+    }
+
+    function generateWorkReport(period) {
+      const tasks = getStoredTasks();
+      const doneCount = tasks.filter(function(task) { return task.done; }).length;
+      const pendingCount = tasks.length - doneCount;
+      const highPriority = tasks.filter(function(task) { return task.priority === 'high' && !task.done; }).map(function(task) { return task.title; }).slice(0, 3);
+      const label = period === 'weekly' ? '本周' : '今日';
+      const summary = `${label}已完成 ${doneCount} 项，待处理 ${pendingCount} 项。当前高优先级任务主要集中在 ${highPriority.length ? highPriority.join('、') : '常规事项收尾'}。`;
+      const report = buildResultCard(`${label}财务工作摘要`, summary, [
+        highPriority[0] || '请继续关注税务申报与资金安排时点。',
+        pendingCount > 5 ? '待办积压较多，建议优先清理高优先级事项。' : '待办数量可控，但需按节点完成复核。'
+      ], [
+        '优先完成高优先级且截止时间为今天的任务。',
+        '将未完成事项同步到下一个工作日/周。',
+        '对资金、税务、月末事项分别做一次复盘。'
+      ]);
+      const reportMeta = `<div class="report-card" style="margin-top:10px;padding:12px;gap:8px;"><div style="font-size:12px;font-weight:700;color:#1a65b8">汇报模板</div><div class="task-item-meta">适合直接复制到群聊、邮件或例会纪要。</div><div style="display:grid;gap:6px;"><div style="padding:7px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;color:#34506a">1. 先汇报已完成与待处理数量</div><div style="padding:7px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;color:#34506a">2. 再强调高优先级与风险事项</div><div style="padding:7px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;color:#34506a">3. 最后同步下一步安排</div></div></div>`;
+      addMessage('assistant', report + reportMeta + `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="exportReport('${period}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">复制${period === 'weekly' ? '周报' : '日报'}</button><button onclick="sendMessage('${period === 'weekly' ? '周报' : '日报'}')" style="border:none;border-radius:12px;padding:8px 12px;background:#eaf4ff;color:#1a65b8;cursor:pointer;font-size:12px">刷新摘要</button></div>`, true);
+    }
+
+    function buildTaskCard(title, steps, actions) {
+      addTasks(steps, title, resolveTaskGroup(title));
+      return `
+        <div style="font-weight:700;margin-bottom:8px">${title}</div>
+        <div style="display:grid;gap:8px;margin-bottom:10px">
+          ${steps.map(function(step, idx) {
+            return `<div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2"><b style="color:#1a65b8">${idx + 1}.</b> ${step}</div>`;
+          }).join('')}
+        </div>
+        ${actions && actions.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px">${actions.map(function(action) {
+          return `<button onclick="handleTaskAction('${action.type}','${action.value || ''}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">${action.label}</button>`;
+        }).join('')}</div>` : ''}
+      `;
+    }
+
+    function buildAssistantResponse(message) {
+      const text = message.trim();
+      const normalized = text.replace(/\s+/g, '').toLowerCase();
+      const role = getAssistantRole();
+      const context = getContext();
+
+      if (context.topic === 'tax' && /继续|下一步|然后|接着/.test(text)) {
+        return buildTaskCard('报税下一步建议', [
+          '核对申报表主表和附表逻辑是否一致。',
+          '检查税款测算与账面税金是否匹配。',
+          '导出申报结果并留存纸电档底稿。'
+        ], [
+          { label: '进入一键报税', type: 'goto', value: 'tax_reporting.html' }
+        ]);
+      }
+
+      if (context.topic === 'reimbursement' && /继续|下一步|然后|接着/.test(text)) {
+        return buildTaskCard('报销处理下一步', [
+          '补齐缺失附件并确认发票真伪。',
+          '检查审批流、预算占用和成本归属。',
+          '生成付款建议并同步会计凭证。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' }
+        ]);
+      }
+
+      if (/带我去|打开|进入|跳转到|去/.test(text)) {
+        const navMap = [
+          { match: /报税|税务/, url: 'tax_reporting.html', label: '一键报税' },
+          { match: /预算/, url: 'budget_management.html', label: '预算管理' },
+          { match: /财务bp|bp/, url: 'finance_bp.html', label: '财务BP' },
+          { match: /数据分析|经营分析/, url: 'data_analysis.html', label: '数据分析' },
+          { match: /财务软件|账套/, url: 'finance_software.html', label: '财务软件' },
+          { match: /审计/, url: 'audit_zone.html', label: '审计专区' },
+          { match: /风控|风险/, url: 'risk_management.html', label: '风险预警' },
+          { match: /蜻蜓助手|智能助手/, url: 'smart_assistant.html', label: '蜻蜓助手' },
+          { match: /财务快聘|招聘|求职/, url: 'finance_jobs.html', label: '财务快聘' }
+        ];
+        const target = navMap.find(function(item) { return item.match.test(normalized); });
+        if (target) {
+          saveContext({ topic: 'navigation', target: target.label });
+          return `我可以直接带你进入<b>${target.label}</b>。<div style="margin-top:10px"><button onclick="handleTaskAction('goto','${target.url}')" style="border:none;border-radius:12px;padding:8px 12px;background:linear-gradient(135deg,#1a65b8,#124fa0);color:#fff;cursor:pointer;font-size:12px">立即打开</button></div>`;
+        }
+      }
+
+      if ((/会计/.test(text) || role === 'accountant') && (/今天|今日/.test(text) && /待办|任务|工作/.test(text))) {
+        return buildTaskCard('会计今日重点工作', [
+          '复核昨日新增凭证、发票和往来余额是否已入账。',
+          '确认本周报税资料、工资表和付款单据是否齐全。',
+          '检查预算执行偏差与异常费用波动。',
+          '更新月度台账并同步经营分析口径。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if ((/出纳/.test(text) || role === 'cashier') && (/今天|今日/.test(text) && /待办|任务|工作/.test(text))) {
+        return buildTaskCard('出纳今日收付款计划', [
+          '核对银行余额、现金余额及未达账项。',
+          '确认今日付款申请、到期账单和紧急支出优先级。',
+          '跟进应收回款到账情况并同步资金日报。',
+          '复核大额支付审批、收款账户和付款用途。'
+        ], [
+          { label: '查看资金分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' }
+        ]);
+      }
+
+      if ((/老板/.test(text) || role === 'boss') && (/今天|今日/.test(text) && /待办|任务|工作|重点/.test(text))) {
+        return buildTaskCard('老板今日经营关注点', [
+          '先看现金余额、本周净流入和大额收付款安排。',
+          '关注销售回款、毛利变化和费用异常支出。',
+          '确认税务、工资、供应商付款等关键时间节点。',
+          '对高风险客户、逾期应收和融资缺口提前决策。'
+        ], [
+          { label: '查看经营分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '查看企业融资', type: 'goto', value: 'online_store.html' }
+        ]);
+      }
+
+      if (/今天|今日/.test(text) && /待办|任务|工作/.test(text)) {
+        return buildTaskCard('今日财务待办建议', [
+          '检查待审核凭证、销项发票和进项勾选状态。',
+          '确认本周回款计划与供应商付款安排。',
+          '核对报税截止日期、社保个税和工资发放节点。',
+          '查看利润、费用和现金流是否有异常波动。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if (/报税|增值税|申报|税务/.test(text)) {
+        saveContext({ topic: 'tax', role: role });
+        return buildTaskCard('报税处理建议', [
+          '先核对销项开票、进项勾选、红字发票和税率适用。',
+          '整理增值税、附加税、个税和企业所得税所需资料。',
+          '复核收入确认时间、进项认证期限和异常税负变化。',
+          '确认无误后再进入申报并留存截图与底稿。'
+        ], [
+          { label: '进入一键报税', type: 'goto', value: 'tax_reporting.html' },
+          { label: '查看发票管理', type: 'goto', value: 'tax_reporting.html' }
+        ]);
+      }
+
+      if (/报销|费用|差旅|付款申请/.test(text)) {
+        saveContext({ topic: 'reimbursement', role: role });
+        return buildTaskCard('费用报销处理流程', [
+          '收集报销单、发票、付款凭证和审批记录。',
+          '判断费用归属部门、项目和会计科目。',
+          '生成报销凭证草稿，并检查税额、附件和审批链。',
+          '同步更新预算执行和费用分析口径。'
+        ], [
+          { label: '打开财务软件', type: 'goto', value: 'finance_software.html' },
+          { label: '生成报销模板', type: 'prompt', value: '请帮我生成一份费用报销审核清单' }
+        ]);
+      }
+
+      if (/结账|月末|月底|期末/.test(text)) {
+        saveContext({ topic: 'monthEnd', role: role });
+        return buildTaskCard('月末结账建议', [
+          '完成凭证审核、过账及银行、往来、库存对账。',
+          '计提工资、折旧、摊销并结转损益。',
+          '复核资产负债表、利润表和现金流量表逻辑。',
+          '归档凭证、报表、纳税申报表和工作底稿。'
+        ], [
+          { label: '进入账套', type: 'goto', value: 'finance_software.html?selectAccount=1' },
+          { label: '查看经营分析', type: 'goto', value: 'data_analysis.html' }
+        ]);
+      }
+
+      if (/发票|票据|进项|销项/.test(text)) {
+        return buildTaskCard('发票核对与处理', [
+          '核对发票抬头、税号、金额、税率和开票日期。',
+          '区分销项开票、进项认证和待抵扣状态。',
+          '检查票据是否匹配合同、出入库和付款节点。',
+          '异常票据单独标记，避免影响记账和报税。'
+        ], [
+          { label: '去发票管理', type: 'goto', value: 'tax_reporting.html' },
+          { label: '询问票税建议', type: 'prompt', value: '请帮我分析当前票据的税务风险' }
+        ]);
+      }
+
+      if (/现金流|资金|回款|付款/.test(text)) {
+        saveContext({ topic: 'cashflow', role: role });
+        return buildTaskCard('现金流优化建议', [
+          '列出未来 7 天回款、付款、工资和税费支出计划。',
+          '优先催收超期应收，延后非关键采购支出。',
+          '对大额资金缺口提前准备融资或股东借款方案。',
+          '每日复盘现金余额、预计净流入和高风险项目。'
+        ], [
+          { label: '查看数据分析', type: 'goto', value: 'data_analysis.html' },
+          { label: '打开企业融资', type: 'goto', value: 'online_store.html' }
+        ]);
+      }
+
+      if (/工资|个税|社保|公积金/.test(text)) {
+        saveContext({ topic: 'payroll', role: role });
+        return buildTaskCard('工资核算建议', [
+          '核对考勤、绩效、社保公积金和专项附加扣除。',
+          '复核应发、实发和代扣个税金额是否一致。',
+          '生成工资凭证并同步工资发放台账。',
+          '在发薪前完成异常名单和银行卡信息复核。'
+        ], [
+          { label: '进入账套', type: 'goto', value: 'finance_software.html?selectAccount=1' },
+          { label: '生成工资待办', type: 'prompt', value: '请帮我生成本月工资核算检查清单' }
+        ]);
+      }
+
+      if (/把.*交给|改成.*负责|负责人改成/.test(text)) {
+        const assigneeMatch = text.match(/会计|出纳|财务经理|老板/);
+        const priority = /高优先级/.test(text) ? 'high' : null;
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (assigneeMatch && (group || priority)) {
+          batchUpdateTasks({ group, priority, assignee: assigneeMatch[0] });
+          return `已按你的要求批量调整负责人为 <b>${assigneeMatch[0]}</b>。`;
+        }
+      }
+
+      if (/改成.*优先级|优先级改成|调整优先级/.test(text)) {
+        const priorityMap = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : (/低优先级/.test(text) ? 'low' : null));
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (priorityMap && group) {
+          batchUpdateTasks({ group, newPriority: priorityMap });
+          return `已将${taskGroupLabels[group]}相关任务优先级批量调整。`;
+        }
+      }
+
+      if (/延期到|延到/.test(text)) {
+        const deadlineMatch = text.match(/今天|明天|本周|下周|本月/);
+        const priority = /高优先级/.test(text) ? 'high' : null;
+        const todayDeadline = /今天到期/.test(text) ? '今天' : null;
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (deadlineMatch && (group || priority || todayDeadline)) {
+          batchUpdateTasks({ group, priority, deadline: todayDeadline, newDeadline: deadlineMatch[0] });
+          return `已按你的要求批量调整截止时间为 <b>${deadlineMatch[0]}</b>。`;
+        }
+      }
+
+      if (/只看|筛选|搜索/.test(text)) {
+        if (/高优先级/.test(text)) {
+          setTaskFilter('high');
+          return '已切换为只看高优先级任务。';
+        }
+        if (/今天到期/.test(text)) {
+          setTaskFilter('today');
+          return '已切换为只看今天到期任务。';
+        }
+        if (/超时风险/.test(text)) {
+          setTaskFilter('timeout');
+          return '已切换为只看处理中超时风险任务。';
+        }
+        if (/临期|风险任务/.test(text)) {
+          setTaskFilter('risk');
+          return '已切换为只看临期风险任务。';
+        }
+        if (/处理中/.test(text)) {
+          setTaskFilter('status:doing');
+          return '已切换为只看处理中任务。';
+        }
+        if (/已完成/.test(text)) {
+          setTaskFilter('status:done');
+          return '已切换为只看已完成任务。';
+        }
+        if (/会计/.test(text)) {
+          setTaskFilter('assignee:会计');
+          return '已切换为只看会计负责的任务。';
+        }
+        if (/出纳/.test(text)) {
+          setTaskFilter('assignee:出纳');
+          return '已切换为只看出纳负责的任务。';
+        }
+        if (/财务经理|经理/.test(text)) {
+          setTaskFilter('assignee:财务经理');
+          return '已切换为只看财务经理负责的任务。';
+        }
+        if (/老板/.test(text)) {
+          setTaskFilter('assignee:老板');
+          return '已切换为只看老板负责的任务。';
+        }
+        const keywordMatch = text.match(/搜索(.+)/);
+        if (keywordMatch) {
+          setTaskSearch(keywordMatch[1].trim());
+          const input = document.getElementById('taskSearchInput');
+          if (input) input.value = keywordMatch[1].trim();
+          return `已搜索关键词：<b>${escapeHtml(keywordMatch[1].trim())}</b>。`;
+        }
+        setTaskFilter('all');
+        setTaskSearch('');
+        const input = document.getElementById('taskSearchInput');
+        if (input) input.value = '';
+        return '已切换为查看全部任务。';
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (currentTasks[index] && assignee && deadline) {
+          const tasks = currentTasks.map(function(item, idx) {
+            return idx === index ? { ...item, assignee: assignee, deadline: deadline, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' } : item;
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，改为 <b>${formatTaskStatus(status)}</b>，截止设为 <b>${deadline}</b> 并置顶。`;
+        }
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text) && /今天|明天|本周|下周|本月/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (currentTasks[index] && assignee && deadline) {
+          const tasks = currentTasks.map(function(item, idx) {
+            return idx === index ? { ...item, assignee: assignee, deadline: deadline, status: status, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' } : item;
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，状态改为 <b>${formatTaskStatus(status)}</b>，并将截止时间改为 <b>${deadline}</b>。`;
+        }
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        if (currentTasks[index] && assignee && priority && deadline) {
+          const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, assignee: assignee, priority: priority, deadline: deadline } : item; });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，设置优先级并改到 <b>${deadline}</b>。`;
+        }
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /今天|明天|本周|下周|本月/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        if (currentTasks[index] && assignee && deadline) {
+          const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, assignee: assignee, deadline: deadline } : item; });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，并将截止时间改为 <b>${deadline}</b>。`;
+        }
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        if (currentTasks[index] && assignee && priority) {
+          const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, assignee: assignee, priority: priority } : item; });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把第${index + 1}个任务交给 <b>${assignee}</b>，并调整为对应优先级。`;
+        }
+      }
+
+      if (/把.*负责的.*任务/.test(text) && /交给/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text)) {
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const sourcePriority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : (/低优先级/.test(text) ? 'low' : null));
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        if (sourceAssignee && sourcePriority && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee || item.priority !== sourcePriority) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, pinned: true };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按优先级和负责人批量完成调整。';
+        }
+      }
+
+      if (/把.*负责的.*任务/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /交给/.test(text) && /处理中|已完成|待处理/.test(text)) {
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (sourceAssignee && deadline && priority) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按负责人、截止时间、优先级和状态完成批量调整。';
+        }
+      }
+
+      if (/把.*负责的.*任务/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /交给/.test(text)) {
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        if (sourceAssignee && deadline && priority) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按负责人、截止时间和优先级完成批量调整。';
+        }
+      }
+
+      if (/把.*负责的.*任务/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text)) {
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (sourceAssignee && deadline && priority) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee || item.priority !== priority) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按优先级、状态和负责人完成批量六连调整。';
+        }
+      }
+
+      if (/把.*任务/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text)) {
+        const sourceAssignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const sourceStatus = /处理中/.test(text) ? 'doing' : (/已完成/.test(text) ? 'done' : (/待处理/.test(text) ? 'todo' : null));
+        if (sourceAssignee && deadline && priority) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee) return item;
+            if (sourceStatus && getTaskStatusLabel(item) !== sourceStatus) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, pinned: true };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已按负责人和状态批量完成负责人、优先级、截止时间与置顶调整。`;
+        }
+      }
+
+      if (/把.*负责的任务/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /高优先级|中优先级|低优先级/.test(text)) {
+        const sourceAssignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (sourceAssignee && deadline && priority) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (item.assignee !== sourceAssignee) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把 <b>${sourceAssignee}</b> 负责的任务批量调整负责人、优先级、状态和截止时间。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责/.test(text) && /交给|转给|改给|挪给|改到|转到|调给|派给|塞给|拨给|分给|甩给|扔给|挂给|划给|移给|拨到|挪到|塞到|甩到|丢到|转去给|转去|派去给|推给|分派给|转过去|派过去给|递给|派到|安排给|放给|挪给他|交到|划到|拨到他那|交过去|转交给|拨过去|调过去|塞过去|转到他那|挂过去|放过去|给到|拉给|派给他|转给他|拨给他|交给他|拨到他手上|放到他那|给他那边|挪到他名下|转他那边|移到他那边|安排给|丢到|放给他|塞到他那|拨给那边|转他名下/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /处理中|已完成|待处理/.test(text) && /置顶|取消置顶/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 的任务按六维条件完成批量调整。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责人为|由.*负责/.test(text) && /交给|转给|改给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /处理中|已完成|待处理/.test(text) && /置顶|取消置顶/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        const pinned = /取消置顶/.test(text) ? false : true;
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: pinned, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按别名口语规则完成批量调整。';
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责人是|负责/.test(text) && /交给|转给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /处理中|已完成|待处理/.test(text) && /置顶|取消置顶/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        const pinned = /取消置顶/.test(text) ? false : true;
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: pinned, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按口语化六维规则完成批量调整。';
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /处理中|已完成|待处理/.test(text) && /置顶|取消置顶/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        const pinned = /取消置顶/.test(text) ? false : true;
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: pinned, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return '已按更自然的六维规则完成批量调整。';
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /处理中|已完成|待处理/.test(text) && /置顶/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority || item.deadline !== deadline || getTaskStatusLabel(item) !== status) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 的任务按五维条件完成批量调整。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /负责/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assigneeMatches = text.match(/会计|出纳|财务经理|老板/g) || [];
+        const sourceAssignee = assigneeMatches[0];
+        const targetAssignee = assigneeMatches.length > 1 ? assigneeMatches[assigneeMatches.length - 1] : sourceAssignee;
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (keyword && sourceAssignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (item.assignee !== sourceAssignee || item.priority !== priority) return item;
+            return { ...item, assignee: targetAssignee, deadline: deadline, priority: priority, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 且负责人匹配的任务完成七项批量调整。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        const sourceStatus = /处理中/.test(text) ? 'doing' : (/已完成/.test(text) ? 'done' : (/待处理/.test(text) ? 'todo' : null));
+        if (keyword && assignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (sourceStatus && getTaskStatusLabel(item) !== sourceStatus) return item;
+            if (item.priority !== priority) return item;
+            return { ...item, assignee: assignee, deadline: deadline, priority: priority, status: status, pinned: true, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 的任务按关键词、优先级、状态完成六连调整。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /交给/.test(text) && /高优先级|中优先级|低优先级/.test(text) && /今天|明天|本周|下周|本月/.test(text) && /置顶/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+        const sourceStatus = /处理中/.test(text) ? 'doing' : (/已完成/.test(text) ? 'done' : (/待处理/.test(text) ? 'todo' : null));
+        if (keyword && assignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            if (sourceStatus && getTaskStatusLabel(item) !== sourceStatus) return item;
+            return { ...item, assignee: assignee, deadline: deadline, priority: priority, pinned: true };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 且状态为指定条件的任务批量调整负责人、优先级、截止时间并置顶。`;
+        }
+      }
+
+      if (/标题中包含/.test(text) && /交给/.test(text) && /改成处理中|设为处理中|改成已完成|设为已完成|改成待处理|设为待处理/.test(text) && /今天|明天|本周|下周|本月/.test(text)) {
+        const keyword = ((text.match(/标题中包含[“"]?([^”"，,]+)[”"]?/) || [])[1] || '').trim();
+        const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+        const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+        const status = /已完成/.test(text) ? 'done' : (/处理中/.test(text) ? 'doing' : 'todo');
+        if (keyword && assignee && deadline) {
+          const tasks = getStoredTasks().map(function(item) {
+            if (!item.title.includes(keyword)) return item;
+            return { ...item, assignee: assignee, deadline: deadline, status: status, done: status === 'done', completedAt: status === 'done' ? (item.completedAt || new Date().toLocaleString('zh-CN')) : '' };
+          });
+          saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderPinnedPanel(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+          return `已把标题中包含 <b>${escapeHtml(keyword)}</b> 的任务批量调整负责人、状态和截止时间。`;
+        }
+      }
+
+      if (/把.+交给/.test(text) || /把.+延期到/.test(text)) {
+        const taskKeyword = (text.match(/把(.+?)(交给|延期到)/) || [])[1];
+        const task = taskKeyword ? findTaskByKeyword(taskKeyword.trim()) : null;
+        if (task) {
+          if (/交给/.test(text)) {
+            const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+            if (assignee) {
+              const tasks = getStoredTasks().map(function(item) { return item.id === task.id ? { ...item, assignee: assignee } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把 <b>${escapeHtml(task.title)}</b> 交给 <b>${assignee}</b>。`;
+            }
+          }
+          if (/延期到/.test(text)) {
+            const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+            if (deadline) {
+              const tasks = getStoredTasks().map(function(item) { return item.id === task.id ? { ...item, deadline: deadline } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把 <b>${escapeHtml(task.title)}</b> 延期到 <b>${deadline}</b>。`;
+            }
+          }
+        }
+      }
+
+      if (/第一个任务|第二个任务|第三个任务/.test(text)) {
+        const index = /第一个任务/.test(text) ? 0 : (/第二个任务/.test(text) ? 1 : 2);
+        const currentTasks = getStoredTasks();
+        const task = currentTasks[index];
+        if (task) {
+          if (/复制成日报条目|日报条目/.test(text)) {
+            const line = `- ${task.title}（${formatTaskStatus(getTaskStatusLabel(task))} / ${task.assignee || '未分配'} / ${task.deadline || '本月'}）`;
+            navigator.clipboard.writeText(line).then(function() {
+              addMessage('assistant', `<div class="report-card"><div style="font-weight:700">第${index + 1}个任务日报条目已复制</div><div style="padding:8px 10px;border-radius:10px;background:#f7fbff;border:1px solid #dbe7f2;white-space:pre-line">${escapeHtml(line)}</div></div>`, true);
+            });
+            return `已复制第${index + 1}个任务为日报条目。`;
+          }
+          if (/移到最前|放到最前/.test(text)) {
+            const reordered = currentTasks.slice();
+            const picked = reordered.splice(index, 1)[0];
+            reordered.unshift(picked);
+            saveTasks(reordered); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务移到最前。`;
+          }
+          if (/取消置顶/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, pinned: false } : item; });
+            saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已取消第${index + 1}个任务的置顶。`;
+          }
+          if (/置顶/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, pinned: true } : item; });
+            saveTasks(tasks); renderTaskBoard(); renderTaskStats(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已置顶第${index + 1}个任务。`;
+          }
+          if (/恢复为待处理|改为待处理|改成待处理/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'todo', done: false, completedAt: '' } : item; });
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务恢复为待处理。`;
+          }
+          if (/克隆/.test(text)) {
+            const sourceTask = currentTasks[index];
+            const tasks = [{ ...sourceTask, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: sourceTask.title + '（副本）', done: false, status: 'todo', createdAt: new Date().toLocaleString('zh-CN'), completedAt: '' }].concat(currentTasks);
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已克隆第${index + 1}个任务。`;
+          }
+          if (/标记完成|设为完成|改成已完成/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'done', done: true, completedAt: item.completedAt || new Date().toLocaleString('zh-CN') } : item; });
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务标记为已完成。`;
+          }
+          if (/删除/.test(text)) {
+            stashDeletedTasks(currentTasks.filter(function(item, idx) { return idx === index; }));
+            const tasks = currentTasks.filter(function(item, idx) { return idx !== index; });
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已删除第${index + 1}个任务。`;
+          }
+          if (/交给/.test(text)) {
+            const assignee = (text.match(/会计|出纳|财务经理|老板/) || [])[0];
+            if (assignee) {
+              const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, assignee: assignee } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把第${index + 1}个任务交给 <b>${assignee}</b>。`;
+            }
+          }
+          if (/高优先级/.test(text) || /中优先级/.test(text) || /低优先级/.test(text)) {
+            const priority = /高优先级/.test(text) ? 'high' : (/中优先级/.test(text) ? 'medium' : 'low');
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, priority: priority } : item; });
+            saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+            return `已把第${index + 1}个任务改为对应优先级。`;
+          }
+          if (/处理中/.test(text)) {
+            const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, status: 'doing', done: false, completedAt: '' } : item; });
+            saveTasks(tasks); recordTaskTrend(); renderTaskBoard(); renderTaskStats(); renderTrendPanel(); renderRecentAdded(); renderRiskZone(); renderRecentDoing(); renderRecentCompleted();
+            return `已把第${index + 1}个任务改为处理中。`;
+          }
+          if (/本周|明天|今天|下周|本月/.test(text)) {
+            const deadline = (text.match(/今天|明天|本周|下周|本月/) || [])[0];
+            if (deadline) {
+              const tasks = currentTasks.map(function(item, idx) { return idx === index ? { ...item, deadline: deadline } : item; });
+              saveTasks(tasks); renderTaskBoard(); renderTaskStats();
+              return `已把第${index + 1}个任务截止时间改为 <b>${deadline}</b>。`;
+            }
+          }
+        }
+      }
+
+      if (/删除任务|删掉任务|移除任务/.test(text)) {
+        const keyword = text.replace(/删除任务|删掉任务|移除任务/g, '').trim();
+        if (keyword) {
+          const tasks = getStoredTasks().filter(function(task) { return !task.title.includes(keyword); });
+          saveTasks(tasks);
+          recordTaskTrend();
+          renderTaskBoard();
+          renderTaskStats();
+          renderTrendPanel();
+          return `已删除标题中包含 <b>${escapeHtml(keyword)}</b> 的任务。`;
+        }
+      }
+
+      if (/改标题|标题改成/.test(text)) {
+        const keyword = text.replace(/改标题|标题改成/g, '').trim();
+        const tasks = getStoredTasks();
+        if (tasks.length && keyword) {
+          const updated = tasks.map(function(task, index) {
+            return index === 0 ? { ...task, title: keyword } : task;
+          });
+          saveTasks(updated);
+          renderTaskBoard();
+          renderTaskStats();
+          return `已把第一条任务标题改为 <b>${escapeHtml(keyword)}</b>。`;
+        }
+      }
+
+      if (/负责人导出|专属交办|导出会计|导出出纳/.test(text)) {
+        if (/会计/.test(text)) {
+          exportTasksForAssignee('会计');
+          return '正在生成会计专属交办。';
+        }
+        if (/出纳/.test(text)) {
+          exportTasksForAssignee('出纳');
+          return '正在生成出纳专属交办。';
+        }
+        if (/财务经理/.test(text)) {
+          exportTasksForAssignee('财务经理');
+          return '正在生成财务经理专属交办。';
+        }
+        if (/老板/.test(text)) {
+          exportTasksForAssignee('老板');
+          return '正在生成老板专属交办。';
+        }
+        exportAssigneeTasks();
+        return '正在生成负责人专属交办。';
+      }
+
+      if (/改成处理中|处理中/.test(text) && /税务|资金|月末|结账/.test(text)) {
+        const group = /税务|报税/.test(text) ? 'tax' : (/资金|现金流/.test(text) ? 'cashflow' : (/月末|结账/.test(text) ? 'monthEnd' : null));
+        if (group) {
+          batchUpdateTasks({ group, newStatus: 'doing' });
+          return `已将${taskGroupLabels[group]}相关任务批量调整为处理中。`;
+        }
+      }
+
+      if (/导出待处理|导出处理中|导出已完成/.test(text)) {
+        if (/待处理/.test(text)) return (exportTasksByStatus('todo'), '正在导出待处理任务。');
+        if (/处理中/.test(text)) return (exportTasksByStatus('doing'), '正在导出处理中任务。');
+        if (/已完成/.test(text)) return (exportTasksByStatus('done'), '正在导出已完成任务。');
+      }
+
+      if (/导出清单|导出任务|复制任务/.test(text)) {
+        exportFilteredTasks();
+        return '正在导出当前筛选下的任务清单。';
+      }
+
+      if (/交办单|分发任务|按负责人整理/.test(text)) {
+        exportAssignmentSlip();
+        return '正在生成任务交办单。';
+      }
+
+      if (/保存视图|保存当前视图/.test(text)) {
+        saveCurrentView();
+        return '你可以给当前筛选和搜索组合起一个名字，后续可一键恢复。';
+      }
+
+      if (/删除视图/.test(text)) {
+        const views = getSavedViews();
+        if (views.length) {
+          deleteSavedView(0);
+          return '已删除第一个常用视图，你也可以直接点视图旁边的“删”。';
+        }
+      }
+
+      if (/专项报告|税务风险|资金日报|月末结账摘要|工资核算摘要/.test(text)) {
+        if (/税务/.test(text)) return (generateSpecialReport('tax'), '正在生成税务风险摘要。');
+        if (/资金/.test(text)) return (generateSpecialReport('cashflow'), '正在生成资金日报。');
+        if (/月末|结账/.test(text)) return (generateSpecialReport('monthEnd'), '正在生成月末结账摘要。');
+        if (/工资/.test(text)) return (generateSpecialReport('payroll'), '正在生成工资核算摘要。');
+      }
+
+      if (/导航|打开|进入/.test(text)) {
+        return '你可以直接告诉我想进入的工作场景，例如“进入报税”“打开财务软件”“查看数据分析”或“打开财务快聘”，我会给你最短处理路径。';
+      }
+
+      if (/日报|今日总结/.test(text)) {
+        saveContext({ topic: 'report', type: 'daily' });
+        const tasks = getStoredTasks();
+        const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        return buildResultCard('今日财务工作摘要', `今日工作重点聚焦在待办推进、税务节点和资金安排。本周新增 ${weeklyNew} 项，本周完成 ${weeklyDone} 项。建议下班前确认高优先级事项是否已完成。`, [
+          '税务或资金类任务若未完成，明日优先处理。',
+          '请留意待办中截止时间为今天的事项。'
+        ], [
+          '生成并检查明日待办。',
+          '对未完成事项补充责任人和计划时间。',
+          '如需发送汇报，可点击复制日报。'
+        ]);
+      }
+
+      if (/周报|本周总结/.test(text)) {
+        saveContext({ topic: 'report', type: 'weekly' });
+        const tasks = getStoredTasks();
+        const weekMark = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weeklyNew = tasks.filter(function(task) { return task.createdAt && new Date(task.createdAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        const weeklyDone = tasks.filter(function(task) { return task.completedAt && new Date(task.completedAt.replace(/\//g, '-')).getTime() >= weekMark; }).length;
+        return buildResultCard('本周财务工作摘要', `本周建议重点复盘税务申报、现金流变化、月末结账准备和高风险客户回款。本周新增 ${weeklyNew} 项，本周完成 ${weeklyDone} 项。`, [
+          '若本周仍有高优先级未完成事项，需提前锁定下周计划。',
+          '请关注资金缺口和异常税负波动。'
+        ], [
+          '生成下周优先级任务清单。',
+          '对资金和税务事项分别做专项复盘。',
+          '如需汇报，可点击复制周报。'
+        ]);
+      }
+
+      if (/继续|下一步|然后|接着/.test(text)) {
+        if (context.topic === 'monthEnd') {
+          return buildTaskCard('月末结账后续动作', [
+            '复核未达账项和暂估凭证是否已处理。',
+            '确认报表勾稽关系和利润波动解释。',
+            '准备结账汇报摘要给管理层。'
+          ], []);
+        }
+        if (context.topic === 'cashflow') {
+          return buildTaskCard('资金安排后续动作', [
+            '按到期日重排付款优先级。',
+            '更新回款跟进记录和缺口预测。',
+            '把大额资金安排同步给老板与出纳。'
+          ], []);
+        }
+        if (context.topic === 'report') {
+          return '你可以继续让我“复制日报”“复制周报”或“生成下周任务清单”，我会接着当前汇报场景继续。';
+        }
+        return '你可以直接告诉我想继续哪一类工作，例如“继续报税”“继续报销”“继续月末结账”或“继续资金安排”，我会沿着刚才的话题继续。';
+      }
+
+      return `
+        <div style="font-weight:700;margin-bottom:8px">我已理解你的需求</div>
+        <div style="line-height:1.8;color:#44576b">如果你告诉我更具体的工作目标，我可以直接按场景给你生成处理步骤、检查清单和下一步操作。</div>
+        <div style="display:grid;gap:8px;margin-top:10px">
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：帮我整理本月报税清单</div>
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：生成费用报销审核流程</div>
+          <div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：分析今天的现金流风险</div><div style="padding:8px 10px;border-radius:12px;background:#f7fbff;border:1px solid #dbe7f2">• 例：把第一个任务标记完成</div>
+        </div>
+      `;
+    }
+
+    function sendMessage(prefill) {
+      const chatInput = document.getElementById('chatInput');
+      const message = (typeof prefill === 'string' ? prefill : chatInput.value).trim();
+
+      if (!message) return;
+
+      rememberLastPrompt(message);
+      addMessage('user', escapeHtml(message), true);
+      chatInput.value = '';
+
+      setTimeout(function() {
+        addMessage('assistant', buildAssistantResponse(message), true);
+      }, 450);
+    }
+
+    function addMessage(type, content, isHtml, fixedTime) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+
+      const now = new Date();
+      const time = fixedTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const safeContent = isHtml ? content : escapeHtml(content);
+
+      messageDiv.innerHTML = `
+        <div class="message-content">${safeContent}</div>
+        <div class="message-time">${time}</div>
+      `;
+
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      saveMessages();
+    }
+
+    function handleTaskAction(type, value) {
+      if (type === 'goto' && value) {
+        window.location.href = value;
+        return;
+      }
+      if (type === 'prompt' && value) {
+        injectPrompt(value);
+        addMessage('assistant', `已为你准备好下一条指令：<b>${escapeHtml(value)}</b>，你按发送即可继续。`, true);
+      }
+    }
+
+    function toggleVoiceRecording() {
+      const voiceBtn = document.getElementById('voiceBtn');
+      isRecording = !isRecording;
+
+      if (isRecording) {
+        voiceBtn.classList.add('recording');
+        voiceBtn.title = '停止录音';
+        setTimeout(() => {
+          isRecording = false;
+          voiceBtn.classList.remove('recording');
+          voiceBtn.title = '语音输入';
+          sendMessage('请帮我生成今天的财务待办');
+        }, 1200);
+      } else {
+        voiceBtn.classList.remove('recording');
+        voiceBtn.title = '语音输入';
+      }
+    }
+
+    function showRecommendation(type) {
+      const prompts = {
+        tax: '请帮我整理本月报税清单',
+        finance: '请分析本周现金流风险并给出优化建议',
+        investment: '请从经营角度分析当前适合的投资方向'
+      };
+      sendMessage(prompts[type] || '请帮我生成今天的财务待办');
+    }
+  </script>
+<!-- 引用蜻蜓聊天-->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  <script src="smart_assistant_fallback.js?v=20260413-2333"></script>
+  </body>
+</html>

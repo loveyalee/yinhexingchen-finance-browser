@@ -160,6 +160,42 @@
       overflow-y: auto;
     }
     
+    .page-entry-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #eef6ff, #f9fcff);
+      border: 1px solid #d8e7f5;
+      box-shadow: 0 12px 24px rgba(16, 39, 63, 0.06);
+    }
+
+    .page-entry-banner.show {
+      display: flex;
+    }
+
+    .page-entry-banner strong {
+      display: block;
+      font-size: 15px;
+      color: #17324b;
+      margin-bottom: 4px;
+    }
+
+    .page-entry-banner span {
+      font-size: 12px;
+      color: #60758f;
+      line-height: 1.8;
+    }
+
+    .page-entry-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .risk-dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -409,7 +445,7 @@
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
     ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
-</style>
+.center-top-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#0f2742,#184a79);box-shadow:0 14px 32px rgba(15,39,66,.16);color:#fff}.center-top-meta{display:grid;gap:4px}.center-top-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72)}.center-top-meta strong{font-size:18px;line-height:1.2}.center-top-meta em{font-style:normal;font-size:12px;color:rgba(255,255,255,.76);line-height:1.8}.center-top-actions{display:flex;gap:10px;flex-wrap:wrap}@media(max-width:1080px){.center-top-strip{flex-direction:column;align-items:flex-start}}</style>
 </head>
 <body>
   <div class="container">
@@ -502,8 +538,9 @@
       </div>
       
       <div class="content-area">
-        <h2>风险预警系统</h2>
-        <p>实时监测财务风险，识别异常交易，保障企业资金安全</p>
+        <div class="center-top-strip"><div class="center-top-meta"><span class="center-top-kicker">智能工作台联动中心</span><strong>风险中心</strong><em>统一承接首页入口、风险处理与继续动作</em></div><div class="center-top-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><a href="index.html" class="btn btn-secondary" style="text-decoration:none">返回首页总览</a></div></div><div id="riskEntryBanner" class="page-entry-banner"><div><strong id="riskEntryTitle">来自蜻蜓智能工作台</strong><span id="riskEntryDesc">已为你切换到风险中心视角，可继续查看风险清单、异常交易与预警重点。</span></div><div class="page-entry-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><button class="btn btn-primary" type="button" onclick="runRiskEntryAction()">继续当前任务</button></div></div>
+        <h2>风险中心</h2>
+        <p>实时监测财务风险，识别异常交易，快速定位风险处理重点</p>
         
         <div class="risk-dashboard">
           <div class="risk-card">
@@ -545,8 +582,8 @@
         
         <div class="risk-list">
           <div class="risk-list-header">
-            <h3>风险预警列表</h3>
-            <button class="btn btn-primary">刷新</button>
+            <h3>重点风险清单</h3>
+            <button class="btn btn-primary">刷新风险清单</button>
           </div>
           <div class="risk-list-content">
             <div class="risk-item">
@@ -556,7 +593,7 @@
                 <div class="risk-item-time">2024-01-15 14:30</div>
               </div>
               <div class="risk-item-action">
-                <button class="btn btn-danger">审核</button>
+                <button class="btn btn-danger">立即审核</button>
               </div>
             </div>
             <div class="risk-item">
@@ -566,7 +603,7 @@
                 <div class="risk-item-time">2024-01-14 10:15</div>
               </div>
               <div class="risk-item-action">
-                <button class="btn btn-warning">处理</button>
+                <button class="btn btn-warning">立即处理</button>
               </div>
             </div>
             <div class="risk-item">
@@ -576,7 +613,7 @@
                 <div class="risk-item-time">2024-01-13 09:45</div>
               </div>
               <div class="risk-item-action">
-                <button class="btn btn-warning">处理</button>
+                <button class="btn btn-warning">立即处理</button>
               </div>
             </div>
             <div class="risk-item">
@@ -586,7 +623,7 @@
                 <div class="risk-item-time">2024-01-12 16:20</div>
               </div>
               <div class="risk-item-action">
-                <button class="btn btn-success">查看详情</button>
+                <button class="btn btn-success">查看风险详情</button>
               </div>
             </div>
           </div>
@@ -594,7 +631,7 @@
         
         <div class="chart-container">
           <div class="chart-header">
-            <h3>风险趋势分析</h3>
+            <h3>风险趋势总览</h3>
             <select class="btn">
               <option>0/option>
               <option>0/option>
@@ -612,7 +649,37 @@
   </div>
   
   <script>
+    function getRiskEntryMeta() {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get('from') || '';
+      const view = params.get('view') || '';
+      const map = {
+        risk: { title: '来自蜻蜓智能工作台：风险中心', desc: '已切换到风险总览视角，适合快速浏览风险预警列表与趋势。', action: '请输出当前风险事项与处理优先级' },
+        tax: { title: '来自蜻蜓智能工作台：税务风险协同', desc: '当前更适合优先查看税务逾期、申报异常与合规风险。', action: '请总结当前税务风险与处理动作' },
+        receivable: { title: '来自蜻蜓智能工作台：回款风险协同', desc: '当前更适合优先检查异常交易、现金流预警与应收风险。', action: '请总结当前回款和现金流风险' }
+      };
+      const meta = map[view] || map.risk;
+      return { from: from, title: meta.title, desc: meta.desc, action: meta.action };
+    }
+
+    function renderRiskEntryBanner() {
+      const meta = getRiskEntryMeta();
+      if (meta.from !== 'smart_assistant') return;
+      const banner = document.getElementById('riskEntryBanner');
+      const title = document.getElementById('riskEntryTitle');
+      const desc = document.getElementById('riskEntryDesc');
+      if (!banner || !title || !desc) return;
+      title.textContent = meta.title;
+      desc.textContent = meta.desc;
+      banner.classList.add('show');
+    }
+
+    function runRiskEntryAction() {
+      alert(getRiskEntryMeta().action);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+      renderRiskEntryBanner();
       // 模拟风险预警数据更新
       setInterval(function() {
         console.log('风险数据更新..');

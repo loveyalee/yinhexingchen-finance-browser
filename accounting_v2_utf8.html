@@ -1,0 +1,2332 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>
+      银河星辰共享智能财务
+    </title>
+    <link rel="stylesheet" href="accounting_v2.css?v=20260413-2247">
+    <style>
+      .summary-quick {
+        position: relative;
+      }
+      .summary-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: white;
+        border: 1px solid #e3edf6;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+      .summary-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .summary-item:hover {
+        background-color: #f5f7fa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="side">
+        <div class="brand">
+          <img src="yinhelogo.png" alt="银河星辰 logo">
+          <div>
+            <div style="font-size:18px;font-weight:700">
+              银河星辰
+            </div>
+            <div style="font-size:12px;opacity:.75">
+              共享智能财务
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="on" data-k="wb">
+            工作台
+          </div>
+          <div data-k="ve">
+            凭证录入
+          </div>
+          <div data-k="gl">
+            总账
+          </div>
+          <div data-k="sl">
+            明细账
+          </div>
+          <div data-k="bl">
+            科目余额表
+          </div>
+          <div data-k="ax">
+            辅助明细账
+          </div>
+          <div data-k="qm">
+            数量金额明细账
+          </div>
+          <div data-k="ob">
+            期初余额
+          </div>
+          <div data-k="pay">
+            工资核算
+          </div>
+          <div data-k="iv">
+            发票管理
+          </div>
+          <div data-k="cm">
+            出纳管理
+          </div>
+          <div data-k="ar">
+            往来对账
+          </div>
+          <div data-k="tx">
+            税务管理
+          </div>
+          <div data-k="bg">
+            预算管控
+          </div>
+          <div data-k="fa">
+            固定资产
+          </div>
+          <div data-k="rb">
+            报表中心
+          </div>
+          <div data-k="ai">
+            AI 智能中心
+          </div>
+          <div data-k="mc">
+            期末结账
+          </div>
+        </div>
+      </aside>
+      <main class="main">
+      <div class="top">
+        <div>
+          <div style="font-size:22px;font-weight:700" id="pt">
+            银河星辰共享智能财务 · 工作台
+          </div>
+          <div class="meta">
+            <span>
+              账套
+              <b id="an">
+                --
+              </b>
+            </span>
+            <span>
+              |
+            </span>
+            <span>
+              期间
+              <b id="ap">
+                --
+              </b>
+            </span>
+            <span>
+              |
+            </span>
+            <span>
+              行业
+              <b id="ai">
+                --
+              </b>
+            </span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn p" onclick="location.href='index.html'">
+            返回主页
+          </button>
+          <button class="btn s" onclick="location.href='finance_software.html?selectAccount=1'">
+            切换账套
+          </button>
+        </div>
+      </div>
+      <section class="page on" id="p-wb">
+        <div class="hero">
+          <div class="card mainc">
+            <h2 id="wbn" style="margin:0">
+              当前账套
+            </h2>
+            <div class="sub" style="margin-top:8px">
+              模块联动、数据驾驶舱、AI步骤化做账、经典凭证录入与工资核算。
+            </div>
+            <div class="stats">
+              <div class="mini" onclick="showTab('ve')">
+                <div class="k">
+                  本月凭证
+                </div>
+                <div class="v" id="wbVoucherCount">
+                  08
+                </div>
+              </div>
+              <div class="mini" onclick="showTab('pay')">
+                <div class="k">
+                  工资待处理
+                </div>
+                <div class="v">
+                  18人
+                </div>
+              </div>
+              <div class="mini" onclick="showTab('iv')">
+                <div class="k">
+                  待勾票
+                </div>
+                <div class="v">
+                  05
+                </div>
+              </div>
+              <div class="mini" onclick="showTab('mc')">
+                <div class="k">
+                  结账状态
+                </div>
+                <div class="v" style="color:#ffcf76">
+                  未结账
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="margin:0 0 10px">
+              AI 工作台
+            </h3>
+            <div class="mini">
+              <b>
+                🦞 Ac-claw
+              </b>
+              <div class="k">
+                根据摘要推荐会计科目、票据归类、工资分录建议
+              </div>
+              <button class="btn s" style="margin-top:8px" onclick="askAI('Ac-claw，请根据摘要推荐会计科目并说明理由')">
+                唤起
+              </button>
+            </div>
+            <div class="mini" style="margin-top:10px">
+              <b>
+                🪐 Ac-agent
+              </b>
+              <div class="k">
+                步骤做账、工资核算、报表分析
+              </div>
+              <button class="btn p" style="margin-top:8px" onclick="askAI('Ac-agent，请输出本月做账与工资核算流程')">
+                唤起
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h3 style="margin:0 0 10px">
+            数据驾驶舱
+          </h3>
+          <div class="grid4">
+            <div class="mini">
+              <b>
+                收入
+              </b>
+              <div class="k">
+                320,000 / 84%
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                利润
+              </b>
+              <div class="k">
+                64,800 / 稳定
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                应收
+              </b>
+              <div class="k">
+                68,000 / 回款略慢
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                工资成本
+              </b>
+              <div class="k">
+                45,000 / 待发放
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="tabs">
+        <div class="tab" data-k="ve">
+          凭证录入
+        </div>
+        <div class="tab" data-k="gl">
+          总账
+        </div>
+        <div class="tab" data-k="sl">
+          明细账
+        </div>
+        <div class="tab" data-k="bl">
+          余额表
+        </div>
+        <div class="tab" data-k="ax">
+          辅助账
+        </div>
+        <div class="tab" data-k="ob">
+          期初余额
+        </div>
+        <div class="tab" data-k="pay">
+          工资核算
+        </div>
+        <div class="tab" data-k="iv">
+          发票管理
+        </div>
+        <div class="tab" data-k="cm">
+          出纳
+        </div>
+        <div class="tab" data-k="ar">
+          往来
+        </div>
+        <div class="tab" data-k="tx">
+          税务
+        </div>
+        <div class="tab" data-k="bg">
+          预算
+        </div>
+        <div class="tab" data-k="qm">
+          数量金额
+        </div>
+        <div class="tab" data-k="fa">
+          固定资产
+        </div>
+        <div class="tab" data-k="rb">
+          报表中心
+        </div>
+        <div class="tab" data-k="ai">
+          AI 智能
+        </div>
+        <div class="tab" data-k="mc">
+          期末结账
+        </div>
+      </div>
+      <section class="page" id="p-ve">
+        <div class="card voucher-shell">
+          <div class="voucher-topbar">
+            <div>
+              <div class="voucher-title">
+                凭证录入
+                <span class="voucher-title-sub">
+                  专业版
+                </span>
+              </div>
+              <div class="voucher-kicker">
+                参照金蝶/用友专业版凭证录入布局，支持科目推荐、借贷平衡与分录式录入。
+              </div>
+            </div>
+            <div class="voucher-top-actions">
+              <button class="btn s" onclick="guide()">
+                AI步骤做账
+              </button>
+              <button class="btn p" onclick="calc()">
+                试算平衡
+              </button>
+            </div>
+          </div>
+          <div class="voucher-paper">
+            <div class="voucher-paper-head">
+              <div class="voucher-paper-title">
+                记账凭证
+              </div>
+              <div class="voucher-paper-meta">
+                <span>
+                  凭证类别
+                  <b>
+                    记
+                  </b>
+                </span>
+                <span>
+                  录入方式
+                  <b>
+                    手工录入
+                  </b>
+                </span>
+                <span>
+                  会计期间
+                  <b id="ve-period">
+                    2026-04
+                  </b>
+                </span>
+              </div>
+            </div>
+            <div class="voucher-header-grid">
+              <div class="f">
+                <label>
+                  凭证类别
+                </label>
+                <select class="sl" id="voucherType">
+                  <option>
+                    记
+                  </option>
+                  <option>
+                    收
+                  </option>
+                  <option>
+                    付
+                  </option>
+                  <option>
+                    转
+                  </option>
+                </select>
+              </div>
+              <div class="f">
+                <label>
+                  凭证号
+                </label>
+                <input class="i" id="voucherNo" value="001">
+              </div>
+              <div class="f">
+                <label>
+                  记账日期
+                </label>
+                <input class="i" id="voucherDate" type="date" value="2026-04-11">
+              </div>
+              <div class="f">
+                <label>
+                  业务日期
+                </label>
+                <input class="i" id="bizDate" type="date" value="2026-04-11">
+              </div>
+              <div class="f">
+                <label>
+                  附件张数
+                </label>
+                <input class="i" id="voucherAttachments" value="3">
+              </div>
+              <div class="f">
+                <label>
+                  来源单据
+                </label>
+                <input class="i" id="vs" value="销项发票/报销单/工资表">
+              </div>
+              <div class="f">
+                <label>
+                  制单人
+                </label>
+                <input class="i" id="voucherCreator" value="李会计">
+              </div>
+              <div class="f">
+                <label>
+                  审核人
+                </label>
+                <input class="i" id="voucherAuditor" value="王主管">
+              </div>
+              <div class="f">
+                <label>
+                  结算方式
+                </label>
+                <select class="sl" id="voucherSettlement">
+                  <option>
+                    银行转账
+                  </option>
+                  <option>
+                    库存现金
+                  </option>
+                </select>
+              </div>
+              <div class="f">
+                <label>
+                  单据号
+                </label>
+                <input class="i" id="voucherBillNo" value="XS20260411001">
+              </div>
+              <div class="f voucher-summary-field">
+                <label>
+                  摘要说明
+                </label>
+                <input class="i" id="vn" value="本月销售废旧金属收入" oninput="rec()">
+              </div>
+              <div class="f">
+                <label>
+                  业务场景
+                </label>
+                <select class="sl" id="voucherScene" onchange="prefill(this.value)">
+                  <option value="sale">
+                    销售收入
+                  </option>
+                  <option value="expense">
+                    费用报销
+                  </option>
+                  <option value="purchase">
+                    采购付款
+                  </option>
+                  <option value="salary">
+                    工资计提
+                  </option>
+                </select>
+              </div>
+            </div>
+            <table class="vt voucher-grid">
+            <thead>
+              <tr>
+                <th class="seq-head">
+                  行次
+                </th>
+                <th>
+                  摘要
+                </th>
+                <th>
+                  会计科目
+                </th>
+                <th>
+                  辅助核算
+                </th>
+                <th class="r amount-head">
+                  <div class="amount-head-title">借方</div>
+                  <div class="amount-head-units" aria-hidden="true">
+                    <span>亿</span>
+                    <span>千</span>
+                    <span>百</span>
+                    <span>十</span>
+                    <span>万</span>
+                    <span>千</span>
+                    <span>百</span>
+                    <span>十</span>
+                    <span>元</span>
+                    <span>角</span>
+                    <span>分</span>
+                  </div>
+                </th>
+                <th class="r amount-head">
+                  <div class="amount-head-title">贷方</div>
+                  <div class="amount-head-units" aria-hidden="true">
+                    <span>亿</span>
+                    <span>千</span>
+                    <span>百</span>
+                    <span>十</span>
+                    <span>万</span>
+                    <span>千</span>
+                    <span>百</span>
+                    <span>十</span>
+                    <span>元</span>
+                    <span>角</span>
+                    <span>分</span>
+                  </div>
+                </th>
+                <th>
+                  税率
+                </th>
+                <th>
+                  票据/往来
+                </th>
+                <th class="op-head">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody id="vb">
+              <tr>
+                <td class="seq-cell">
+                  1
+                </td>
+                <td>
+                  <input value="销售废旧金属收入">
+                </td>
+                <td>
+                  <input value="1002 银行存款" id="sj">
+                </td>
+                <td>
+                  <input value="客户">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="320000.00" inputmode="decimal">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td>
+                  <input value="13%">
+                </td>
+                <td>
+                  <input value="销项发票">
+                </td>
+                <td class="op-cell">
+                  <button class="row-op-btn" type="button" onclick="copyVoucherRow(this)">
+                    复制
+                  </button>
+                  <button class="row-op-btn danger" type="button" onclick="deleteVoucherRow(this)">
+                    删除
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="seq-cell">
+                  2
+                </td>
+                <td>
+                  <input value="销售废旧金属收入">
+                </td>
+                <td>
+                  <input value="6001 主营业务收入" id="sk">
+                </td>
+                <td>
+                  <input value="项目部">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="283185.84" inputmode="decimal">
+                </td>
+                <td>
+                  <input value="13%">
+                </td>
+                <td>
+                  <input value="收入确认">
+                </td>
+                <td class="op-cell">
+                  <button class="row-op-btn" type="button" onclick="copyVoucherRow(this)">
+                    复制
+                  </button>
+                  <button class="row-op-btn danger" type="button" onclick="deleteVoucherRow(this)">
+                    删除
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="seq-cell">
+                  3
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="op-cell">
+                  <button class="row-op-btn" type="button" onclick="copyVoucherRow(this)">
+                    复制
+                  </button>
+                  <button class="row-op-btn danger" type="button" onclick="deleteVoucherRow(this)">
+                    删除
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="seq-cell">
+                  4
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="op-cell">
+                  <button class="row-op-btn" type="button" onclick="copyVoucherRow(this)">
+                    复制
+                  </button>
+                  <button class="row-op-btn danger" type="button" onclick="deleteVoucherRow(this)">
+                    删除
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class="seq-cell">
+                  5
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td class="amount-cell">
+                  <input class="amount-input" value="0.00" inputmode="decimal">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td>
+                  <input value="">
+                </td>
+                <td class="op-cell">
+                  <button class="row-op-btn" type="button" onclick="copyVoucherRow(this)">
+                    复制
+                  </button>
+                  <button class="row-op-btn danger" type="button" onclick="deleteVoucherRow(this)">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+            <div class="voucher-toolbar">
+              <button class="btn s" onclick="addVoucherRow()">
+                新增分录
+              </button>
+              <button class="btn s" onclick="removeVoucherRow()">
+                删除分录
+              </button>
+              <button class="btn s" onclick="autoBalanceVoucher()">
+                自动平衡
+              </button>
+              <button class="btn s" onclick="rec();askAI('请根据摘要自动推荐记账会计科目，并说明理由')">
+                AI推荐会计科目
+              </button>
+              <button class="btn s" onclick="prefill(document.getElementById('voucherScene').value)">
+                重载业务场景
+              </button>
+              <button class="btn p" id="saveVoucherBtn" onclick="saveVoucher()">
+                保存凭证
+              </button>
+            </div>
+            <div class="voucher-balance-bar">
+              <div class="voucher-balance-label">
+                借贷差额提示
+              </div>
+              <div class="voucher-balance-value" id="balanceStatus">
+                当前借贷不平，请检查分录。
+              </div>
+            </div>
+            <div class="sum voucher-sum">
+            <div class="mini voucher-ai-panel">
+              <b>
+                AI 结果
+              </b>
+              <div class="k" id="gt">
+                输入摘要后可自动推荐会计科目。
+              </div>
+            </div>
+            <div class="mini voucher-total-card">
+              <b>
+                借方合计
+              </b>
+              <div id="sd" style="font-size:20px;font-weight:700">
+                320,000.00
+              </div>
+            </div>
+            <div class="mini voucher-total-card">
+              <b>
+                贷方合计
+              </b>
+              <div id="sc" style="font-size:20px;font-weight:700">
+                283,185.84
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div>
+              <h3 style="margin:0">
+                已保存凭证
+              </h3>
+              <div class="k">
+                展示当前账套最近保存的凭证与分录明细
+              </div>
+            </div>
+            <button class="btn s" onclick="loadVoucherList()">
+              刷新列表
+            </button>
+          </div>
+          <div id="voucherList" class="k" style="margin-top:12px">
+            暂无已保存凭证
+          </div>
+        </div>
+      </section>
+      <section class="page" id="p-ob">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                科目期初余额
+              </h3>
+              <div class="k">
+                新建账套后，建议先录入各科目的期初余额，再开始凭证处理与月度核算。
+              </div>
+            </div>
+            <div>
+              <button class="btn s" onclick="askAI('请帮我说明录入科目期初余额的步骤和注意事项')">
+                AI指引
+              </button>
+              <button class="btn p" onclick="saveOpeningBalance()">
+                保存期初余额
+              </button>
+            </div>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini">
+              <b>
+                启用期间
+              </b>
+              <div class="k" id="ob-period">
+                2026-04
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                资产类期初
+              </b>
+              <div class="k">
+                308,500.00
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                负债类期初
+              </b>
+              <div class="k">
+                126,000.00
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                所有者权益
+              </b>
+              <div class="k">
+                182,500.00
+              </div>
+            </div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>
+                  科目编码
+                </th>
+                <th>
+                  科目名称
+                </th>
+                <th>
+                  方向
+                </th>
+                <th class="r">
+                  期初余额
+                </th>
+                <th>
+                  辅助核算
+                </th>
+              </tr>
+            </thead>
+            <tbody id="obBody">
+              <tr>
+                <td>
+                  1001
+                </td>
+                <td>
+                  库存现金
+                </td>
+                <td>
+                  借
+                </td>
+                <td class="r">
+                  <input class="i" value="8500.00">
+                </td>
+                <td>
+                  无
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  1002
+                </td>
+                <td>
+                  银行存款
+                </td>
+                <td>
+                  借
+                </td>
+                <td class="r">
+                  <input class="i" value="240000.00">
+                </td>
+                <td>
+                  银行账户
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  1122
+                </td>
+                <td>
+                  应收账款
+                </td>
+                <td>
+                  借
+                </td>
+                <td class="r">
+                  <input class="i" value="60000.00">
+                </td>
+                <td>
+                  客户
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  2202
+                </td>
+                <td>
+                  应付账款
+                </td>
+                <td>
+                  贷
+                </td>
+                <td class="r">
+                  <input class="i" value="48000.00">
+                </td>
+                <td>
+                  供应商
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  2221
+                </td>
+                <td>
+                  应交税费
+                </td>
+                <td>
+                  贷
+                </td>
+                <td class="r">
+                  <input class="i" value="18000.00">
+                </td>
+                <td>
+                  税种
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  4001
+                </td>
+                <td>
+                  实收资本
+                </td>
+                <td>
+                  贷
+                </td>
+                <td class="r">
+                  <input class="i" value="182500.00">
+                </td>
+                <td>
+                  无
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="hero" style="grid-template-columns:1fr 1fr;margin-top:12px">
+            <div class="mini">
+              <b>
+                录入说明
+              </b>
+              <div class="k" style="margin-top:6px">
+                1. 先录资产、负债，再录所有者权益。
+              </div>
+              <div class="k">
+                2. 往来科目建议同时补客户/供应商辅助余额。
+              </div>
+              <div class="k">
+                3. 银行存款建议按账户分别录入。
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                校验结果
+              </b>
+              <div class="k" style="margin-top:6px">
+                资产合计 = 308,500.00
+              </div>
+              <div class="k">
+                负债及权益合计 = 308,500.00
+              </div>
+              <div class="k">
+                当前状态：已平衡，可进入正式核算。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="page" id="p-pay">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0 0 10px">
+                工资核算
+              </h3>
+              <div class="k">
+                支持工资表导入、部门汇总、个税社保核对，并联动生成计提与发放凭证。
+              </div>
+            </div>
+            <div>
+              <button class="btn s" onclick="askAI('请根据工资数据检查个税、社保和工资分录完整性')">
+                AI校验
+              </button>
+              <button class="btn p" onclick="prefill('salary')">
+                生成工资凭证
+              </button>
+            </div>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini">
+              <b>
+                员工人数
+              </b>
+              <div class="k">
+                18 人 / 在职 17 / 实习 1
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                应发工资
+              </b>
+              <div class="k">
+                45,000.00 / 含绩效 6,500.00
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                社保公积金
+              </b>
+              <div class="k">
+                6,800.00 / 单位承担待计提
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                实发工资
+              </b>
+              <div class="k">
+                37,000.00 / 待统一发放
+              </div>
+            </div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>
+                  部门
+                </th>
+                <th>
+                  人数
+                </th>
+                <th class="r">
+                  应发工资
+                </th>
+                <th class="r">
+                  个税
+                </th>
+                <th class="r">
+                  社保公积金
+                </th>
+                <th class="r">
+                  实发工资
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  财务部
+                </td>
+                <td>
+                  3
+                </td>
+                <td class="r">
+                  10,800.00
+                </td>
+                <td class="r">
+                  260.00
+                </td>
+                <td class="r">
+                  1,520.00
+                </td>
+                <td class="r">
+                  9,020.00
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  回收事业部
+                </td>
+                <td>
+                  7
+                </td>
+                <td class="r">
+                  17,600.00
+                </td>
+                <td class="r">
+                  520.00
+                </td>
+                <td class="r">
+                  2,480.00
+                </td>
+                <td class="r">
+                  14,600.00
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  仓储运营
+                </td>
+                <td>
+                  4
+                </td>
+                <td class="r">
+                  8,900.00
+                </td>
+                <td class="r">
+                  180.00
+                </td>
+                <td class="r">
+                  1,340.00
+                </td>
+                <td class="r">
+                  7,380.00
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  行政支持
+                </td>
+                <td>
+                  4
+                </td>
+                <td class="r">
+                  7,700.00
+                </td>
+                <td class="r">
+                  240.00
+                </td>
+                <td class="r">
+                  1,460.00
+                </td>
+                <td class="r">
+                  6,000.00
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="hero" style="grid-template-columns:1fr 1fr;margin-top:12px">
+            <div class="mini">
+              <b>
+                工资计提凭证
+              </b>
+              <div class="k" style="margin-top:6px">
+                借：6601 职工薪酬 45,000.00
+              </div>
+              <div class="k">
+                贷：2211 应付职工薪酬 45,000.00
+              </div>
+              <div class="k">
+                建议日期：2026-04-30
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                工资发放凭证
+              </b>
+              <div class="k" style="margin-top:6px">
+                借：2211 应付职工薪酬 45,000.00
+              </div>
+              <div class="k">
+                贷：1002 银行存款 37,000.00
+              </div>
+              <div class="k">
+                贷：2221 应交个人所得税 1,200.00；其他应付款 6,800.00
+              </div>
+            </div>
+          </div>
+          <div class="hero" style="grid-template-columns:1fr 1fr;margin-top:12px">
+            <div class="mini">
+              <b>
+                工资项目设置
+              </b>
+              <div class="k" style="margin-top:6px">
+                基本工资：按岗位档级自动带出
+              </div>
+              <div class="k">
+                绩效奖金：支持按部门系数分摊
+              </div>
+              <div class="k">
+                餐补/通讯补贴：计入应发工资项目
+              </div>
+              <div class="k">
+                迟到扣款：自动冲减当月应发
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                个税申报区
+              </b>
+              <div class="k" style="margin-top:6px">
+                本月累计应纳税人数：6 人
+              </div>
+              <div class="k">
+                预计个税：1,200.00
+              </div>
+              <div class="k">
+                申报截止：2026-05-15
+              </div>
+              <div class="k">
+                建议：发薪前再次校验专项附加扣除
+              </div>
+            </div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>
+                  社保公积金台账
+                </th>
+                <th>
+                  基数区间
+                </th>
+                <th class="r">
+                  单位承担
+                </th>
+                <th class="r">
+                  个人承担
+                </th>
+                <th>
+                  状态
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  养老保险
+                </td>
+                <td>
+                  4,500 - 12,000
+                </td>
+                <td class="r">
+                  3,240.00
+                </td>
+                <td class="r">
+                  1,620.00
+                </td>
+                <td>
+                  已测算
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  医疗保险
+                </td>
+                <td>
+                  4,500 - 12,000
+                </td>
+                <td class="r">
+                  1,180.00
+                </td>
+                <td class="r">
+                  590.00
+                </td>
+                <td>
+                  已测算
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  失业保险
+                </td>
+                <td>
+                  4,500 - 12,000
+                </td>
+                <td class="r">
+                  180.00
+                </td>
+                <td class="r">
+                  90.00
+                </td>
+                <td>
+                  已测算
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  住房公积金
+                </td>
+                <td>
+                  3,000 - 12,000
+                </td>
+                <td class="r">
+                  2,200.00
+                </td>
+                <td class="r">
+                  1,100.00
+                </td>
+                <td>
+                  待复核
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>
+                  员工
+                </th>
+                <th>
+                  部门
+                </th>
+                <th class="r">
+                  基本工资
+                </th>
+                <th class="r">
+                  绩效
+                </th>
+                <th class="r">
+                  应发
+                </th>
+                <th class="r">
+                  实发
+                </th>
+                <th>
+                  状态
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  周静
+                </td>
+                <td>
+                  财务部
+                </td>
+                <td class="r">
+                  8,600.00
+                </td>
+                <td class="r">
+                  1,200.00
+                </td>
+                <td class="r">
+                  9,800.00
+                </td>
+                <td class="r">
+                  8,920.00
+                </td>
+                <td>
+                  <span class="badge g">
+                    已核对
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  李卓
+                </td>
+                <td>
+                  回收事业部
+                </td>
+                <td class="r">
+                  10,200.00
+                </td>
+                <td class="r">
+                  2,200.00
+                </td>
+                <td class="r">
+                  12,400.00
+                </td>
+                <td class="r">
+                  11,060.00
+                </td>
+                <td>
+                  <span class="badge i">
+                    待发放
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  陈阳
+                </td>
+                <td>
+                  仓储运营
+                </td>
+                <td class="r">
+                  7,500.00
+                </td>
+                <td class="r">
+                  1,100.00
+                </td>
+                <td class="r">
+                  8,600.00
+                </td>
+                <td class="r">
+                  7,760.00
+                </td>
+                <td>
+                  <span class="badge i">
+                    待发放
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  刘颖
+                </td>
+                <td>
+                  行政支持
+                </td>
+                <td class="r">
+                  6,500.00
+                </td>
+                <td class="r">
+                  700.00
+                </td>
+                <td class="r">
+                  7,200.00
+                </td>
+                <td class="r">
+                  6,540.00
+                </td>
+                <td>
+                  <span class="badge g">
+                    已核对
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  唐凯
+                </td>
+                <td>
+                  销售部
+                </td>
+                <td class="r">
+                  5,800.00
+                </td>
+                <td class="r">
+                  1,200.00
+                </td>
+                <td class="r">
+                  7,000.00
+                </td>
+                <td class="r">
+                  5,820.00
+                </td>
+                <td>
+                  <span class="badge r">
+                    待复核
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-iv">
+        <div class="card">
+          <h3 style="margin:0 0 10px">
+            发票管理
+          </h3>
+          <table class="tb">
+            <thead>
+              <tr>
+                <th>
+                  发票号码
+                </th>
+                <th>
+                  类型
+                </th>
+                <th>
+                  客户/供应商
+                </th>
+                <th>
+                  日期
+                </th>
+                <th class="r">
+                  金额
+                </th>
+                <th>
+                  状态
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  04492153
+                </td>
+                <td>
+                  销项
+                </td>
+                <td>
+                  长沙博鑫再生资源有限公司
+                </td>
+                <td>
+                  2026-04-06
+                </td>
+                <td class="r">
+                  100,000.00
+                </td>
+                <td>
+                  <span class="badge i2">
+                    已开具
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  98763122
+                </td>
+                <td>
+                  进项
+                </td>
+                <td>
+                  岳阳联盛物资有限公司
+                </td>
+                <td>
+                  2026-04-08
+                </td>
+                <td class="r">
+                  48,300.00
+                </td>
+                <td>
+                  <span class="badge w">
+                    待勾选
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-gl">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                总账
+              </h3>
+              <div class="k">
+                按科目查看期初、本期借贷发生、累计发生与期末余额，支持穿透到明细账与凭证明细。
+              </div>
+            </div>
+            <div>
+              <button class="btn s" onclick="askAI('请分析本月总账中异常波动科目并给出复核建议')">
+                AI 波动分析
+              </button>
+            </div>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>总账期间</b><div class="k">2026-04 / 已过账 86%</div></div>
+            <div class="mini"><b>科目数</b><div class="k">128 个 / 本月发生 42 个</div></div>
+            <div class="mini"><b>未达账项</b><div class="k">3 笔 / 银行待核对</div></div>
+            <div class="mini"><b>异常波动</b><div class="k">应收账款、管理费用</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>科目编码</th>
+                <th>科目名称</th>
+                <th class="r">期初余额</th>
+                <th class="r">本期借方</th>
+                <th class="r">本期贷方</th>
+                <th class="r">累计借方</th>
+                <th class="r">累计贷方</th>
+                <th>方向</th>
+                <th class="r">期末余额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1002</td><td>银行存款</td><td class="r">256,000.00</td><td class="r">320,000.00</td><td class="r">348,000.00</td><td class="r">1,280,000.00</td><td class="r">1,052,000.00</td><td>借</td><td class="r">228,000.00</td></tr>
+              <tr><td>1122</td><td>应收账款</td><td class="r">52,000.00</td><td class="r">36,000.00</td><td class="r">20,000.00</td><td class="r">188,000.00</td><td class="r">120,000.00</td><td>借</td><td class="r">68,000.00</td></tr>
+              <tr><td>2202</td><td>应付账款</td><td class="r">48,000.00</td><td class="r">18,000.00</td><td class="r">27,500.00</td><td class="r">64,000.00</td><td class="r">96,500.00</td><td>贷</td><td class="r">57,500.00</td></tr>
+              <tr><td>6001</td><td>主营业务收入</td><td class="r">0.00</td><td class="r">0.00</td><td class="r">283,185.84</td><td class="r">0.00</td><td class="r">936,582.10</td><td>贷</td><td class="r">283,185.84</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-sl">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                明细账
+              </h3>
+              <div class="k">
+                支持按科目、期间、凭证字号、摘要、对方科目筛选，适合核对往来、费用与现金流明细。
+              </div>
+            </div>
+            <div>
+              <button class="btn s" onclick="askAI('请根据明细账识别重复报销、异常大额和摘要雷同分录')">
+                AI 异常扫描
+              </button>
+            </div>
+          </div>
+          <div class="hero" style="grid-template-columns:1.2fr .8fr;margin-top:12px">
+            <div class="mini"><b>当前科目</b><div class="k" style="margin-top:6px">1002 银行存款</div><div class="k">期间：2026-04-01 至 2026-04-30</div><div class="k">币别：人民币</div></div>
+            <div class="mini"><b>筛选建议</b><div class="k" style="margin-top:6px">可按摘要、单据号、对方科目、往来单位快速定位。</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>凭证字号</th>
+                <th>摘要</th>
+                <th>对方科目</th>
+                <th class="r">借方</th>
+                <th class="r">贷方</th>
+                <th>方向</th>
+                <th class="r">余额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2026-04-03</td><td>记-003</td><td>收到客户货款</td><td>1122 应收账款</td><td class="r">120,000.00</td><td class="r">0.00</td><td>借</td><td class="r">376,000.00</td></tr>
+              <tr><td>2026-04-06</td><td>记-005</td><td>销售废旧金属收入</td><td>6001 主营业务收入</td><td class="r">320,000.00</td><td class="r">0.00</td><td>借</td><td class="r">696,000.00</td></tr>
+              <tr><td>2026-04-12</td><td>付-011</td><td>支付材料采购款</td><td>1403 原材料</td><td class="r">0.00</td><td class="r">86,000.00</td><td>借</td><td class="r">610,000.00</td></tr>
+              <tr><td>2026-04-18</td><td>付-016</td><td>发放工资</td><td>2211 应付职工薪酬</td><td class="r">0.00</td><td class="r">37,000.00</td><td>借</td><td class="r">573,000.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-bl">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                科目余额表
+              </h3>
+              <div class="k">
+                适合月结前快速核对期初、本期发生和期末余额，是总账与明细账之间的核心校验视图。
+              </div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据科目余额表生成月结前重点核对清单')">
+              AI 结账检查
+            </button>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>科目</th>
+                <th>方向</th>
+                <th class="r">期初余额</th>
+                <th class="r">本期借方</th>
+                <th class="r">本期贷方</th>
+                <th class="r">期末余额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1001 库存现金</td><td>借</td><td class="r">8,500.00</td><td class="r">12,000.00</td><td class="r">9,600.00</td><td class="r">10,900.00</td></tr>
+              <tr><td>1002 银行存款</td><td>借</td><td class="r">256,000.00</td><td class="r">320,000.00</td><td class="r">348,000.00</td><td class="r">228,000.00</td></tr>
+              <tr><td>1122 应收账款</td><td>借</td><td class="r">52,000.00</td><td class="r">36,000.00</td><td class="r">20,000.00</td><td class="r">68,000.00</td></tr>
+              <tr><td>2202 应付账款</td><td>贷</td><td class="r">48,000.00</td><td class="r">18,000.00</td><td class="r">27,500.00</td><td class="r">57,500.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-ax">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                辅助明细账
+              </h3>
+              <div class="k">
+                面向客户、供应商、部门、项目、员工等辅助核算维度，适合核对往来和责任中心。
+              </div>
+            </div>
+            <button class="btn s" onclick="askAI('请识别辅助明细账中账龄偏长客户和需催收项目')">
+              AI 往来预警
+            </button>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>辅助类别</b><div class="k">客户 / 供应商 / 部门 / 项目 / 员工</div></div>
+            <div class="mini"><b>客户未清</b><div class="k">68,000.00 / 3 户</div></div>
+            <div class="mini"><b>供应商未清</b><div class="k">57,500.00 / 2 户</div></div>
+            <div class="mini"><b>项目成本</b><div class="k">2 个项目持续归集</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>辅助核算项</th>
+                <th>科目</th>
+                <th>摘要</th>
+                <th class="r">借方</th>
+                <th class="r">贷方</th>
+                <th class="r">余额</th>
+                <th>账龄/状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>长沙博鑫再生资源有限公司</td><td>1122 应收账款</td><td>4月货款未收回</td><td class="r">36,000.00</td><td class="r">20,000.00</td><td class="r">16,000.00</td><td>31-60天</td></tr>
+              <tr><td>岳阳联盛物资有限公司</td><td>2202 应付账款</td><td>材料采购款</td><td class="r">18,000.00</td><td class="r">27,500.00</td><td class="r">9,500.00</td><td>待付款</td></tr>
+              <tr><td>回收事业部</td><td>6602 管理费用</td><td>装卸运输费</td><td class="r">5,800.00</td><td class="r">0.00</td><td class="r">5,800.00</td><td>部门归集</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-qm">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                数量金额明细账
+              </h3>
+              <div class="k">
+                面向存货、原材料与生产类企业，支持数量、单价、金额三栏联动，适合大型专业财务软件扩展。
+              </div>
+            </div>
+            <button class="btn s" onclick="askAI('请分析数量金额明细账中的单价波动、负库存和异常损耗')">
+              AI 存货诊断
+            </button>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>物料/科目</th>
+                <th>计量单位</th>
+                <th class="r">入库数量</th>
+                <th class="r">出库数量</th>
+                <th class="r">单价</th>
+                <th class="r">金额</th>
+                <th class="r">结存数量</th>
+                <th class="r">结存金额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2026-04-08</td><td>1403 原材料 / 废钢</td><td>吨</td><td class="r">48.500</td><td class="r">0.000</td><td class="r">1,773.20</td><td class="r">86,000.00</td><td class="r">126.300</td><td class="r">223,854.00</td></tr>
+              <tr><td>2026-04-11</td><td>1403 原材料 / 废铜</td><td>吨</td><td class="r">0.000</td><td class="r">12.600</td><td class="r">4,820.00</td><td class="r">60,732.00</td><td class="r">34.200</td><td class="r">164,844.00</td></tr>
+              <tr><td>2026-04-19</td><td>1403 原材料 / 废铝</td><td>吨</td><td class="r">6.800</td><td class="r">0.000</td><td class="r">3,960.00</td><td class="r">26,928.00</td><td class="r">18.400</td><td class="r">72,864.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-fa">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                固定资产
+              </h3>
+              <div class="k">
+                支持资产卡片、折旧策略、资产变动、处置与 AI 折旧提醒，可作为大型财务软件资产模块骨架。
+              </div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据固定资产台账生成本月折旧、检修和处置建议')">
+              AI 折旧助手
+            </button>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>资产总数</b><div class="k">26 项 / 在用 24</div></div>
+            <div class="mini"><b>原值</b><div class="k">1,260,000.00</div></div>
+            <div class="mini"><b>累计折旧</b><div class="k">438,000.00</div></div>
+            <div class="mini"><b>本月折旧</b><div class="k">18,500.00</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>资产编码</th>
+                <th>资产名称</th>
+                <th>类别</th>
+                <th class="r">原值</th>
+                <th class="r">累计折旧</th>
+                <th class="r">净值</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>FA001</td><td>生产分拣设备</td><td>机器设备</td><td class="r">360,000.00</td><td class="r">86,000.00</td><td class="r">274,000.00</td><td>在用</td></tr>
+              <tr><td>FA002</td><td>运输车辆</td><td>运输设备</td><td class="r">220,000.00</td><td class="r">74,000.00</td><td class="r">146,000.00</td><td>在用</td></tr>
+              <tr><td>FA008</td><td>电子地磅系统</td><td>电子设备</td><td class="r">68,000.00</td><td class="r">21,500.00</td><td class="r">46,500.00</td><td>待检修</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-cm">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">出纳管理</h3>
+              <div class="k">覆盖银行日记账、现金日记账、资金日报、银行对账与银企联动，是专业财务软件的资金基础模块。</div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据银行日记账和未达账项生成今日资金日报及对账建议')">AI 资金助手</button>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>银行账户</b><div class="k">4 个 / 主账户余额 228,000.00</div></div>
+            <div class="mini"><b>现金余额</b><div class="k">10,900.00 / 库存现金日清</div></div>
+            <div class="mini"><b>未达账项</b><div class="k">3 笔 / 26,500.00</div></div>
+            <div class="mini"><b>未来7天资金缺口</b><div class="k">预计缺口 18,000.00</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>账户</th>
+                <th>日期</th>
+                <th>摘要</th>
+                <th class="r">收入</th>
+                <th class="r">支出</th>
+                <th class="r">余额</th>
+                <th>对账状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>工行基本户</td><td>2026-04-18</td><td>收到客户货款</td><td class="r">120,000.00</td><td class="r">0.00</td><td class="r">306,000.00</td><td>已对账</td></tr>
+              <tr><td>工行基本户</td><td>2026-04-19</td><td>支付采购款</td><td class="r">0.00</td><td class="r">86,000.00</td><td class="r">220,000.00</td><td>已对账</td></tr>
+              <tr><td>建行一般户</td><td>2026-04-20</td><td>工资发放</td><td class="r">0.00</td><td class="r">37,000.00</td><td class="r">48,500.00</td><td>待回单</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-ar">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">往来对账</h3>
+              <div class="k">面向客户与供应商的应收应付对账、账龄分析、对账单生成和催收跟进，是大型软件常用的核心模块。</div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据往来对账数据生成账龄分析、催收建议和高风险客户名单')">AI 对账分析</button>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>单位名称</th>
+                <th>类型</th>
+                <th class="r">期初</th>
+                <th class="r">本期增加</th>
+                <th class="r">本期减少</th>
+                <th class="r">期末</th>
+                <th>账龄/状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>长沙博鑫再生资源有限公司</td><td>客户</td><td class="r">28,000.00</td><td class="r">36,000.00</td><td class="r">20,000.00</td><td class="r">44,000.00</td><td>31-60天 / 待催收</td></tr>
+              <tr><td>岳阳联盛物资有限公司</td><td>供应商</td><td class="r">18,500.00</td><td class="r">27,500.00</td><td class="r">18,000.00</td><td class="r">28,000.00</td><td>未逾期 / 待付款</td></tr>
+              <tr><td>株洲昌泰金属贸易</td><td>客户</td><td class="r">12,000.00</td><td class="r">22,000.00</td><td class="r">10,000.00</td><td class="r">24,000.00</td><td>61-90天 / 重点关注</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-tx">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">税务管理</h3>
+              <div class="k">覆盖销项、进项、附加税、个税、企业所得税与申报提醒，适合做票税联动与税负异常分析。</div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据本月发票、收入、成本和工资数据生成税负测算与申报提醒')">AI 税务助理</button>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>增值税销项</b><div class="k">36,814.16 / 本月待申报</div></div>
+            <div class="mini"><b>进项可抵扣</b><div class="k">5,559.00 / 待勾选 1 张</div></div>
+            <div class="mini"><b>附加税估算</b><div class="k">3,681.00 / 按规则测算</div></div>
+            <div class="mini"><b>个税申报</b><div class="k">1,200.00 / 截止 2026-05-15</div></div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>税种</th>
+                <th>税基</th>
+                <th class="r">应纳税额</th>
+                <th class="r">已计提</th>
+                <th class="r">待申报</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>增值税</td><td>销项 - 进项</td><td class="r">31,255.16</td><td class="r">26,000.00</td><td class="r">5,255.16</td><td>待复核</td></tr>
+              <tr><td>城市维护建设税</td><td>增值税额</td><td class="r">1,093.93</td><td class="r">800.00</td><td class="r">293.93</td><td>待计提</td></tr>
+              <tr><td>教育费附加</td><td>增值税额</td><td class="r">468.83</td><td class="r">300.00</td><td class="r">168.83</td><td>待计提</td></tr>
+              <tr><td>个人所得税</td><td>工资薪酬</td><td class="r">1,200.00</td><td class="r">1,200.00</td><td class="r">0.00</td><td>待申报</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-bg">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">预算管控</h3>
+              <div class="k">适合向大型管理型财务软件延伸，支持年度预算、部门预算、执行监控、偏差分析和预警审批。</div>
+            </div>
+            <button class="btn s" onclick="askAI('请根据预算执行情况输出偏差分析、超支预警和下月预算建议')">AI 预算分析</button>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>预算项目</th>
+                <th class="r">本月预算</th>
+                <th class="r">本月实际</th>
+                <th class="r">差异</th>
+                <th class="r">执行率</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>销售收入</td><td class="r">360,000.00</td><td class="r">320,000.00</td><td class="r">-40,000.00</td><td class="r">88.89%</td><td>略低于预算</td></tr>
+              <tr><td>原材料采购</td><td class="r">92,000.00</td><td class="r">86,000.00</td><td class="r">-6,000.00</td><td class="r">93.48%</td><td>正常</td></tr>
+              <tr><td>管理费用</td><td class="r">16,000.00</td><td class="r">18,600.00</td><td class="r">2,600.00</td><td class="r">116.25%</td><td>超预算</td></tr>
+              <tr><td>工资成本</td><td class="r">46,000.00</td><td class="r">45,000.00</td><td class="r">-1,000.00</td><td class="r">97.83%</td><td>正常</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-rb">
+        <div class="card">
+          <h3 style="margin:0 0 10px">
+            报表中心
+          </h3>
+          <table class="tb">
+            <thead>
+              <tr>
+                <th>
+                  项目
+                </th>
+                <th class="r">
+                  本期金额
+                </th>
+                <th class="r">
+                  说明
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  主营业务收入
+                </td>
+                <td class="r">
+                  320,000.00
+                </td>
+                <td class="r">
+                  收入趋势正常
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  净利润
+                </td>
+                <td class="r">
+                  64,800.00
+                </td>
+                <td class="r">
+                  毛利率稳定
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  应收账款
+                </td>
+                <td class="r">
+                  68,000.00
+                </td>
+                <td class="r">
+                  回款轻微滞后
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-ai">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">
+                AI 智能中心
+              </h3>
+              <div class="k">
+                面向大型专业财务软件的前沿能力中心，覆盖智能做账、风险扫描、经营分析、票税联动与管理驾驶舱。
+              </div>
+            </div>
+            <button class="btn p" onclick="askAI('请为当前账套生成 AI 财务助理工作面板，覆盖做账、审核、报表和经营分析')">
+              启动 AI 总控台
+            </button>
+          </div>
+          <div class="grid4" style="margin-top:12px">
+            <div class="mini"><b>AI 自动做账</b><div class="k">OCR 票据识别、摘要生成、分录建议、草稿凭证批量生成。</div></div>
+            <div class="mini"><b>AI 风险审计</b><div class="k">异常分录、重复报销、往来账龄、税负波动、收入成本倒挂预警。</div></div>
+            <div class="mini"><b>AI 管理分析</b><div class="k">利润桥、费用穿透、现金流诊断、预算对比、经营快报自动生成。</div></div>
+            <div class="mini"><b>AI 知识助手</b><div class="k">政策问答、准则解释、凭证模板推荐、结账流程指导。</div></div>
+          </div>
+          <div class="card" style="margin-top:12px;background:linear-gradient(135deg,#0f2741,#1a4e7f);color:#fff;border-color:#214f7c">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+              <div>
+                <h3 style="margin:0">AI Copilot 指令台</h3>
+                <div style="font-size:12px;opacity:.82;margin-top:6px">把凭证、账簿、税务、预算、经营分析串到一个对话入口，向大型专业财务平台演进。</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn s" onclick="askAI('请扫描本月全部凭证并输出异常分录、错用科目和借贷风险清单')">扫描凭证风险</button>
+                <button class="btn s" onclick="askAI('请根据总账、明细账、科目余额表输出月结前核对清单')">月结核对清单</button>
+                <button class="btn p" onclick="askAI('请给老板生成本月经营快报，包含收入、利润、现金流、税负和应收风险')">生成经营快报</button>
+              </div>
+            </div>
+          </div>
+          <div class="hero" style="grid-template-columns:1fr 1fr;margin-top:12px">
+            <div class="mini">
+              <b>建议增加的专业模块</b>
+              <div class="k" style="margin-top:6px">1. 出纳管理：银行对账、资金日报、银企直连。</div>
+              <div class="k">2. 往来管理：客户/供应商对账、账龄分析、催收台账。</div>
+              <div class="k">3. 成本核算：订单成本、项目成本、分步法/品种法。</div>
+              <div class="k">4. 税务管理：增值税、附加税、所得税、申报提醒。</div>
+              <div class="k">5. 合并报表：组织架构、多账套合并、内部抵销。</div>
+              <div class="k">6. 预算管控：预算编制、执行分析、预警与审批联动。</div>
+            </div>
+            <div class="mini">
+              <b>建议增加的前沿功能</b>
+              <div class="k" style="margin-top:6px">1. 对话式财务 Copilot：直接问“本月利润为何下降”。</div>
+              <div class="k">2. 智能审核流：按金额、科目、风险级别自动分派审核人。</div>
+              <div class="k">3. AI 票据编排：附件自动归档并与凭证、发票、合同联动。</div>
+              <div class="k">4. AI 预测：现金流预测、税负预测、资金缺口预测。</div>
+              <div class="k">5. 经营驾驶舱：按组织、部门、项目、客户多维分析。</div>
+              <div class="k">6. 多端协同：PC、移动端、老板看板、审批小程序联动。</div>
+            </div>
+          </div>
+          <table class="tb" style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>能力域</th>
+                <th>当前形态</th>
+                <th>下一阶段可落地</th>
+                <th>价值</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>智能凭证</td><td>摘要推荐科目</td><td>OCR + 规则引擎 + AI 草稿凭证</td><td>减少录入量，提升效率</td></tr>
+              <tr><td>智能审核</td><td>人工复核</td><td>异常规则库 + AI 风险评分</td><td>降低错账漏账</td></tr>
+              <tr><td>智能报表</td><td>静态数据展示</td><td>AI 解读、自动点评、经营建议</td><td>提升管理层决策效率</td></tr>
+              <tr><td>税务协同</td><td>发票台账</td><td>票税联动、申报提醒、差异分析</td><td>降低税务风险</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page" id="p-mc">
+        <div class="card">
+          <h3 style="margin:0 0 10px">
+            期末结账
+          </h3>
+          <div class="grid4">
+            <div class="mini">
+              <b>
+                1. 票据整理
+              </b>
+              <div class="k">
+                销项、进项、工资表
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                2. 凭证审核
+              </b>
+              <div class="k">
+                完成度 92%
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                3. 工资核算
+              </b>
+              <div class="k">
+                待生成工资凭证
+              </div>
+            </div>
+            <div class="mini">
+              <b>
+                4. 税费测算
+              </b>
+              <div class="k">
+                待确认
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      </main>
+    </div>
+        <script src="accounting_v2.js?v=20260414-2125">
+        </script>
+        <script src="chat_float.js?v=20260413-2247">
+        </script>
+        <script src="xiaoya_service.js?v=20260413-2247">
+        </script>
+        <script>
+          // 常用摘要列表
+          const commonSummaries = [
+            '销售废旧金属收入',
+            '报销运输装卸费',
+            '支付废旧物资采购款',
+            '计提本月工资',
+            '报销办公用品',
+            '支付房租',
+            '收到货款',
+            '购买原材料'
+          ];
+
+          // 科目映射表
+          const accountMap = {
+            '1001': '库存现金',
+            '1002': '银行存款',
+            '1122': '应收账款',
+            '2202': '应付账款',
+            '6601': '销售费用',
+            '6602': '管理费用',
+            '6001': '主营业务收入',
+            '1403': '原材料',
+            '2211': '应付职工薪酬'
+          };
+
+          // 生成科目列表
+          const accountMap = {
+            // 资产类
+            '1001': '库存现金',
+            '1002': '银行存款',
+            '1012': '其他货币资金',
+            '1101': '交易性金融资产',
+            '1121': '应收票据',
+            '1122': '应收账款',
+            '1123': '预付账款',
+            '1131': '应收股利',
+            '1132': '应收利息',
+            '1221': '其他应收款',
+            '1231': '坏账准备',
+            '1401': '材料采购',
+            '1402': '在途物资',
+            '1403': '原材料',
+            '1404': '材料成本差异',
+            '1405': '库存商品',
+            '1406': '发出商品',
+            '1407': '商品进销差价',
+            '1408': '委托加工物资',
+            '1411': '周转材料',
+            '1471': '存货跌价准备',
+            '1501': '持有至到期投资',
+            '1502': '持有至到期投资减值准备',
+            '1503': '可供出售金融资产',
+            '1511': '长期股权投资',
+            '1512': '长期股权投资减值准备',
+            '1521': '投资性房地产',
+            '1531': '长期应收款',
+            '1601': '固定资产',
+            '1602': '累计折旧',
+            '1603': '固定资产减值准备',
+            '1604': '在建工程',
+            '1605': '工程物资',
+            '1606': '固定资产清理',
+            '1701': '无形资产',
+            '1702': '累计摊销',
+            '1703': '无形资产减值准备',
+            '1711': '商誉',
+            '1801': '长期待摊费用',
+            '1811': '递延所得税资产',
+            '1901': '待处理财产损溢',
+            
+            // 负债类
+            '2001': '短期借款',
+            '2101': '交易性金融负债',
+            '2201': '应付票据',
+            '2202': '应付账款',
+            '2203': '预收账款',
+            '2211': '应付职工薪酬',
+            '2221': '应交税费',
+            '2231': '应付利息',
+            '2232': '应付股利',
+            '2241': '其他应付款',
+            '2401': '递延收益',
+            '2501': '长期借款',
+            '2502': '应付债券',
+            '2701': '长期应付款',
+            '2702': '未确认融资费用',
+            '2711': '专项应付款',
+            '2801': '预计负债',
+            '2901': '递延所得税负债',
+            
+            // 所有者权益类
+            '3001': '实收资本',
+            '3002': '资本公积',
+            '3101': '盈余公积',
+            '3103': '本年利润',
+            '3104': '利润分配',
+            
+            // 成本类
+            '5001': '生产成本',
+            '5101': '制造费用',
+            '5201': '劳务成本',
+            '5301': '研发支出',
+            
+            // 损益类
+            '6001': '主营业务收入',
+            '6051': '其他业务收入',
+            '6101': '公允价值变动损益',
+            '6111': '投资收益',
+            '6301': '营业外收入',
+            '6401': '主营业务成本',
+            '6402': '其他业务成本',
+            '6403': '营业税金及附加',
+            '6601': '销售费用',
+            '6602': '管理费用',
+            '6603': '财务费用',
+            '6701': '资产减值损失',
+            '6711': '营业外支出',
+            '6801': '所得税费用',
+            '6901': '以前年度损益调整',
+            
+            // 二级科目
+            '100201': '银行存款-工商银行',
+            '100202': '银行存款-建设银行',
+            '100203': '银行存款-中国银行',
+            '112201': '应收账款-客户A',
+            '112202': '应收账款-客户B',
+            '220201': '应付账款-供应商A',
+            '220202': '应付账款-供应商B',
+            '660101': '销售费用-广告费',
+            '660102': '销售费用-运输费',
+            '660103': '销售费用-工资',
+            '660201': '管理费用-办公费',
+            '660202': '管理费用-差旅费',
+            '660203': '管理费用-工资',
+            '660204': '管理费用-折旧费',
+            '660301': '财务费用-利息支出',
+            '660302': '财务费用-手续费'
+          };
+
+          // 生成科目列表
+          const accountList = Object.entries(accountMap).map(([code, name]) => `${code} ${name}`);
+
+          // 页面加载完成后执行
+          document.addEventListener('DOMContentLoaded', function() {
+            // 为摘要输入框添加下拉菜单
+            const tbody = document.getElementById('vb');
+            if (tbody) {
+              const rows = tbody.querySelectorAll('tr');
+              rows.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs.length > 1) {
+                  const summaryInput = inputs[0];
+                  if (summaryInput) {
+                    // 替换为带下拉菜单的输入框
+                    const summaryCell = summaryInput.parentElement;
+                    summaryCell.innerHTML = `
+                      <div class="summary-quick">
+                        <input value="${summaryInput.value}" placeholder="输入摘要或按F2选择">
+                        <div class="summary-dropdown">
+                          ${commonSummaries.map(summary => `<div class="summary-item">${summary}</div>`).join('')}
+                        </div>
+                      </div>
+                    `;
+                  }
+
+                  const accountInput = inputs[1];
+                  if (accountInput) {
+                    // 替换为带下拉菜单的输入框
+                    const accountCell = accountInput.parentElement;
+                    accountCell.innerHTML = `
+                      <div class="summary-quick">
+                        <input value="${accountInput.value}" placeholder="输入科目编码或按F2选择" class="account-code-input">
+                        <div class="summary-dropdown">
+                          ${accountList.map(account => `<div class="summary-item">${account}</div>`).join('')}
+                        </div>
+                      </div>
+                    `;
+                  }
+                }
+              });
+            }
+
+            // 摘要下拉菜单功能
+            document.addEventListener('focus', function(e) {
+              const input = e.target;
+              if (input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+                const dropdown = input.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+                  dropdown.style.display = 'block';
+                }
+              }
+            }, true);
+
+            document.addEventListener('blur', function(e) {
+              const input = e.target;
+              if (input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+                setTimeout(() => {
+                  const dropdown = input.nextElementSibling;
+                  if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+                    dropdown.style.display = 'none';
+                  }
+                }, 200);
+              }
+            }, true);
+
+            document.addEventListener('keydown', function(e) {
+              const input = e.target;
+              if (e.key === 'F2' && input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+                e.preventDefault();
+                const dropdown = input.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+                  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }
+              }
+            });
+
+            // 摘要选择
+            document.addEventListener('click', function(e) {
+              const item = e.target;
+              if (item && item.classList.contains('summary-item')) {
+                const input = item.parentElement.previousElementSibling;
+                if (input) {
+                  input.value = item.textContent;
+                  item.parentElement.style.display = 'none';
+                }
+              }
+            });
+
+            // 科目编码自动填充
+            document.addEventListener('blur', function(e) {
+              const input = e.target;
+              if (input && input.classList.contains('account-code-input')) {
+                const code = input.value.trim();
+                if (code) {
+                  const accountName = accountMap[code];
+                  if (accountName) {
+                    input.value = code + ' ' + accountName;
+                  }
+                }
+              }
+            });
+          });
+        </script>
+      </body>
+    </html>

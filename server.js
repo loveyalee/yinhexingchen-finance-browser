@@ -41,7 +41,207 @@ try {
 }
 
 // ============================================================
-// 数据库初始化（SQLite本地数据库 + 云端备份）
+// MySQL数据库连接（阿里云RDS）
+// ============================================================
+let mysql = null;
+let mysqlPool = null;
+
+try {
+  mysql = require('mysql2/promise');
+  console.log('MySQL2 模块加载成功');
+} catch (e) {
+  console.warn('mysql2 未安装，将使用SQLite本地数据库:', e.message);
+}
+
+// MySQL连接池初始化
+async function initMySQL() {
+  if (!mysql) {
+    console.log('MySQL模块未加载，跳过MySQL初始化');
+    return false;
+  }
+
+  const mysqlConfig = {
+    host: process.env.MYSQL_HOST,
+    port: parseInt(process.env.MYSQL_PORT || '3306'),
+    database: process.env.MYSQL_DATABASE,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    charset: 'utf8mb4',
+    timezone: '+08:00'
+  };
+
+  if (!mysqlConfig.host || !mysqlConfig.database || !mysqlConfig.user) {
+    console.log('MySQL配置不完整，跳过MySQL初始化');
+    return false;
+  }
+
+  try {
+    mysqlPool = mysql.createPool(mysqlConfig);
+
+    // 测试连接
+    const conn = await mysqlPool.getConnection();
+    console.log('MySQL数据库连接成功:', mysqlConfig.host, '/', mysqlConfig.database);
+    conn.release();
+
+    // 创建表结构
+    await createMySQLTables();
+    return true;
+  } catch (e) {
+    console.error('MySQL连接失败:', e.message);
+    mysqlPool = null;
+    return false;
+  }
+}
+
+// 创建MySQL表结构
+async function createMySQLTables() {
+  if (!mysqlPool) return;
+
+  const conn = await mysqlPool.getConnection();
+  try {
+      // 用户表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) PRIMARY KEY,
+        username VARCHAR(100),
+        phone VARCHAR(20) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        user_type VARCHAR(20) NOT NULL,
+        institution_type VARCHAR(50),
+        institution_name VARCHAR(200),
+        enterprise_name VARCHAR(200),
+        credit_code VARCHAR(50),
+        contact_person VARCHAR(50),
+        industry VARCHAR(50),
+        local_db_file VARCHAR(255),
+        cloud_backup_file VARCHAR(255),
+        sync_status VARCHAR(20) DEFAULT 'synced',
+        last_sync_time DATETIME,
+        member_points INT DEFAULT 0,
+        member_expiry DATE,
+        credit_score INT DEFAULT 0,
+        account_balance DECIMAL(10,2) DEFAULT 0,
+        exclusive_services INT DEFAULT 0,
+        ban_status VARCHAR(20) DEFAULT 'normal',
+        ban_reason TEXT,
+        ban_start_time DATETIME,
+        ban_end_time DATETIME,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_phone (phone),
+        INDEX idx_username (username),
+        INDEX idx_user_type (user_type),
+        INDEX idx_ban_status (ban_status),
+        UNIQUE INDEX idx_personal_phone (phone, user_type)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 账套表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS accounts (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64),
+        name VARCHAR(100) NOT NULL,
+        industry VARCHAR(50) NOT NULL,
+        start_date DATE NOT NULL,
+        accounting_system VARCHAR(50) NOT NULL,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        status VARCHAR(20) DEFAULT 'active',
+        last_backup_time DATETIME,
+        db_file VARCHAR(255),
+        INDEX idx_user_id (user_id),
+        INDEX idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 管理员通知表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS admin_notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        create_time DATETIME NOT NULL,
+        status VARCHAR(20) DEFAULT 'unread'
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 商品表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(50),
+        name VARCHAR(200) NOT NULL,
+        category VARCHAR(50),
+        unit VARCHAR(20),
+        price DECIMAL(10,2) DEFAULT 0,
+        stock INT DEFAULT 0,
+        threshold INT DEFAULT 10,
+        user_id VARCHAR(64) NOT NULL,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_category (category)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 送货单表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS delivery_orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_no VARCHAR(50) NOT NULL,
+        customer_name VARCHAR(100) NOT NULL,
+        customer_phone VARCHAR(20),
+        customer_address VARCHAR(255),
+        delivery_date DATE NOT NULL,
+        total_amount DECIMAL(10,2) DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'pending',
+        user_id VARCHAR(64) NOT NULL,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_order_no (order_no),
+        INDEX idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 送货单明细表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS delivery_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        delivery_id INT NOT NULL,
+        product_name VARCHAR(200) NOT NULL,
+        quantity DECIMAL(10,2) DEFAULT 1,
+        unit_price DECIMAL(10,2) DEFAULT 0,
+        amount DECIMAL(10,2) DEFAULT 0,
+        remark TEXT,
+        INDEX idx_delivery_id (delivery_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 兼容旧表：按需添加新增字段
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_status VARCHAR(20) DEFAULT 'normal'`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_reason TEXT`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_start_time DATETIME`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_end_time DATETIME`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN username VARCHAR(100)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN member_expiry DATE`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN credit_score INT DEFAULT 0`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN account_balance DECIMAL(10,2) DEFAULT 0`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN exclusive_services INT DEFAULT 0`); } catch(e) {}
+
+    console.log('MySQL表结构创建/更新成功');
+  } finally {
+    conn.release();
+  }
+}
+
+// ============================================================
+// 数据库初始化（SQLite本地数据库作为备份）
 // ============================================================
 let Database;
 try {
@@ -96,7 +296,7 @@ function initMainDb() {
         CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY,
           username TEXT,
-          phone TEXT UNIQUE NOT NULL,
+          phone TEXT NOT NULL,
           password TEXT NOT NULL,
           user_type TEXT NOT NULL,
           institution_type TEXT,
@@ -109,11 +309,140 @@ function initMainDb() {
           local_db_file TEXT,
           cloud_backup_file TEXT,
           sync_status TEXT DEFAULT 'synced',
-          last_sync_time TEXT
+          last_sync_time TEXT,
+          member_points INTEGER DEFAULT 0,
+          member_expiry TEXT,
+          credit_score INTEGER DEFAULT 0,
+          account_balance REAL DEFAULT 0,
+          exclusive_services INTEGER DEFAULT 0
         );
       `);
       try { usersDb.exec(`ALTER TABLE users ADD COLUMN username TEXT`); } catch (e) {}
       try { usersDb.exec(`ALTER TABLE users ADD COLUMN industry TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN member_points INTEGER DEFAULT 0`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN member_expiry TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN credit_score INTEGER DEFAULT 0`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN account_balance REAL DEFAULT 0`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN exclusive_services INTEGER DEFAULT 0`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN ban_status TEXT DEFAULT 'normal'`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN ban_reason TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN ban_start_time TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE users ADD COLUMN ban_end_time TEXT`); } catch (e) {}
+
+      // 创建唯一索引：个人用户手机号唯一，企业用户用户名唯一
+      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_personal_phone ON users(phone) WHERE user_type = 'personal'`); } catch (e) {}
+      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_username ON users(username)`); } catch (e) {}
+      // 企业用户：同一企业名称+信用代码组合唯一
+      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_enterprise_unique ON users(credit_code) WHERE user_type = 'enterprise' AND credit_code IS NOT NULL AND credit_code != ''`); } catch (e) {}
+      
+      // 创建管理员通知表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          status TEXT DEFAULT 'unread'
+        );
+      `);
+      
+      // 创建语音提醒表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS voice_notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          content TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          status TEXT DEFAULT 'pending'
+        );
+      `);
+      
+      // 创建聊天通知表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS chat_notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          timestamp TEXT NOT NULL,
+          priority TEXT DEFAULT 'medium',
+          status TEXT DEFAULT 'unread'
+        );
+      `);
+      
+      // 创建商品表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS products (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          code TEXT,
+          name TEXT NOT NULL,
+          category TEXT,
+          unit TEXT,
+          price REAL DEFAULT 0,
+          stock INTEGER DEFAULT 0,
+          threshold INTEGER DEFAULT 10,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL
+        );
+      `);
+      try { usersDb.exec(`ALTER TABLE products ADD COLUMN user_id TEXT`); } catch (e) {}
+      
+      // 创建客户表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS customers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          contact TEXT,
+          phone TEXT,
+          address TEXT,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL
+        );
+      `);
+      try { usersDb.exec(`ALTER TABLE customers ADD COLUMN user_id TEXT`); } catch (e) {}
+      
+      // 创建送货单表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS delivery_notes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          no TEXT NOT NULL,
+          customer TEXT NOT NULL,
+          contact TEXT,
+          contact_phone TEXT,
+          date TEXT NOT NULL,
+          status TEXT DEFAULT '待送达',
+          address TEXT,
+          remark TEXT,
+          items TEXT,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL
+        );
+      `);
+      try { usersDb.exec(`ALTER TABLE delivery_notes ADD COLUMN user_id TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE delivery_notes ADD COLUMN items TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE delivery_notes ADD COLUMN contact_phone TEXT`); } catch (e) {}
+      
+      // 创建出入库记录表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS inventory_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          record_no TEXT NOT NULL,
+          product_name TEXT NOT NULL,
+          product_code TEXT,
+          type TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unit TEXT NOT NULL,
+          date TEXT NOT NULL,
+          operator TEXT NOT NULL,
+          remark TEXT,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL
+        );
+      `);
+      
       // 设置控制台编码为UTF-8（Windows）
       if (process.stdout && process.stdout.isTTY) {
         process.stdout.setDefaultEncoding('utf8');
@@ -362,12 +691,20 @@ function isPhoneAccount(account) {
   return /^1[3-9]\d{9}$/.test(String(account || '').trim());
 }
 
-// 云端备份：将账套元信息写入备份文件（模拟云备份，实际可替换为上传到云存储）
+// 导入备份管理器
+let BackupManager = null;
+try {
+  BackupManager = require('./backup-manager.js');
+} catch (e) {
+  console.warn('备份管理器未安装，使用基础备份功能:', e.message);
+}
+
+// 云端备份：使用备份管理器备份账套数据库
 function cloudBackupAccount(account) {
   try {
+    // 首先备份元信息到JSON（用于恢复账套结构）
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFileName = account.id + '_' + timestamp + '.json';
-    const backupFile = path.join(cloudBackupDir, backupFileName);
+    const metadataFile = path.join(cloudBackupDir, account.id + '_metadata_' + timestamp + '.json');
     const backupData = {
       id: account.id,
       name: account.name,
@@ -379,20 +716,37 @@ function cloudBackupAccount(account) {
       backup_type: 'auto',
       source: 'yinhexingchen_accounting'
     };
-    fs.writeFileSync(backupFile, JSON.stringify(backupData, null, 2), 'utf8');
+    fs.writeFileSync(metadataFile, JSON.stringify(backupData, null, 2), 'utf8');
+    console.log('账套元信息备份完成: ' + metadataFile);
 
-    // 只保留最近10个备份
-    const backupFiles = fs.readdirSync(cloudBackupDir)
-      .filter(function(f) { return f.startsWith(account.id + '_'); })
-      .sort();
-    if (backupFiles.length > 10) {
-      backupFiles.slice(0, backupFiles.length - 10).forEach(function(f) {
-        try { fs.unlinkSync(path.join(cloudBackupDir, f)); } catch (err) {}
+    // 如果备份管理器可用，备份实际数据库文件
+    if (BackupManager && account.db_file) {
+      const backupMgr = new BackupManager({
+        localBackupDir: cloudBackupDir,
+        dbDir: dbDir
       });
+      const dbFile = account.db_file;
+      if (fs.existsSync(dbFile)) {
+        const backupResult = backupMgr.backupLocal(account.id, dbFile);
+        if (backupResult) {
+          console.log('账套数据库备份完成: ' + backupResult.path);
+        }
+      }
     }
 
-    console.log('云端备份完成: ' + backupFileName);
-    return backupFile;
+    // 清理旧备份（只保留最近10个）
+    try {
+      const backupFiles = fs.readdirSync(cloudBackupDir)
+        .filter(function(f) { return f.startsWith(account.id + '_'); })
+        .sort();
+      if (backupFiles.length > 10) {
+        backupFiles.slice(0, backupFiles.length - 10).forEach(function(f) {
+          try { fs.unlinkSync(path.join(cloudBackupDir, f)); } catch (err) {}
+        });
+      }
+    } catch (e) {}
+
+    return metadataFile;
   } catch (e) {
     console.error('云端备份失败:', e.message);
     return null;
@@ -401,6 +755,17 @@ function cloudBackupAccount(account) {
 
 // 初始化主数据库
 initMainDb();
+
+// 初始化MySQL数据库（异步）
+initMySQL().then(mysqlReady => {
+  if (mysqlReady) {
+    console.log('✅ MySQL数据库已启用，应用与数据库服务器分离');
+  } else {
+    console.log('⚠️ MySQL未启用，使用本地SQLite数据库');
+  }
+}).catch(err => {
+  console.error('MySQL初始化失败:', err.message);
+});
 
 // 征信打印点数据文件
 const creditPrintPointsFile = path.join(__dirname, 'credit_print_points.json');
@@ -874,6 +1239,8 @@ function scheduleCreditPrintPointsUpdate() {
 
 // 企业搜索模拟数据库
 const enterpriseDatabase = [
+  { name: '湖南闰贤环保科技有限公司', creditCode: '91430100MA4R7G5X2J', legalPerson: '张伟', address: '湖南省长沙市岳麓区' },
+  { name: '湖南考拉环保科技有限公司', creditCode: '91430100MA4R7G5X3K', legalPerson: '陈晨', address: '湖南省长沙市岳麓区' },
   { name: '湖南晨启数字科技有限公司', creditCode: '91430100MA4R7G5X3K', legalPerson: '陈晨', address: '湖南省长沙市岳麓区' },
   { name: '银河星辰财务科技有限公司', creditCode: '91430100MA4R7G5X4L', legalPerson: '周星', address: '湖南省长沙市开福区' },
   { name: '长沙慧账财税咨询有限公司', creditCode: '91430100MA4R7G5X5M', legalPerson: '李敏', address: '湖南省长沙市雨花区' },
@@ -893,6 +1260,291 @@ function generateCreditCode() {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code.slice(0, 18);
+}
+
+// 从外部API搜索企业信息（企查查、天眼查等）
+// 支持多个数据源，按优先级依次尝试
+function searchEnterpriseFromExternalAPI(keyword, callback) {
+  const qccApiKey = process.env.QCC_API_KEY || '';
+  const tianyanchaApiKey = process.env.TIANYANCHA_API_KEY || '';
+
+  // 优先使用企查查API（数据更全面）
+  if (qccApiKey) {
+    searchFromQcc(keyword, qccApiKey, function(err, results) {
+      if (!err && results && results.length > 0) {
+        callback(null, results);
+        return;
+      }
+      // 企查查失败，尝试天眼查
+      if (tianyanchaApiKey) {
+        searchFromTianyancha(keyword, tianyanchaApiKey, callback);
+      } else {
+        // 尝试免费公开接口
+        searchEnterpriseFromPublicAPI(keyword, callback);
+      }
+    });
+    return;
+  }
+
+  // 使用天眼查API
+  if (tianyanchaApiKey) {
+    searchFromTianyancha(keyword, tianyanchaApiKey, function(err, results) {
+      if (!err && results && results.length > 0) {
+        callback(null, results);
+        return;
+      }
+      // 天眼查失败，尝试免费公开接口
+      searchEnterpriseFromPublicAPI(keyword, callback);
+    });
+    return;
+  }
+
+  // 没有配置API Key，尝试使用免费的公开接口
+  searchEnterpriseFromPublicAPI(keyword, callback);
+}
+
+// 企查查API搜索
+function searchFromQcc(keyword, apiKey, callback) {
+  const secretKey = process.env.QCC_SECRET_KEY || '';
+
+  // 企查查API签名认证
+  // 生成时间戳（企查查要求秒级10位时间戳）
+  const timespan = Math.floor(Date.now() / 1000).toString();
+
+  // 生成签名: MD5(Key + Timespan + SecretKey)
+  const signStr = apiKey + timespan + secretKey;
+  const signature = crypto.createHash('md5').update(signStr).digest('hex').toUpperCase();
+
+  const options = {
+    hostname: 'api.qichacha.com',
+    path: '/ECISimple/GetSimpleSearch?keyword=' + encodeURIComponent(keyword),
+    method: 'GET',
+    headers: {
+      'AuthId': apiKey,
+      'AuthKey': signature,
+      'Timespan': timespan,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Content-Type': 'application/json'
+    }
+  };
+
+  const req = https.request(options, function(res) {
+    let data = '';
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
+      try {
+        const result = JSON.parse(data);
+        if (result.Status === '200' && result.Result) {
+          const enterprises = result.Result.slice(0, 10).map(function(item) {
+            return {
+              name: item.Name || item.name || '',
+              creditCode: item.CreditCode || item.creditCode || '',
+              legalPerson: item.OperName || item.legalPerson || '',
+              address: item.Address || item.address || '',
+              status: item.Status || item.status || '',
+              regCapital: item.RegistCapi || item.regCapital || '',
+              estiblishTime: item.SetupDate || item.estiblishTime || '',
+              source: 'qcc'
+            };
+          });
+          callback(null, enterprises);
+        } else {
+          callback(new Error('企查查API返回错误: ' + (result.Message || '未知错误')), null);
+        }
+      } catch (e) {
+        callback(e, null);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    callback(e, null);
+  });
+
+  req.setTimeout(8000, function() {
+    req.destroy();
+    callback(new Error('企查查请求超时'), null);
+  });
+
+  req.end();
+}
+
+// 天眼查API搜索
+function searchFromTianyancha(keyword, apiKey, callback) {
+  const options = {
+    hostname: 'open.api.tianyancha.com',
+    path: '/services/v4/open/search?keyword=' + encodeURIComponent(keyword),
+    method: 'GET',
+    headers: {
+      'Authorization': apiKey
+    }
+  };
+
+  const req = https.request(options, function(res) {
+    let data = '';
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
+      try {
+        const result = JSON.parse(data);
+        if (result.error_code === 0 && result.result && result.result.items) {
+          const enterprises = result.result.items.slice(0, 10).map(function(item) {
+            return {
+              name: item.name || '',
+              creditCode: item.creditCode || '',
+              legalPerson: item.legalPersonName || '',
+              address: item.regLocation || '',
+              status: item.regStatus || '',
+              regCapital: item.regCapital || '',
+              estiblishTime: item.estiblishTime || '',
+              source: 'tianyancha'
+            };
+          });
+          callback(null, enterprises);
+        } else {
+          callback(new Error('天眼查API返回错误'), null);
+        }
+      } catch (e) {
+        callback(e, null);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    callback(e, null);
+  });
+
+  req.setTimeout(8000, function() {
+    req.destroy();
+    callback(new Error('天眼查请求超时'), null);
+  });
+
+  req.end();
+}
+
+// 使用免费公开API搜索企业信息
+function searchEnterpriseFromPublicAPI(keyword, callback) {
+  // 方案1: 使用国家企业信用信息公示系统（需要处理验证码，暂不可用）
+  // 方案2: 使用第三方免费接口
+
+  // 尝试使用阿里云市场免费接口（需要配置）
+  const aliyunAppCode = process.env.ALIYUN_ENTERPRISE_APP_CODE || '';
+
+  if (aliyunAppCode) {
+    searchFromAliyun(keyword, aliyunAppCode, callback);
+    return;
+  }
+
+  // 尝试使用聚合数据免费接口
+  const juheApiKey = process.env.JUHE_ENTERPRISE_KEY || '';
+  if (juheApiKey) {
+    searchFromJuhe(keyword, juheApiKey, callback);
+    return;
+  }
+
+  // 没有可用的免费API，返回null使用本地数据
+  callback(null, null);
+}
+
+// 阿里云市场企业查询接口
+function searchFromAliyun(keyword, appCode, callback) {
+  const options = {
+    hostname: 'aliyun-company-search.p.rapidapi.com',
+    path: '/api/company/search?keyword=' + encodeURIComponent(keyword),
+    method: 'GET',
+    headers: {
+      'Authorization': 'APPCODE ' + appCode,
+      'User-Agent': 'Mozilla/5.0'
+    }
+  };
+
+  const req = https.request(options, function(res) {
+    let data = '';
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
+      try {
+        const result = JSON.parse(data);
+        if (result.code === 200 && result.data) {
+          const enterprises = result.data.slice(0, 10).map(function(item) {
+            return {
+              name: item.name || item.companyName || '',
+              creditCode: item.creditCode || item.creditNo || '',
+              legalPerson: item.legalPerson || item.operName || '',
+              address: item.address || '',
+              status: item.status || '',
+              regCapital: item.regCapital || '',
+              source: 'aliyun'
+            };
+          });
+          callback(null, enterprises);
+        } else {
+          callback(null, null);
+        }
+      } catch (e) {
+        callback(null, null);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    callback(null, null);
+  });
+
+  req.setTimeout(5000, function() {
+    req.destroy();
+    callback(null, null);
+  });
+
+  req.end();
+}
+
+// 聚合数据企业查询接口
+function searchFromJuhe(keyword, apiKey, callback) {
+  const options = {
+    hostname: 'apis.juhe.cn',
+    path: '/simpleCensusUnit/query?keyword=' + encodeURIComponent(keyword) + '&key=' + apiKey,
+    method: 'GET',
+    headers: {
+      'User-Agent': 'Mozilla/5.0'
+    }
+  };
+
+  const req = https.request(options, function(res) {
+    let data = '';
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
+      try {
+        const result = JSON.parse(data);
+        if (result.error_code === 0 && result.result) {
+          const enterprises = result.result.slice(0, 10).map(function(item) {
+            return {
+              name: item.name || item.companyName || '',
+              creditCode: item.creditCode || item.creditNo || '',
+              legalPerson: item.legalPerson || '',
+              address: item.address || '',
+              status: item.status || '',
+              source: 'juhe'
+            };
+          });
+          callback(null, enterprises);
+        } else {
+          callback(null, null);
+        }
+      } catch (e) {
+        callback(null, null);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    callback(null, null);
+  });
+
+  req.setTimeout(5000, function() {
+    req.destroy();
+    callback(null, null);
+  });
+
+  req.end();
 }
 
 // 微信支付工具函数
@@ -1032,7 +1684,7 @@ loadCreditPrintPoints();
 scheduleCreditPrintPointsUpdate();
 
 // 创建服务器
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
@@ -1358,31 +2010,44 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      const normalizedKeyword = keyword.toLowerCase();
-      const results = enterpriseDatabase.filter(ent =>
-        ent.name.toLowerCase().includes(normalizedKeyword) ||
-        ent.creditCode.toLowerCase().includes(normalizedKeyword)
-      ).slice(0, 10);
+      // 尝试从外部API获取企业信息
+      searchEnterpriseFromExternalAPI(keyword, function(err, externalResults) {
+        if (!err && externalResults && externalResults.length > 0) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, data: externalResults, source: 'external' }));
+          return;
+        }
 
-      if (results.length === 0) {
+        // 外部API失败时，使用本地数据库作为备用
+        const normalizedKeyword = keyword.toLowerCase();
+        const results = enterpriseDatabase.filter(ent =>
+          ent.name.toLowerCase().includes(normalizedKeyword) ||
+          ent.creditCode.toLowerCase().includes(normalizedKeyword)
+        ).slice(0, 10);
+
+        if (results.length === 0) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({
+            success: true,
+            data: [{
+              name: keyword + '有限公司',
+              creditCode: generateCreditCode(),
+              legalPerson: '待确认',
+              address: '请联系管理员补充企业注册地址'
+            }],
+            note: '未找到精确匹配，已返回智能联想结果',
+            source: 'fallback'
+          }));
+          return;
+        }
+
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({
-          success: true,
-          data: [{
-            name: keyword + '有限公司',
-            creditCode: generateCreditCode(),
-            legalPerson: '待确认',
-            address: '请联系管理员补充企业注册地址'
-          }],
-          note: '未找到精确匹配，已返回智能联想结果'
-        }));
-        return;
-      }
+        res.end(JSON.stringify({ success: true, data: results, source: 'local' }));
+      });
 
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: true, data: results }));
     } catch (e) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1459,9 +2124,9 @@ const server = http.createServer((req, res) => {
   } else if (pathname === '/api/users/reset-password' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
-        if (!usersDb) throw new Error('用户数据库未初始化');
+        if (!mysqlPool && !usersDb) throw new Error('用户数据库未初始化');
         const data = JSON.parse(body || '{}');
         if (!data.phone || !data.code || !data.password) {
           res.statusCode = 400;
@@ -1475,15 +2140,28 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ success: false, message: '验证码错误或已过期' }));
           return;
         }
-        const exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
-        if (!exists) {
-          res.statusCode = 404;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '该手机号未注册' }));
-          return;
+
+        if (mysqlPool) {
+          const [rows] = await mysqlPool.execute('SELECT id FROM users WHERE phone = ?', [data.phone]);
+          if (!rows.length) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '该手机号未注册' }));
+            return;
+          }
+          await mysqlPool.execute('UPDATE users SET password = ?, update_time = ? WHERE phone = ?', [data.password, new Date(), data.phone]);
+        } else {
+          const exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
+          if (!exists) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '该手机号未注册' }));
+            return;
+          }
+          usersDb.prepare('UPDATE users SET password = ?, update_time = ? WHERE phone = ?')
+            .run(data.password, new Date().toISOString(), data.phone);
         }
-        usersDb.prepare('UPDATE users SET password = ?, update_time = ? WHERE phone = ?')
-          .run(data.password, new Date().toISOString(), data.phone);
+
         delete smsCodes[`reset_password:${data.phone}`];
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1497,21 +2175,15 @@ const server = http.createServer((req, res) => {
 
   } else if (pathname === '/api/admin/users' && req.method === 'GET') {
     try {
-      if (!usersDb) {
-        // 数据库未初始化时返回空数据
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({
-          success: true,
-          data: {
-            total: 0,
-            users: []
-          },
-          message: '数据库服务未启动，请检查 better-sqlite3 是否正确安装'
-        }));
-        return;
+      let users = [];
+      
+      if (mysqlPool) {
+        const [rows] = await mysqlPool.query('SELECT id, username, phone, user_type, institution_type, institution_name, credit_code, contact_person, industry, sync_status, last_sync_time, member_points, member_expiry, credit_score, account_balance, exclusive_services, ban_status, ban_reason, ban_start_time, ban_end_time, create_time, update_time FROM users ORDER BY create_time DESC');
+        users = rows;
+      } else if (usersDb) {
+        users = usersDb.prepare('SELECT * FROM users ORDER BY create_time DESC').all();
       }
-      const users = usersDb.prepare('SELECT id, phone, user_type, institution_type, institution_name, create_time, sync_status, last_sync_time FROM users ORDER BY create_time DESC').all();
+      
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({
@@ -1526,6 +2198,424 @@ const server = http.createServer((req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, message: '获取注册用户失败: ' + e.message }));
     }
+
+  } else if (pathname === '/api/admin/users/update' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+          return;
+        }
+
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (data.member_points !== undefined) {
+          updateFields.push('member_points = ?');
+          updateValues.push(parseInt(data.member_points) || 0);
+        }
+        if (data.member_expiry !== undefined) {
+          updateFields.push('member_expiry = ?');
+          updateValues.push(data.member_expiry || null);
+        }
+        if (data.credit_score !== undefined) {
+          updateFields.push('credit_score = ?');
+          updateValues.push(parseInt(data.credit_score) || 0);
+        }
+        if (data.account_balance !== undefined) {
+          updateFields.push('account_balance = ?');
+          updateValues.push(parseFloat(data.account_balance) || 0);
+        }
+        if (data.exclusive_services !== undefined) {
+          updateFields.push('exclusive_services = ?');
+          updateValues.push(parseInt(data.exclusive_services) || 0);
+        }
+        
+        updateFields.push('update_time = ?');
+        updateValues.push(new Date().toISOString());
+        updateValues.push(data.id);
+
+        const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+        usersDb.prepare(query).run(...updateValues);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '用户信息更新成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新用户信息失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/admin/users/delete' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+          return;
+        }
+
+        if (!mysqlPool) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未连接' }));
+          return;
+        }
+
+        await mysqlPool.execute('DELETE FROM users WHERE id = ?', [data.id]);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '用户删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除用户失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/admin/users/ban' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+          return;
+        }
+        if (!data.reason) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '封锁原因不能为空' }));
+          return;
+        }
+        if (!data.duration) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '封锁时长不能为空' }));
+          return;
+        }
+
+        const durationDays = parseInt(data.duration);
+        const now = new Date();
+        const startTime = now.toISOString();
+        const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+        if (mysqlPool) {
+          await mysqlPool.execute(
+            'UPDATE users SET ban_status = ?, ban_reason = ?, ban_start_time = ?, ban_end_time = ?, update_time = ? WHERE id = ?',
+            ['banned', data.reason, startTime, endTime, new Date().toISOString(), data.id]
+          );
+        } else if (usersDb) {
+          usersDb.prepare('UPDATE users SET ban_status = ?, ban_reason = ?, ban_start_time = ?, ban_end_time = ?, update_time = ? WHERE id = ?')
+            .run('banned', data.reason, startTime, endTime, new Date().toISOString(), data.id);
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未连接' }));
+          return;
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '用户已被封锁' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '封锁用户失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/admin/users/unban' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          await mysqlPool.execute(
+            'UPDATE users SET ban_status = ?, ban_reason = NULL, ban_start_time = NULL, ban_end_time = NULL, update_time = ? WHERE id = ?',
+            ['normal', new Date().toISOString(), data.id]
+          );
+        } else if (usersDb) {
+          usersDb.prepare('UPDATE users SET ban_status = ?, ban_reason = NULL, ban_start_time = NULL, ban_end_time = NULL, update_time = ? WHERE id = ?')
+            .run('normal', new Date().toISOString(), data.id);
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未连接' }));
+          return;
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '用户已解除封锁' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '解除封锁失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/products' && req.method === 'GET') {
+    // 获取商品列表
+    try {
+      if (!usersDb) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+        return;
+      }
+
+      // 从URL参数中获取userId
+      const urlParams = new URL(req.url, 'http://localhost');
+      const userId = urlParams.searchParams.get('userId');
+
+      if (!userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+        return;
+      }
+
+      const products = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY id ASC').all(userId);
+      
+      // 如果没有商品，插入预设商品数据
+      if (products.length === 0) {
+        const defaultProducts = [
+          { name: '财务软件专业版', code: 'SP001', category: '软件', unit: '套', price: 2999, stock: 45, threshold: 10 },
+          { name: '财务软件标准版', code: 'SP002', category: '软件', unit: '套', price: 1999, stock: 50, threshold: 10 },
+          { name: '财务软件基础版', code: 'SP003', category: '软件', unit: '套', price: 999, stock: 80, threshold: 20 },
+          { name: '税务筹划服务', code: 'SP004', category: '服务', unit: '次', price: 1500, stock: 20, threshold: 5 },
+          { name: '财务咨询服务', code: 'SP005', category: '服务', unit: '次', price: 2000, stock: 0, threshold: 0 },
+          { name: '审计服务', code: 'SP006', category: '服务', unit: '次', price: 3000, stock: 10, threshold: 3 },
+          { name: '代理记账服务', code: 'SP007', category: '服务', unit: '月', price: 500, stock: 100, threshold: 50 },
+          { name: '会计培训课程', code: 'SP008', category: '课程', unit: '套', price: 999, stock: 5, threshold: 5 },
+          { name: '税务培训课程', code: 'SP009', category: '课程', unit: '套', price: 1299, stock: 30, threshold: 10 },
+          { name: '财务模板包', code: 'SP010', category: '模板', unit: '套', price: 199, stock: 30, threshold: 20 },
+          { name: '税务申报模板', code: 'SP011', category: '模板', unit: '套', price: 99, stock: 50, threshold: 30 },
+          { name: '财务报表模板', code: 'SP012', category: '模板', unit: '套', price: 149, stock: 40, threshold: 20 },
+          { name: '发票打印机', code: 'SP013', category: '硬件', unit: '台', price: 2500, stock: 5, threshold: 2 },
+          { name: '财务专用扫描仪', code: 'SP014', category: '硬件', unit: '台', price: 1800, stock: 8, threshold: 3 },
+          { name: '凭证装订机', code: 'SP015', category: '硬件', unit: '台', price: 800, stock: 12, threshold: 5 }
+        ];
+
+        const insertStmt = usersDb.prepare(`
+          INSERT INTO products (code, name, category, unit, price, stock, threshold, user_id, create_time, update_time)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        const now = new Date().toISOString();
+        defaultProducts.forEach(function(product) {
+          insertStmt.run(product.code, product.name, product.category, product.unit, product.price, product.stock, product.threshold, userId, now, now);
+        });
+
+        // 重新查询商品列表
+        const newProducts = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY id ASC').all(userId);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: newProducts }));
+      } else {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: products }));
+      }
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取商品列表失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/products' && req.method === 'POST') {
+    // 添加商品
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        
+        if (!data.name || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品名称和用户ID不能为空' }));
+          return;
+        }
+
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+
+        const now = new Date().toISOString();
+        const result = usersDb.prepare(`
+          INSERT INTO products (code, name, category, unit, price, stock, threshold, user_id, create_time, update_time)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          data.code || '',
+          data.name,
+          data.category || '',
+          data.unit || '',
+          parseFloat(data.price) || 0,
+          parseInt(data.stock) || 0,
+          parseInt(data.threshold) || 10,
+          data.userId,
+          now,
+          now
+        );
+
+        const newProduct = usersDb.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '商品添加成功', data: newProduct }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加商品失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/products' && req.method === 'PUT') {
+    // 更新商品
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品ID不能为空' }));
+          return;
+        }
+
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (data.code !== undefined) {
+          updateFields.push('code = ?');
+          updateValues.push(data.code || '');
+        }
+        if (data.name !== undefined) {
+          updateFields.push('name = ?');
+          updateValues.push(data.name);
+        }
+        if (data.category !== undefined) {
+          updateFields.push('category = ?');
+          updateValues.push(data.category || '');
+        }
+        if (data.unit !== undefined) {
+          updateFields.push('unit = ?');
+          updateValues.push(data.unit || '');
+        }
+        if (data.price !== undefined) {
+          updateFields.push('price = ?');
+          updateValues.push(parseFloat(data.price) || 0);
+        }
+        if (data.stock !== undefined) {
+          updateFields.push('stock = ?');
+          updateValues.push(parseInt(data.stock) || 0);
+        }
+        if (data.threshold !== undefined) {
+          updateFields.push('threshold = ?');
+          updateValues.push(parseInt(data.threshold) || 10);
+        }
+        
+        updateFields.push('update_time = ?');
+        updateValues.push(new Date().toISOString());
+        updateValues.push(data.id);
+
+        const query = `UPDATE products SET ${updateFields.join(', ')} WHERE id = ?`;
+        usersDb.prepare(query).run(...updateValues);
+
+        const updatedProduct = usersDb.prepare('SELECT * FROM products WHERE id = ?').get(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '商品更新成功', data: updatedProduct }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新商品失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/products' && req.method === 'DELETE') {
+    // 删除商品
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        
+        if (!data.ids || !Array.isArray(data.ids)) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品ID列表不能为空' }));
+          return;
+        }
+
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+
+        const deleteStmt = usersDb.prepare('DELETE FROM products WHERE id = ?');
+        let deletedCount = 0;
+        data.ids.forEach(function(id) {
+          const result = deleteStmt.run(id);
+          if (result.changes > 0) {
+            deletedCount++;
+          }
+        });
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '已删除 ' + deletedCount + ' 个商品', deletedCount: deletedCount }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除商品失败: ' + e.message }));
+      }
+    });
 
   } else if (pathname === '/api/admin/sms' && req.method === 'GET') {
     try {
@@ -1589,7 +2679,7 @@ const server = http.createServer((req, res) => {
   } else if (pathname === '/api/users/register' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.phone || !data.password || !data.userType) {
@@ -1599,56 +2689,69 @@ const server = http.createServer((req, res) => {
           return;
         }
 
-        // 检查手机号是否已注册
-        let exists = false;
-        if (usersDb) {
-          exists = usersDb.prepare('SELECT id FROM users WHERE phone = ?').get(data.phone);
-        } else {
-          exists = memoryUsers.some(user => user.phone === data.phone);
+        // 用户名默认为手机号
+        const username = data.username || data.phone;
+
+        // 检查数据库连接
+        if (!mysqlPool) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未连接' }));
+          return;
         }
 
-        if (exists) {
+        // 个人注册：检查手机号是否已存在
+        if (data.userType === 'personal') {
+          const [rows] = await mysqlPool.execute('SELECT id FROM users WHERE phone = ? AND user_type = ?', [data.phone, 'personal']);
+          if (rows.length > 0) {
+            res.statusCode = 409;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '该手机号已注册个人账户，请直接登录或使用其他手机号' }));
+            return;
+          }
+        }
+
+        // 企业注册：检查企业是否已存在（通过统一社会信用代码）
+        if (data.userType === 'enterprise' && data.creditCode) {
+          const [rows] = await mysqlPool.execute('SELECT id FROM users WHERE credit_code = ? AND user_type = ?', [data.creditCode, 'enterprise']);
+          if (rows.length > 0) {
+            res.statusCode = 409;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '该企业已注册，请直接登录或联系管理员' }));
+            return;
+          }
+        }
+
+        // 检查用户名是否已存在
+        const [existsRows] = await mysqlPool.execute('SELECT id FROM users WHERE username = ?', [username]);
+        if (existsRows.length > 0) {
           res.statusCode = 409;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '该手机号已注册' }));
+          res.end(JSON.stringify({ success: false, message: '该用户名已被使用，请更换用户名' }));
           return;
         }
 
         const userId = 'USER_' + Date.now();
-        const now = new Date().toISOString();
-        const user = {
-          id: userId,
-          username: data.username || data.phone, // 用户名默认为手机号
-          phone: data.phone,
-          password: data.password,
-          user_type: data.userType,
-          institution_type: data.institutionType || '',
-          institution_name: data.institutionName || '',
-          credit_code: data.creditCode || '',
-          contact_person: data.contactPerson || '',
-          industry: data.industry || '',
-          create_time: now,
-          update_time: now
-        };
+        const now = new Date();
+        
+        await mysqlPool.execute(
+          'INSERT INTO users (id, username, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, industry, sync_status, last_sync_time, member_points, credit_score, account_balance, exclusive_services, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [userId, username, data.phone, data.password, data.userType, data.institutionType || '', data.institutionName || '', data.creditCode || '', data.contactPerson || '', data.industry || '', 'synced', now, 0, 0, 0, 0, now, now]
+        );
 
-        const syncInfo = syncUserProfile(user);
+        const user = { id: userId, phone: data.phone, user_type: data.userType, username: username };
 
-        // 保存用户数据
-        if (usersDb) {
-          usersDb.prepare('INSERT INTO users (id, username, phone, password, user_type, institution_type, institution_name, credit_code, contact_person, industry, create_time, update_time, local_db_file, cloud_backup_file, sync_status, last_sync_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            .run(user.id, user.username, user.phone, user.password, user.user_type, user.institution_type, user.institution_name, user.credit_code, user.contact_person, user.industry, user.create_time, user.update_time, syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime);
-        } else {
-          // 使用内存存储
-          memoryUsers.push({
-            ...user,
-            local_db_file: syncInfo.localDbFile,
-            cloud_backup_file: syncInfo.cloudBackupFile,
-            sync_status: syncInfo.syncStatus,
-            last_sync_time: syncInfo.lastSyncTime
-          });
-          console.log('用户数据已保存到内存存储:', user.id, user.phone);
-        }
-
+        // 发送管理员提醒到MySQL
+        const adminMessage = `📢 新用户注册通知\n\n用户ID: ${user.id}\n手机号: ${user.phone}\n用户类型: ${data.userType === 'enterprise' ? '企业用户' : data.userType === 'institution' ? '机构用户' : '个人用户'}\n用户名: ${username}\n注册时间: ${new Date().toLocaleString('zh-CN')}`;
+        
+        // 消息提醒 - 存储到MySQL
+        await mysqlPool.execute(
+          'INSERT INTO admin_notifications (type, title, content, create_time, status) VALUES (?, ?, ?, ?, ?)',
+          ['user_register', '新用户注册', adminMessage, new Date(), 'unread']
+        );
+        
+        console.log('管理员提醒已发送:', adminMessage);
+        
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
@@ -1656,13 +2759,9 @@ const server = http.createServer((req, res) => {
           data: {
             id: user.id,
             phone: user.phone,
-            userType: user.user_type,
-            localDbFile: syncInfo.localDbFile,
-            cloudBackupFile: syncInfo.cloudBackupFile,
-            syncStatus: syncInfo.syncStatus,
-            lastSyncTime: syncInfo.lastSyncTime
+            userType: data.userType
           },
-          message: '注册成功，已自动建立本地数据库并完成云端备份'
+          message: '注册成功'
         }));
       } catch (e) {
         res.statusCode = 500;
@@ -1671,89 +2770,138 @@ const server = http.createServer((req, res) => {
       }
     });
 
+  } else if (pathname === '/api/users/related-accounts' && req.method === 'GET') {
+    const phone = String(parsedUrl.query.phone || '').trim();
+    if (!phone) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '手机号不能为空' }));
+      return;
+    }
+
+    try {
+      let accounts = [];
+      if (usersDb) {
+        accounts = usersDb.prepare('SELECT id, username, phone, user_type, institution_name, credit_code, create_time FROM users WHERE phone = ?').all(phone);
+      } else {
+        accounts = memoryUsers.filter(u => u.phone === phone).map(u => ({
+          id: u.id,
+          username: u.username,
+          phone: u.phone,
+          user_type: u.user_type,
+          institution_name: u.institution_name,
+          credit_code: u.credit_code,
+          create_time: u.create_time
+        }));
+      }
+
+      if (usersDb) {
+        accounts = accounts.map(acc => {
+          if (acc.user_type === 'enterprise') {
+            const fullUser = usersDb.prepare('SELECT * FROM users WHERE id = ?').get(acc.id);
+            return {
+              ...acc,
+              enterprise_name: fullUser ? (fullUser.enterprise_name || fullUser.institution_name || '') : ''
+            };
+          }
+          return acc;
+        });
+      } else {
+        accounts = accounts.map(acc => {
+          const fullUser = memoryUsers.find(u => u.id === acc.id);
+          if (fullUser && acc.user_type === 'enterprise') {
+            return {
+              ...acc,
+              enterprise_name: fullUser.enterprise_name || ''
+            };
+          }
+          return acc;
+        });
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: accounts }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '查询失败: ' + e.message }));
+    }
+
   } else if (pathname === '/api/users/login' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
-        if (!data.account || !data.password) {
+        const account = (data.account || '').trim();
+        const password = data.password || '';
+        const userType = data.userType || 'personal';
+
+        if (!account || !password) {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '账号和密码不能为空' }));
           return;
         }
-        const account = String(data.account || '').trim();
-        if (!isPhoneAccount(account)) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '当前版本仅支持手机号登录，请输入注册手机号' }));
-          return;
-        }
 
-        // 查找用户
         let user = null;
-        if (usersDb) {
-          user = usersDb.prepare('SELECT * FROM users WHERE phone = ?').get(account);
-        } else {
-          user = memoryUsers.find(user => user.phone === account);
-        }
 
-        if (!user) {
-          res.statusCode = 401;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '该手机号未注册，请先注册' }));
-          return;
-        }
+        // 优先从MySQL查询
+        if (mysqlPool) {
+          let query = '';
+          let params = [];
 
-        if (user.password !== data.password) {
-          res.statusCode = 401;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '密码错误，请重新输入' }));
-          return;
-        }
+          if (userType === 'enterprise') {
+            // 企业用户按用户名查询
+            query = 'SELECT * FROM users WHERE username = ? AND user_type = ?';
+            params = [account, 'enterprise'];
+          } else {
+            // 个人/机构用户按手机号查询
+            query = 'SELECT * FROM users WHERE phone = ? AND user_type = ?';
+            params = [account, userType];
+          }
 
-        const syncInfo = syncUserProfile(user);
-
-        // 更新用户数据
-        if (usersDb) {
-          usersDb.prepare('UPDATE users SET local_db_file = ?, cloud_backup_file = ?, sync_status = ?, last_sync_time = ?, update_time = ? WHERE id = ?')
-            .run(syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime, new Date().toISOString(), user.id);
-        } else {
-          // 更新内存存储中的用户数据
-          const userIndex = memoryUsers.findIndex(u => u.id === user.id);
-          if (userIndex !== -1) {
-            memoryUsers[userIndex] = {
-              ...memoryUsers[userIndex],
-              local_db_file: syncInfo.localDbFile,
-              cloud_backup_file: syncInfo.cloudBackupFile,
-              sync_status: syncInfo.syncStatus,
-              last_sync_time: syncInfo.lastSyncTime,
-              update_time: new Date().toISOString()
-            };
-            console.log('用户数据已更新到内存存储:', user.id, user.phone);
+          const [rows] = await mysqlPool.execute(query, params);
+          if (rows.length > 0) {
+            user = rows[0];
           }
         }
+
+        // MySQL没有则从SQLite查询
+        if (!user && usersDb) {
+          if (userType === 'enterprise') {
+            user = usersDb.prepare('SELECT * FROM users WHERE username = ? AND user_type = ?').get(account, 'enterprise');
+          } else {
+            user = usersDb.prepare('SELECT * FROM users WHERE phone = ? AND user_type = ?').get(account, userType);
+          }
+        }
+
+        // 用户不存在
+        if (!user) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '用户不存在，请先注册' }));
+          return;
+        }
+
+        // 密码验证
+        if (user.password !== password) {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '密码错误' }));
+          return;
+        }
+
+        // 登录成功，返回用户信息（不包含密码）
+        const userData = { ...user };
+        delete userData.password;
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
           success: true,
-          data: {
-            id: user.id,
-            phone: user.phone,
-            userType: user.user_type,
-            institutionType: user.institution_type || '',
-            institutionName: user.institution_name || '',
-            industry: user.industry || '',
-            localDbFile: syncInfo.localDbFile,
-            cloudBackupFile: syncInfo.cloudBackupFile,
-            syncStatus: syncInfo.syncStatus,
-            lastSyncTime: syncInfo.lastSyncTime,
-            isLoggedIn: true,
-            currentUserDb: syncInfo.localDbFile
-          },
-          message: '登录成功，当前用户数据库已绑定并完成同步'
+          data: userData
         }));
       } catch (e) {
         res.statusCode = 500;
@@ -1762,38 +2910,11 @@ const server = http.createServer((req, res) => {
       }
     });
 
-  } else if (pathname.match(/^\/api\/users\/[^/]+\/sync$/) && req.method === 'POST') {
-    const userId = pathname.split('/')[3];
-    try {
-      if (!usersDb) throw new Error('用户数据库未初始化');
-      const user = usersDb.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-      if (!user) {
-        res.statusCode = 404;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: '用户不存在' }));
-        return;
-      }
-      const syncInfo = syncUserProfile(user);
-      usersDb.prepare('UPDATE users SET local_db_file = ?, cloud_backup_file = ?, sync_status = ?, last_sync_time = ?, update_time = ? WHERE id = ?')
-        .run(syncInfo.localDbFile, syncInfo.cloudBackupFile, syncInfo.syncStatus, syncInfo.lastSyncTime, new Date().toISOString(), userId);
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: true, message: '本地与云端同步完成', data: syncInfo }));
-    } catch (e) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: false, message: '同步失败: ' + e.message }));
-    }
-
-  // ============================================================
-  // 账套管理 API
-  // ============================================================
-
   // 创建账套：POST /api/accounts
   } else if (pathname === '/api/accounts' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body);
         if (!data.name || !data.industry || !data.startDate || !data.userId) {
@@ -2170,6 +3291,664 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({ success: false, message: '缺少账套ID' }));
     }
 
+  // 获取账套备份列表：GET /api/accounts/:id/backups
+  } else if (pathname.match(/^\/api\/accounts\/[^/]+\/backups$/) && req.method === 'GET') {
+    const accountId = pathname.split('/')[3];
+    try {
+      const cloudBackupDir = path.join(dbDir, 'cloud_backup');
+      const backups = [];
+      if (fs.existsSync(cloudBackupDir)) {
+        const files = fs.readdirSync(cloudBackupDir)
+          .filter(f => f.includes(accountId))
+          .sort()
+          .reverse()
+          .slice(0, 20);
+        files.forEach(file => {
+          const fullPath = path.join(cloudBackupDir, file);
+          const stat = fs.statSync(fullPath);
+          backups.push({
+            file: file,
+            size: stat.size,
+            modified: stat.mtime.toISOString()
+          });
+        });
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: backups }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取备份列表失败: ' + e.message }));
+    }
+
+  // 恢复账套备份：POST /api/accounts/:id/restore
+  } else if (pathname.match(/^\/api\/accounts\/[^/]+\/restore$/) && req.method === 'POST') {
+    const accountId = pathname.split('/')[3];
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.backupFile) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '缺少备份文件名' }));
+          return;
+        }
+        const cloudBackupDir = path.join(dbDir, 'cloud_backup');
+        const backupFile = path.join(cloudBackupDir, data.backupFile);
+        const accountDbFile = path.join(dbDir, 'account_' + accountId + '.db');
+
+        if (!fs.existsSync(backupFile)) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '备份文件不存在' }));
+          return;
+        }
+
+        // 备份当前数据库
+        if (fs.existsSync(accountDbFile)) {
+          const safetyBackup = accountDbFile + '.backup_' + Date.now();
+          fs.copyFileSync(accountDbFile, safetyBackup);
+          console.log('安全备份已创建: ' + safetyBackup);
+        }
+
+        // 恢复备份
+        fs.copyFileSync(backupFile, accountDbFile);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '备份已恢复' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '恢复备份失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 商品管理API ====================
+  // 获取商品列表：GET /api/products
+  } else if (pathname === '/api/products' && req.method === 'GET') {
+    const userId = parsedUrl.query.userId;
+    if (!usersDb) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+      return;
+    }
+    try {
+      const products = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: products }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取商品列表失败: ' + e.message }));
+    }
+  // 添加商品：POST /api/products
+  } else if (pathname === '/api/products' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.name || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品名称和用户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const now = new Date().toISOString();
+        const stmt = usersDb.prepare(
+          'INSERT INTO products (code, name, category, unit, price, stock, threshold, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        const result = stmt.run(
+          data.code || '',
+          data.name,
+          data.category || '',
+          data.unit || '',
+          parseFloat(data.price) || 0,
+          parseInt(data.stock) || 0,
+          parseInt(data.threshold) || 10,
+          data.userId,
+          now,
+          now
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加商品失败: ' + e.message }));
+      }
+    });
+  // 更新商品：PUT /api/products
+  } else if (pathname === '/api/products' && req.method === 'PUT') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const updateFields = [];
+        const updateValues = [];
+        if (data.code !== undefined) { updateFields.push('code = ?'); updateValues.push(data.code); }
+        if (data.name !== undefined) { updateFields.push('name = ?'); updateValues.push(data.name); }
+        if (data.category !== undefined) { updateFields.push('category = ?'); updateValues.push(data.category); }
+        if (data.unit !== undefined) { updateFields.push('unit = ?'); updateValues.push(data.unit); }
+        if (data.price !== undefined) { updateFields.push('price = ?'); updateValues.push(parseFloat(data.price) || 0); }
+        if (data.stock !== undefined) { updateFields.push('stock = ?'); updateValues.push(parseInt(data.stock) || 0); }
+        if (data.threshold !== undefined) { updateFields.push('threshold = ?'); updateValues.push(parseInt(data.threshold) || 10); }
+        updateFields.push('update_time = ?');
+        updateValues.push(new Date().toISOString());
+        updateValues.push(data.id);
+        const stmt = usersDb.prepare(`UPDATE products SET ${updateFields.join(', ')} WHERE id = ?`);
+        stmt.run(...updateValues);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '商品更新成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新商品失败: ' + e.message }));
+      }
+    });
+  // 删除商品：DELETE /api/products
+  } else if (pathname === '/api/products' && req.method === 'DELETE') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '商品ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('DELETE FROM products WHERE id = ?').run(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '商品删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除商品失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 客户管理API ====================
+  // 获取客户列表：GET /api/customers
+  } else if (pathname === '/api/customers' && req.method === 'GET') {
+    const userId = parsedUrl.query.userId;
+    if (!usersDb) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+      return;
+    }
+    try {
+      const customers = usersDb.prepare('SELECT * FROM customers WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: customers }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取客户列表失败: ' + e.message }));
+    }
+  // 添加客户：POST /api/customers
+  } else if (pathname === '/api/customers' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.name || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '客户名称和用户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const now = new Date().toISOString();
+        const stmt = usersDb.prepare(
+          'INSERT INTO customers (name, contact, phone, address, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
+        const result = stmt.run(
+          data.name,
+          data.contact || '',
+          data.phone || '',
+          data.address || '',
+          data.userId,
+          now,
+          now
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加客户失败: ' + e.message }));
+      }
+    });
+  // 更新客户：PUT /api/customers
+  } else if (pathname === '/api/customers' && req.method === 'PUT') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const updateFields = [];
+        const updateValues = [];
+        if (data.name !== undefined) { updateFields.push('name = ?'); updateValues.push(data.name); }
+        if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
+        if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
+        if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
+        updateFields.push('update_time = ?');
+        updateValues.push(new Date().toISOString());
+        updateValues.push(data.id);
+        const stmt = usersDb.prepare(`UPDATE customers SET ${updateFields.join(', ')} WHERE id = ?`);
+        stmt.run(...updateValues);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '客户更新成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新客户失败: ' + e.message }));
+      }
+    });
+  // 删除客户：DELETE /api/customers
+  } else if (pathname === '/api/customers' && req.method === 'DELETE') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('DELETE FROM customers WHERE id = ?').run(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '客户删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除客户失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 送货单管理API ====================
+  // 获取送货单列表：GET /api/delivery-notes
+  } else if (pathname === '/api/delivery-notes' && req.method === 'GET') {
+    const userId = parsedUrl.query.userId;
+    if (!usersDb) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+      return;
+    }
+    try {
+      const notes = usersDb.prepare('SELECT * FROM delivery_notes WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
+      const data = notes.map(note => ({
+        ...note,
+        items: note.items ? JSON.parse(note.items) : []
+      }));
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: data }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取送货单列表失败: ' + e.message }));
+    }
+  // 添加送货单：POST /api/delivery-notes
+  } else if (pathname === '/api/delivery-notes' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.no || !data.customer || !data.date || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '单号、客户、日期和用户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const now = new Date().toISOString();
+        const stmt = usersDb.prepare(
+          'INSERT INTO delivery_notes (no, customer, contact, contact_phone, date, status, address, remark, items, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        const result = stmt.run(
+          data.no,
+          data.customer,
+          data.contact || '',
+          data.contactPhone || '',
+          data.date,
+          data.status || '待送达',
+          data.address || '',
+          data.remark || '',
+          data.items ? JSON.stringify(data.items) : '[]',
+          data.userId,
+          now,
+          now
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加送货单失败: ' + e.message }));
+      }
+    });
+  // 更新送货单：PUT /api/delivery-notes
+  } else if (pathname === '/api/delivery-notes' && req.method === 'PUT') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const updateFields = [];
+        const updateValues = [];
+        if (data.no !== undefined) { updateFields.push('no = ?'); updateValues.push(data.no); }
+        if (data.customer !== undefined) { updateFields.push('customer = ?'); updateValues.push(data.customer); }
+        if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
+        if (data.contactPhone !== undefined) { updateFields.push('contact_phone = ?'); updateValues.push(data.contactPhone); }
+        if (data.date !== undefined) { updateFields.push('date = ?'); updateValues.push(data.date); }
+        if (data.status !== undefined) { updateFields.push('status = ?'); updateValues.push(data.status); }
+        if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
+        if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
+        if (data.items !== undefined) { updateFields.push('items = ?'); updateValues.push(JSON.stringify(data.items)); }
+        updateFields.push('update_time = ?');
+        updateValues.push(new Date().toISOString());
+        updateValues.push(data.id);
+        const stmt = usersDb.prepare(`UPDATE delivery_notes SET ${updateFields.join(', ')} WHERE id = ?`);
+        stmt.run(...updateValues);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '送货单更新成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新送货单失败: ' + e.message }));
+      }
+    });
+  // 删除送货单：DELETE /api/delivery-notes
+  } else if (pathname === '/api/delivery-notes' && req.method === 'DELETE') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('DELETE FROM delivery_notes WHERE id = ?').run(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '送货单删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除送货单失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 出入库记录API ====================
+  // 获取出入库记录列表：GET /api/inventory-records
+  } else if (pathname === '/api/inventory-records' && req.method === 'GET') {
+    const userId = parsedUrl.query.userId;
+    if (!usersDb) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+      return;
+    }
+    try {
+      const records = usersDb.prepare('SELECT * FROM inventory_records WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: records }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取出入库记录失败: ' + e.message }));
+    }
+  // 添加出入库记录：POST /api/inventory-records
+  } else if (pathname === '/api/inventory-records' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.record_no || !data.product_name || !data.type || !data.quantity || !data.unit || !data.date || !data.operator || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '记录编号、商品名称、类型、数量、单位、日期、操作人和用户ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        const now = new Date().toISOString();
+        const stmt = usersDb.prepare(
+          'INSERT INTO inventory_records (record_no, product_name, product_code, type, quantity, unit, date, operator, remark, user_id, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        const result = stmt.run(
+          data.record_no,
+          data.product_name,
+          data.product_code || '',
+          data.type,
+          data.quantity,
+          data.unit,
+          data.date,
+          data.operator,
+          data.remark || '',
+          data.userId,
+          now
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加出入库记录失败: ' + e.message }));
+      }
+    });
+  // 删除出入库记录：DELETE /api/inventory-records
+  } else if (pathname === '/api/inventory-records' && req.method === 'DELETE') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '记录ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('DELETE FROM inventory_records WHERE id = ?').run(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '出入库记录删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除出入库记录失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 管理后台消息API ====================
+  // 获取站内消息：GET /api/admin/messages
+  } else if (pathname === '/api/admin/messages' && req.method === 'GET') {
+    if (!usersDb) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+      return;
+    }
+    try {
+      const messages = usersDb.prepare('SELECT * FROM admin_notifications ORDER BY create_time DESC').all();
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: messages }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取消息失败: ' + e.message }));
+    }
+  // 标记消息已读：POST /api/admin/messages/read
+  } else if (pathname === '/api/admin/messages/read' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '消息ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('UPDATE admin_notifications SET status = ? WHERE id = ?').run('read', data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '消息已标记为已读' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '标记消息失败: ' + e.message }));
+      }
+    });
+  // 删除消息：POST /api/admin/messages/delete
+  } else if (pathname === '/api/admin/messages/delete' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '消息ID为必填项' }));
+          return;
+        }
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        usersDb.prepare('DELETE FROM admin_notifications WHERE id = ?').run(data.id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '消息已删除' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除消息失败: ' + e.message }));
+      }
+    });
+
   } else {
     const filePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
     const fullPath = path.join(__dirname, filePath);
@@ -2207,7 +3986,7 @@ const server = http.createServer((req, res) => {
 // 初始化数据库
 initMainDb();
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3003;
 server.listen(PORT, () => {
   console.log(`\n========================================`);
   console.log(`支付服务器已启动`);
@@ -2227,5 +4006,7 @@ server.listen(PORT, () => {
   console.log(`  GET  /api/accounts/current     - 获取指定账套`);
   console.log(`  DELETE /api/accounts/:id       - 删除账套`);
   console.log(`  POST /api/accounts/:id/backup  - 手动触发云备份`);
+  console.log(`  GET  /api/accounts/:id/backups - 获取备份列表`);
+  console.log(`  POST /api/accounts/:id/restore - 恢复备份`);
   console.log(`========================================\n`);
 });

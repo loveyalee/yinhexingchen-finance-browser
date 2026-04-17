@@ -500,10 +500,16 @@
       padding: 18px;
       margin-bottom: 18px;
       border: 1px solid #e0e8f5;
+      overflow: visible;
     }
 
     #enterprise-fields .form-group {
       margin-bottom: 14px;
+      overflow: visible;
+    }
+
+    #enterprise-fields .input-wrapper {
+      overflow: visible;
     }
 
     #enterprise-fields .form-group:last-child {
@@ -515,15 +521,17 @@
       position: absolute;
       top: 100%;
       left: 0;
-      right: 0;
+      min-width: 100%;
+      width: max-content;
       background: #fff;
       border: 1px solid #e0e4e8;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       max-height: 280px;
       overflow-y: auto;
-      z-index: 1000;
-      margin-top: 4px;
+      overflow-x: hidden;
+      z-index: 9999;
+      margin-top: 2px;
     }
 
     .suggestion-item {
@@ -531,13 +539,17 @@
       cursor: pointer;
       border-bottom: 1px solid #f0f0f0;
       transition: background 0.2s;
+      background: #fff;
+      white-space: nowrap;
+      min-width: 300px;
     }
 
     .suggestion-item:last-child {
       border-bottom: none;
     }
 
-    .suggestion-item:hover {
+    .suggestion-item:hover,
+    .suggestion-item.focused {
       background: #f0f7ff;
     }
 
@@ -545,24 +557,68 @@
       font-weight: 600;
       color: #1a2332;
       font-size: 14px;
+      line-height: 1.4;
+      display: block;
     }
 
     .suggestion-item .credit-code {
       font-size: 12px;
       color: #888;
       margin-top: 4px;
+      display: block;
     }
 
-    .suggestion-item .legal-person {
-      font-size: 12px;
-      color: #666;
-      margin-top: 2px;
+    .suggestion-item .detail-info {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 3px;
+      display: block;
+    }
+
+    .suggestion-item .source-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .suggestion-item .source-badge.qcc {
+      background: #e6f7ff;
+      color: #1890ff;
+    }
+
+    .suggestion-item .source-badge.tianyancha {
+      background: #fff7e6;
+      color: #fa8c16;
+    }
+
+    .suggestion-item .source-badge.local {
+      background: #f6ffed;
+      color: #52c41a;
     }
 
     .suggestion-loading {
       padding: 20px;
       text-align: center;
       color: #888;
+    }
+
+    .suggestion-loading .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e0e4e8;
+      border-top-color: #388bfd;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* 响应式 */
@@ -627,7 +683,57 @@
         </div>
       </div>
 
-      <form id="register-form">
+      <form id="register-form" novalidate>
+        <!-- 企业用户注册字段（放在前面） -->
+        <div id="enterprise-fields" style="display: none;">
+          <div class="form-group">
+            <label for="enterprise-username">用户名</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#128100;</span>
+              <input type="text" id="enterprise-username" placeholder="请输入用户名（用于登录和显示）">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="enterprise-name">企业名称</label>
+            <div class="input-wrapper" style="position:relative;">
+              <span class="input-icon">&#127970;</span>
+              <input type="text" id="enterprise-name" placeholder="请输入企业名称（支持智能搜索）" autocomplete="off">
+              <div id="enterprise-suggestions" class="suggestions-dropdown" style="display:none;"></div>
+            </div>
+            <div id="enterprise-search-status" style="font-size:12px;color:#888;margin-top:4px;"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="enterprise-credit-code">统一社会信用代码</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#128196;</span>
+              <input type="text" id="enterprise-credit-code" placeholder="选择企业后自动生成" readonly style="background:#f8f9fb;">
+            </div>
+            <div style="font-size:12px;color:#888;margin-top:4px;">选择企业后自动填充</div>
+          </div>
+
+          <div class="form-group">
+            <label for="enterprise-industry">行业类型</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🏢</span>
+              <select id="enterprise-industry">
+                <option value="">请选择行业类型</option>
+                <option value="it">信息技术</option>
+                <option value="finance">金融</option>
+                <option value="education">教育</option>
+                <option value="healthcare">医疗健康</option>
+                <option value="retail">零售</option>
+                <option value="manufacturing">制造业</option>
+                <option value="service">服务业</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+          </div>
+
+          <input type="hidden" id="enterprise-selected-data" value="">
+        </div>
+
         <!-- 个人用户字段：用户名 -->
         <div class="form-group" id="username-field">
           <label for="username">用户名</label>
@@ -721,75 +827,9 @@
           </div>
         </div>
 
-        <!-- 企业用户注册字段 -->
-        <div id="enterprise-fields" style="display: none;">
-          <div class="form-group">
-            <label for="enterprise-username">用户名</label>
-            <div class="input-wrapper">
-              <span class="input-icon">&#128100;</span>
-              <input type="text" id="enterprise-username" placeholder="请输入用户名（用于登录和显示）">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="enterprise-name">企业名称</label>
-            <div class="input-wrapper" style="position:relative;">
-              <span class="input-icon">&#127970;</span>
-              <input type="text" id="enterprise-name" placeholder="请输入企业名称（支持智能搜索）" autocomplete="off">
-              <div id="enterprise-suggestions" class="suggestions-dropdown" style="display:none;"></div>
-            </div>
-            <div id="enterprise-search-status" style="font-size:12px;color:#888;margin-top:4px;"></div>
-          </div>
-
-          <div class="form-group">
-            <label for="enterprise-credit-code">统一社会信用代码</label>
-            <div class="input-wrapper">
-              <span class="input-icon">&#128196;</span>
-              <input type="text" id="enterprise-credit-code" placeholder="选择企业后自动生成" readonly style="background:#f8f9fb;">
-            </div>
-            <div style="font-size:12px;color:#888;margin-top:4px;">选择企业后自动填充</div>
-          </div>
-
-          <div class="form-group">
-            <label for="enterprise-legal-person">法定代表人</label>
-            <div class="input-wrapper">
-              <span class="input-icon">&#128100;</span>
-              <input type="text" id="enterprise-legal-person" placeholder="选择企业后自动填充" readonly style="background:#f8f9fb;">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="enterprise-address">注册地址</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🏠</span>
-              <input type="text" id="enterprise-address" placeholder="选择企业后自动填充" readonly style="background:#f8f9fb;">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="enterprise-industry">行业类型</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🏢</span>
-              <select id="enterprise-industry" required>
-                <option value="">请选择行业类型</option>
-                <option value="it">信息技术</option>
-                <option value="finance">金融</option>
-                <option value="education">教育</option>
-                <option value="healthcare">医疗健康</option>
-                <option value="retail">零售</option>
-                <option value="manufacturing">制造业</option>
-                <option value="service">服务业</option>
-                <option value="other">其他</option>
-              </select>
-            </div>
-          </div>
-
-          <input type="hidden" id="enterprise-selected-data" value="">
-        </div>
-
         <div class="form-actions">
           <label>
-            <input type="checkbox" required> 我已阅读并同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a>
+            <input type="checkbox" id="agree-terms"> 我已阅读并同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a>
           </label>
           <label style="margin-top:10px;display:flex;align-items:center;">
             <input type="checkbox" id="sync-chat-account" style="margin-right:8px;"> 同步注册蜻蜓Chat账号（账号为纯数字）
@@ -873,12 +913,11 @@
         selectedEnterprise = null;
         document.getElementById('enterprise-selected-data').value = '';
         document.getElementById('enterprise-credit-code').value = '';
-        document.getElementById('enterprise-legal-person').value = '';
-        document.getElementById('enterprise-address').value = '';
 
         if (keyword.length < 2) {
           suggestionsDiv.style.display = 'none';
-          statusDiv.textContent = '';
+          statusDiv.textContent = keyword.length === 1 ? '请继续输入企业名称（至少2个字）' : '';
+          statusDiv.style.color = '#aaa';
           return;
         }
 
@@ -888,7 +927,33 @@
         // 延迟搜索，避免频繁请求
         enterpriseSearchTimer = setTimeout(function() {
           searchEnterprise(keyword);
-        }, 500);
+        }, 400);
+      });
+
+      // 键盘上下键导航下拉列表
+      enterpriseNameInput.addEventListener('keydown', function(e) {
+        var items = suggestionsDiv.querySelectorAll('.suggestion-item');
+        if (!items.length || suggestionsDiv.style.display === 'none') return;
+        var focused = suggestionsDiv.querySelector('.suggestion-item.focused');
+        var idx = focused ? Array.prototype.indexOf.call(items, focused) : -1;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (focused) focused.classList.remove('focused');
+          idx = (idx + 1) % items.length;
+          items[idx].classList.add('focused');
+          items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (focused) focused.classList.remove('focused');
+          idx = (idx - 1 + items.length) % items.length;
+          items[idx].classList.add('focused');
+          items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && focused) {
+          e.preventDefault();
+          focused.click();
+        } else if (e.key === 'Escape') {
+          suggestionsDiv.style.display = 'none';
+        }
       });
 
       // 点击其他地方关闭下拉
@@ -904,14 +969,21 @@
       var suggestionsDiv = document.getElementById('enterprise-suggestions');
       var statusDiv = document.getElementById('enterprise-search-status');
 
+      // 显示加载状态
+      suggestionsDiv.innerHTML = '<div class="suggestion-loading"><span class="loading-spinner"></span>正在搜索企业信息...</div>';
+      suggestionsDiv.style.display = 'block';
+      statusDiv.textContent = '正在从企业数据库查询...';
+      statusDiv.style.color = '#388bfd';
+
       // 调用后端API搜索企业
       fetch('/api/enterprise/search?keyword=' + encodeURIComponent(keyword))
         .then(function(resp) { return resp.json(); })
         .then(function(result) {
           if (result.success && result.data && result.data.length > 0) {
-            statusDiv.textContent = '找到 ' + result.data.length + ' 个相关企业';
+            var sourceText = result.source === 'external' ? '（来自外部企业数据库）' : '';
+            statusDiv.textContent = '找到 ' + result.data.length + ' 个相关企业' + sourceText;
             statusDiv.style.color = '#27ae60';
-            renderEnterpriseSuggestions(result.data);
+            renderEnterpriseSuggestions(result.data, result.source);
           } else {
             statusDiv.textContent = '未找到相关企业，请检查企业名称';
             statusDiv.style.color = '#e74c3c';
@@ -926,15 +998,35 @@
     }
 
     // 渲染企业搜索建议
-    function renderEnterpriseSuggestions(enterprises) {
+    function renderEnterpriseSuggestions(enterprises, source) {
       var suggestionsDiv = document.getElementById('enterprise-suggestions');
       var html = '';
 
       enterprises.forEach(function(ent, index) {
+        var sourceBadge = '';
+        if (ent.source === 'qcc') {
+          sourceBadge = '<span class="source-badge qcc">企查查</span>';
+        } else if (ent.source === 'tianyancha') {
+          sourceBadge = '<span class="source-badge tianyancha">天眼查</span>';
+        } else if (source === 'local') {
+          sourceBadge = '<span class="source-badge local">本地</span>';
+        }
+
+        var detailInfo = '';
+        if (ent.legalPerson) {
+          detailInfo += '法人：' + ent.legalPerson;
+        }
+        if (ent.regCapital) {
+          detailInfo += (detailInfo ? ' | ' : '') + '注册资本：' + ent.regCapital;
+        }
+        if (ent.status) {
+          detailInfo += (detailInfo ? ' | ' : '') + '状态：' + ent.status;
+        }
+
         html += '<div class="suggestion-item" onclick="selectEnterprise(' + index + ')" data-index="' + index + '">' +
-          '<div class="name">' + ent.name + '</div>' +
+          '<div class="name">' + ent.name + sourceBadge + '</div>' +
           '<div class="credit-code">统一社会信用代码：' + ent.creditCode + '</div>' +
-          '<div class="legal-person">法定代表人：' + (ent.legalPerson || '-') + '</div>' +
+          (detailInfo ? '<div class="detail-info">' + detailInfo + '</div>' : '') +
           '</div>';
       });
 
@@ -955,8 +1047,6 @@
       // 填充表单
       document.getElementById('enterprise-name').value = enterprise.name;
       document.getElementById('enterprise-credit-code').value = enterprise.creditCode;
-      document.getElementById('enterprise-legal-person').value = enterprise.legalPerson || '';
-      document.getElementById('enterprise-address').value = enterprise.address || '';
       document.getElementById('enterprise-selected-data').value = JSON.stringify(enterprise);
 
       // 隐藏下拉
@@ -997,6 +1087,9 @@
         return;
       }
       var btn = document.getElementById('send-code-btn');
+      btn.disabled = true;
+      btn.textContent = '发送中...';
+
       fetch('/api/sms/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1006,15 +1099,16 @@
       }).then(function(result) {
         if (!result.success) {
           alert(result.message || '验证码发送失败');
+          btn.disabled = false;
+          btn.textContent = '获取验证码';
           return;
         }
-        btn.disabled = true;
         btn.style.opacity = '0.6';
         var countdown = 60;
-        btn.textContent = countdown + 's';
+        btn.textContent = '验证码已发送 ' + countdown + 's';
         var timer = setInterval(function() {
           countdown--;
-          btn.textContent = countdown + 's';
+          btn.textContent = '验证码已发送 ' + countdown + 's';
           if (countdown <= 0) {
             clearInterval(timer);
             btn.textContent = '获取验证码';
@@ -1022,21 +1116,21 @@
             btn.style.opacity = '1';
           }
         }, 1000);
-        var msg = result.message || '验证码已发送';
-        if (result.debugCode) msg += '（测试验证码：' + result.debugCode + '）';
+        // 显示测试验证码（不弹窗）
         var debugBanner = document.getElementById('register-debug-code');
         if (debugBanner) {
           if (result.mode === 'debug' && result.debugCode) {
-            debugBanner.textContent = '当前为测试模式，短信未实际发送。请直接使用验证码：' + result.debugCode;
+            debugBanner.textContent = '验证码已发送，测试模式验证码：' + result.debugCode;
             debugBanner.classList.add('show');
           } else {
-            debugBanner.textContent = '';
-            debugBanner.classList.remove('show');
+            debugBanner.textContent = '验证码已发送到您的手机';
+            debugBanner.classList.add('show');
           }
         }
-        alert(msg);
       }).catch(function(err) {
         alert('验证码发送失败：' + err.message);
+        btn.disabled = false;
+        btn.textContent = '获取验证码';
       });
     }
 
@@ -1068,12 +1162,16 @@
 
       registerForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('注册表单提交');
+
         var username = document.getElementById('username').value;
         var phone = document.getElementById('phone').value;
         var verificationCode = document.getElementById('verification-code').value;
         var password = document.getElementById('password').value;
         var confirmPassword = document.getElementById('confirm-password').value;
         var userType = document.querySelector('input[name="user-type"]:checked').value;
+
+        console.log('用户类型:', userType, '手机号:', phone);
 
         // 个人用户必须填写用户名
         if (userType === 'personal' && !username) {
@@ -1091,6 +1189,12 @@
 
         if (!phone || !verificationCode || !password || !confirmPassword) {
           alert('请填写所有必填字段');
+          return;
+        }
+
+        // 检查是否勾选协议
+        if (!document.getElementById('agree-terms').checked) {
+          alert('请阅读并同意《用户协议》和《隐私政策》');
           return;
         }
 
@@ -1120,6 +1224,8 @@
           syncChatAccount: document.getElementById('sync-chat-account').checked // 是否同步注册蜻蜓Chat
         };
 
+        console.log('请求数据:', requestData);
+
         // 企业用户额外数据
         if (userType === 'enterprise' && selectedEnterprise) {
           var enterpriseUsername = document.getElementById('enterprise-username').value.trim();
@@ -1143,6 +1249,12 @@
           requestData.contactPerson = document.getElementById('contact-person').value;
         }
 
+        // 显示加载状态
+        var submitBtn = document.querySelector('.btn-register');
+        var originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '注册中...';
+
         fetch('/api/users/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1150,6 +1262,8 @@
         }).then(function(resp) {
           return resp.json();
         }).then(function(result) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
           if (!result.success) {
             alert(result.message || '注册失败');
             return;
@@ -1168,6 +1282,8 @@
           alert(successMessage);
           window.location.href = 'login.html';
         }).catch(function(err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
           alert('注册失败：' + err.message);
         });
       });

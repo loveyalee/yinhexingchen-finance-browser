@@ -538,7 +538,7 @@
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); event.stopPropagation(); return false;">进销存</a></li>
             <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
             <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
@@ -892,7 +892,7 @@
       const moduleMap = {
         'contract-management': 'finance_software.html',
         'seal-management': 'finance_software.html',
-        'inventory-management': 'finance_software.html',
+        'inventory-management': 'inventory_management.html',
         'company-management': 'member.html',
         'financing-bank': 'online_store.html',
         'financing-equity': 'online_store.html',

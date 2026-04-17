@@ -13,7 +13,8 @@
     
     body {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
       color: #333;
     }
     
@@ -24,9 +25,11 @@
     
     .sidebar {
       width: 240px;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
     }
     
     .logo {
@@ -76,7 +79,7 @@
     .submenu {
       position: relative;
       width: 100%;
-      background-color: #2c3e50;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
@@ -85,7 +88,11 @@
       margin-top: 5px;
     }
     
-    .nav-item.has-submenu.active .submenu {
+    .nav-item.has-submenu.active > .submenu {
+      display: block;
+    }
+    
+    .submenu-item.has-submenu.active > .submenu {
       display: block;
     }
     
@@ -98,11 +105,17 @@
       padding: 10px 15px;
       color: white;
       text-decoration: none;
+      border-radius: 4px;
       transition: background-color 0.3s;
     }
     
     .submenu-item a:hover {
       background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .submenu-item .submenu {
+      margin-left: 20px;
+      margin-top: 5px;
     }
     
     .main-content {
@@ -114,7 +127,7 @@
     .header {
       height: 60px;
       background-color: white;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -128,10 +141,11 @@
     
     .content-area {
       flex: 1;
-      padding: 40px;
+      padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow-y: auto;
     }
     
     .payment-container {
@@ -375,36 +389,71 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item"><a href="tax_reporting.html">一键报税</a></li>
-        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
-        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
-        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
-        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
-        <li class="nav-item"><a href="cloud_chat.html">云盘</a></li>
-        <li class="nav-item"><a href="smart_assistant.html">智能财务助手</a></li>
-        <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
-        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
-        <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
+          </ul>
+        </li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="enterprise_management.html">公司管理</a></li>
-            <li class="submenu-item"><a href="enterprise_management.html">财务管理</a></li>
-            <li class="submenu-item"><a href="enterprise_management.html">企业融资</a></li>
-            <li class="submenu-item"><a href="enterprise_management.html">招投标管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
+              </ul>
+            </li>
+            <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
-        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">财务快聘·个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">财务快聘·企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -494,6 +543,43 @@
   <script src="payment-config.js"></script>
   <script src="payment.js"></script>
   <script>
+    function closeSiblingMenus(navItem) {
+      const isTopLevel = navItem.classList.contains('nav-item');
+      const siblingSelector = isTopLevel ? ':scope > .nav-item.has-submenu' : ':scope > .submenu-item.has-submenu';
+      const container = navItem.parentElement;
+      if (!container) return;
+
+      container.querySelectorAll(siblingSelector).forEach(item => {
+        if (item === navItem) return;
+        item.classList.remove('active');
+        item.querySelectorAll('.submenu-item.has-submenu').forEach(child => child.classList.remove('active'));
+      });
+    }
+
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (!navItem) return;
+
+      const willOpen = !navItem.classList.contains('active');
+      if (willOpen) {
+        closeSiblingMenus(navItem);
+      }
+
+      navItem.classList.toggle('active', willOpen);
+
+      if (!willOpen) {
+        navItem.querySelectorAll('.submenu-item.has-submenu').forEach(item => {
+          item.classList.remove('active');
+        });
+      }
+    };
+
+    document.querySelectorAll('.submenu-item a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    });
+
     // 切换"我的会员"二级菜单并跳转到个人中心
     function toggleMemberSubmenu(element) {
       const navItem = element.closest('.nav-item.has-submenu');
@@ -517,6 +603,22 @@
         window.location.href = 'login.html';
       }
     }
+
+    window.showModule = function(moduleName) {
+      if (moduleName === 'inventory-management') {
+        window.location.href = 'inventory_management.html';
+      } else if (moduleName.startsWith('tax-')) {
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        window.location.href = 'enterprise_management.html';
+      } else if (moduleName === 'company-management' || moduleName === 'bidding') {
+        window.location.href = 'enterprise_management.html';
+      } else if (moduleName === 'finance-management') {
+        window.location.href = 'finance_management.html';
+      } else {
+        window.location.href = 'finance_management.html';
+      }
+    };
 
     // 实名认证弹窗
     function showRealNameAuth() {

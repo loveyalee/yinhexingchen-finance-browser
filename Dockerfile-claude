@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+LABEL maintainer="银河星辰"
+LABEL description="Claude Code CLI 容器"
+
+WORKDIR /app
+
+RUN apk add --no-cache curl git bash
+
+RUN npm install -g @anthropic-ai/claude-code
+
+ENV PATH="/root/.local/share/claude-desktop:${PATH}"
+
+CMD ["claude"]

@@ -2,9 +2,12 @@
   "name": "yinhexingchen",
   "version": "1.0.0",
   "description": "银河星辰平台",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
+    "desktop": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "dist": "electron-builder",
     "pm2": "pm2 start server.js --name yinhexingchen",
     "stop": "pm2 stop yinhexingchen",
     "restart": "pm2 restart yinhexingchen",
@@ -21,10 +24,17 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "docx": "^9.6.1",
+    "electron-log": "^5.4.1",
+    "electron-updater": "^6.6.2",
     "express": "^4.17.1",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^8.5.1",
+    "mysql2": "^3.22.0",
     "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "electron": "^35.1.4",
+    "electron-builder": "^26.0.12"
   },
   "keywords": [
     "yinhexingchen",
@@ -42,5 +52,45 @@
   "bugs": {
     "url": "https://github.com/loveyalee/yinhexingchen-finance-browser/issues"
   },
-  "homepage": "https://github.com/loveyalee/yinhexingchen-finance-browser#readme"
+  "homepage": "https://github.com/loveyalee/yinhexingchen-finance-browser#readme",
+  "build": {
+    "appId": "com.yinhexingchen.desktop",
+    "productName": "银河星辰财务浏览器",
+    "artifactName": "yinhexingchen-${version}.${ext}",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "**/*",
+      "!db/**",
+      "!release/**",
+      "!server/**",
+      "!node_modules/.cache/**",
+      "!*.log"
+    ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://zonya.work/releases/"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
 }

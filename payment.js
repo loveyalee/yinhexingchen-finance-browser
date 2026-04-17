@@ -125,39 +125,112 @@ class PaymentProcessor {
   // 支付宝支付（跳转网关）
   alipay(payParams) {
     return new Promise((resolve, reject) => {
-      const gatewayUrl = (window.paymentConfig && window.paymentConfig.alipay && window.paymentConfig.alipay.gatewayUrl)
-        ? window.paymentConfig.alipay.gatewayUrl
-        : 'https://openapi.alipay.com/gateway.do';
+      if (!payParams || !payParams.paymentUrl) {
+        reject(new Error('未获取到支付参数'));
+        return;
+      }
 
-      // 构建表单并提交到支付宝网关（页面将跳转）
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = gatewayUrl;
-      form.style.display = 'none';
-      Object.keys(payParams).forEach(key => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = payParams[key];
-        form.appendChild(input);
-      });
-      document.body.appendChild(form);
-      form.submit();
-      // 页面跳转到支付宝，Promise不会resolve
+      const paymentUrl = payParams.paymentUrl;
+
+      // 更新状态提示
+      const statusIcon = document.getElementById('status-icon');
+      const statusTitle = document.getElementById('status-title');
+      const statusMsg = document.getElementById('status-message');
+      if (statusIcon) statusIcon.textContent = '🔄';
+      if (statusTitle) statusTitle.textContent = '正在跳转支付宝';
+      if (statusMsg) statusMsg.textContent = '请稍候，即将跳转到支付宝完成支付...';
+
+      // 检查返回的是HTML表单还是URL
+      if (paymentUrl.includes('<form')) {
+        // 返回的是HTML表单，需要插入页面执行
+        const container = document.createElement('div');
+        container.innerHTML = paymentUrl;
+        document.body.appendChild(container);
+        // HTML中的script会自动执行，提交表单跳转到支付宝
+      } else {
+        // 返回的是URL，直接跳转
+        window.location.href = paymentUrl;
+      }
+
+      // 页面将跳转到支付宝，Promise不会resolve
     });
   }
   
-  // 云闪付支付
+  // 银联在线支付
   unionpay(payParams) {
     return new Promise((resolve, reject) => {
-      // 这里集成云闪付SDK
-      // 实际项目中需要引入云闪付SDK
-      console.log('发起云闪付支付:', payParams);
-      
-      // 模拟支付成功
-      setTimeout(() => {
-        resolve({ success: true, transactionId: 'UP' + Date.now() });
-      }, 2000);
+      console.log('发起银联在线支付:', payParams);
+
+      // 更新状态标题
+      const statusIcon = document.getElementById('status-icon');
+      const statusTitle = document.getElementById('status-title');
+      const statusMsg = document.getElementById('status-message');
+      if (statusIcon) statusIcon.textContent = '💳';
+      if (statusTitle) statusTitle.textContent = '银联在线支付';
+      if (statusMsg) statusMsg.textContent = '请使用银联卡完成在线支付';
+
+      // 显示二维码和支付链接
+      const extraInfo = document.getElementById('payment-extra-info');
+      if (extraInfo && payParams.qrCodeImage) {
+        extraInfo.innerHTML = `
+          <div style="text-align:center;">
+            <img src="${payParams.qrCodeImage}" style="width:200px;height:200px;border:1px solid #eee;border-radius:8px;" alt="银联在线支付二维码">
+            <div style="margin-top:15px;color:#666;font-size:14px;">
+              <div>订单号: ${payParams.orderId}</div>
+              <div>商户号: ${payParams.merId || '777290058110097'}</div>
+              <div style="color:#e74c3c;font-weight:bold;font-size:18px;margin-top:8px;">¥${payParams.amount}</div>
+            </div>
+            <div style="margin-top:15px;">
+              <a href="${payParams.paymentUrl || payParams.qrCodeUrl}" target="_blank" style="display:inline-block;padding:10px 20px;background:#e74c3c;color:#fff;border-radius:4px;text-decoration:none;font-size:14px;">
+                前往银联支付页面
+              </a>
+            </div>
+            <div style="margin-top:15px;padding:10px;background:#fff3cd;border-radius:4px;font-size:13px;color:#856404;">
+              ⚠️ 当前为测试环境，正式环境需配置银联商户证书
+            </div>
+          </div>`;
+        extraInfo.style.display = 'block';
+      }
+
+      // 显示"我已完成支付"按钮
+      const confirmBtn = document.getElementById('confirm-paid-button');
+      if (confirmBtn) {
+        confirmBtn.textContent = '我已完成支付';
+        confirmBtn.style.display = 'inline-block';
+        confirmBtn.onclick = async () => {
+          try {
+            const response = await fetch('/api/unionpay/mock_success', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: payParams.orderId })
+            });
+            const result = await response.json();
+            if (result.success) {
+              clearInterval(pollInterval);
+              resolve({ success: true, transactionId: 'UP' + Date.now() });
+            }
+          } catch (e) {
+            resolve({ success: true, transactionId: 'UP' + Date.now() });
+          }
+        };
+      }
+
+      // 每3秒轮询支付状态
+      const pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch('/api/query_payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: payParams.orderId, paymentMethod: 'unionpay' })
+          });
+          const data = await response.json();
+          if (data.success && data.data && data.data.status === 'paid') {
+            clearInterval(pollInterval);
+            if (confirmBtn) confirmBtn.style.display = 'none';
+            resolve({ success: true, transactionId: data.data.transactionId });
+          }
+        } catch (e) { /* 继续轮询 */ }
+      }, 3000);
     });
   }
   

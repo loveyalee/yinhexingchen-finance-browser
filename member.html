@@ -75,25 +75,40 @@
     .nav-item.has-submenu > a::after {
       content: '▼';
       float: right;
-      font-size: 12px;
+      font-size: 10px;
       margin-left: 5px;
+      display: inline-block;
+      transition: transform 0.3s ease;
     }
-    
+
+    /* 箭头旋转表示已展开 */
+    .nav-item.has-submenu.active > a::after {
+      transform: rotate(-180deg);
+    }
+
     .submenu {
-      position: absolute;
+      position: relative;
       left: 0;
-      top: 100%;
       width: 100%;
-      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
+      background: rgba(0, 0, 0, 0.18);
+      border-left: 3px solid rgba(200, 146, 26, 0.6);
       border-radius: 0 0 4px 4px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      display: none;
-      z-index: 1000;
       list-style: none;
+      /* 折叠状态：高度为0，不可见 */
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.25s ease,
+                  transform 0.25s ease;
     }
-    
-    .nav-item.has-submenu:hover .submenu {
-      display: block;
+
+    /* 展开状态 */
+    .nav-item.has-submenu.active > .submenu {
+      max-height: 600px;
+      opacity: 1;
+      transform: translateY(0);
     }
     
     .submenu-item {
@@ -1345,7 +1360,6 @@
       background: rgba(255,255,255,0.10) !important;
       padding-left: 18px !important;
     }
-    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
     .submenu-item a { transition: all 0.2s !important; }
     .header {
       backdrop-filter: blur(8px) !important;
@@ -1393,7 +1407,6 @@
     }
     .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
     .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
-    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
     .header {
       backdrop-filter: blur(8px) !important;
       box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
@@ -1418,13 +1431,13 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
-            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
-            <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
-            <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -1450,7 +1463,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
@@ -1461,8 +1474,8 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">财务快聘·个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">财务快聘·企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">财务快聘·个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">财务快聘·企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
@@ -1474,9 +1487,9 @@
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
         <li class="nav-item has-submenu active">
-          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;" id="member-menu-title">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html" class="active">个人中心</a></li>
+            <li class="submenu-item"><a href="member.html" class="active" onclick="event.stopPropagation();" id="member-center-link">个人中心</a></li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
@@ -1502,19 +1515,19 @@
               <input type="file" id="avatar-input" accept="image/*" onchange="handleAvatarUpload(event)">
             </div>
             <div class="member-info">
-              <h2 id="member-nickname">张三</h2>
-              <div class="member-level">黄金会员</div>
+              <h2 id="member-nickname">-</h2>
+              <div class="member-level">-</div>
               <div class="member-stats">
                 <div class="stat-item">
-                  <div class="stat-value">128</div>
+                  <div class="stat-value" id="member-points">-</div>
                   <div class="stat-label">会员积分</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-value">2026-12-31</div>
+                  <div class="stat-value" id="member-expiry">-</div>
                   <div class="stat-label">会员到期</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-value" id="credit-score">85</div>
+                  <div class="stat-value" id="credit-score">-</div>
                   <div class="stat-label">信用分</div>
                 </div>
                 <div class="stat-item">
@@ -1522,7 +1535,7 @@
                   <div class="stat-label">账户余额</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-value">3</div>
+                  <div class="stat-value" id="exclusive-services">-</div>
                   <div class="stat-label">专属服务</div>
                 </div>
               </div>
@@ -1549,11 +1562,11 @@
             <div class="space-bio" id="space-bio">暂无个人简介</div>
             <div class="space-stats">
               <div class="space-stat">
-                <div class="space-stat-value">128</div>
+                <div class="space-stat-value" id="space-points">-</div>
                 <div class="space-stat-label">积分</div>
               </div>
               <div class="space-stat">
-                <div class="space-stat-value">85</div>
+                <div class="space-stat-value" id="space-credit">-</div>
                 <div class="space-stat-label">信用分</div>
               </div>
               <div class="space-stat">
@@ -1908,21 +1921,140 @@
   </div>
   
   <script>
+    // 检查登录状态
+    function checkLoginStatus() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+      if (!userInfo || !userInfo.isLoggedIn) {
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
+    
+    // 自定义登录提示弹窗（替代 alert，避免显示域名）
+    function showLoginPromptModal() {
+      const overlay = document.createElement('div');
+      overlay.id = 'login-prompt-overlay';
+      overlay.style.cssText = [
+        'position:fixed;top:0;left:0;width:100%;height:100%;',
+        'background:rgba(0,0,0,0.55);display:flex;align-items:center;',
+        'justify-content:center;z-index:99999;'
+      ].join('');
+
+      overlay.innerHTML = `
+        <div style="
+          background:#fff;border-radius:14px;padding:36px 32px 28px;
+          width:360px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.25);
+          text-align:center;
+        ">
+          <div style="font-size:44px;margin-bottom:12px;">🔒</div>
+          <h3 style="margin:0 0 10px;color:#1a2d42;font-size:20px;font-weight:700;">请先登录</h3>
+          <p style="margin:0 0 28px;color:#64748b;font-size:14px;line-height:1.6;">
+            您还未登录，需要登录后才能访问个人中心。
+          </p>
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <button id="login-prompt-cancel" style="
+              flex:1;padding:11px 0;border:1px solid #e2e8f0;border-radius:8px;
+              background:#f8fafc;color:#64748b;font-size:14px;font-weight:500;cursor:pointer;
+            ">取消</button>
+            <button id="login-prompt-confirm" style="
+              flex:1;padding:11px 0;border:none;border-radius:8px;
+              background:linear-gradient(135deg,#1a65b8,#124fa0);
+              color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+            ">立即登录</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      document.getElementById('login-prompt-confirm').addEventListener('click', function() {
+        window.location.href = 'login.html';
+      });
+      document.getElementById('login-prompt-cancel').addEventListener('click', function() {
+        overlay.remove();
+      });
+    }
+
+    // 更新会员等级及所有会员信息显示
+    function updateMemberLevel() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const memberLevelElement = document.querySelector('.member-level');
+
+      // 服务端返回 snake_case 字段名
+      const memberExpiry = userInfo.member_expiry || userInfo.memberExpiry;
+      const memberPoints = userInfo.member_points !== undefined ? userInfo.member_points : (userInfo.memberPoints || 0);
+      const creditScore = userInfo.credit_score !== undefined ? userInfo.credit_score : (userInfo.creditScore || 0);
+      const accountBalance = userInfo.account_balance !== undefined ? userInfo.account_balance : (userInfo.accountBalance || 0);
+      const exclusiveServices = userInfo.exclusive_services !== undefined ? userInfo.exclusive_services : (userInfo.exclusiveServices || 0);
+
+      // 填充各字段
+      const pointsEl = document.getElementById('member-points');
+      const expiryEl = document.getElementById('member-expiry');
+      const creditEl = document.getElementById('credit-score');
+      const balanceEl = document.getElementById('wallet-balance');
+      const servicesEl = document.getElementById('exclusive-services');
+
+      if (pointsEl) pointsEl.textContent = memberPoints;
+      if (expiryEl) expiryEl.textContent = memberExpiry || '-';
+      if (creditEl) creditEl.textContent = creditScore || '-';
+      if (balanceEl) balanceEl.textContent = '¥' + (parseFloat(accountBalance) || 0).toFixed(2);
+      if (servicesEl) servicesEl.textContent = exclusiveServices || '-';
+
+      if (memberLevelElement) {
+        // 检查会员是否过期
+        let isMemberExpired = true;
+        if (memberExpiry) {
+          isMemberExpired = new Date(memberExpiry) < new Date();
+        }
+
+        // 根据积分和过期时间确定会员等级
+        let memberLevel = '普通会员';
+        if (!isMemberExpired) {
+          if (memberPoints >= 1000) {
+            memberLevel = '钻石会员';
+          } else if (memberPoints >= 500) {
+            memberLevel = '黄金会员';
+          } else if (memberPoints >= 100) {
+            memberLevel = '白银会员';
+          }
+        }
+        memberLevelElement.textContent = memberLevel;
+      }
+    }
+
+    // 登录检查由 DOMContentLoaded 的自定义弹窗统一处理
+    window.onload = function() {};
+    
     // 当前账单筛选类型
     let currentTransactionFilter = 'all';
     
-    // 切换"我的会员"二级菜单
-    function toggleMemberSubmenu(element) {
+    // 通用侧边栏二级菜单切换（点击展开/折叠，同级其他菜单自动收起）
+    function toggleSubmenu(element) {
       const navItem = element.closest('.nav-item.has-submenu');
-      if (navItem) {
-        navItem.classList.toggle('active');
-      }
+      if (!navItem) return;
+      const isActive = navItem.classList.contains('active');
+      // 关闭同级所有已展开的菜单
+      const parent = navItem.closest('ul') || navItem.parentElement;
+      parent.querySelectorAll(':scope > .nav-item.has-submenu.active').forEach(function(el) {
+        if (el !== navItem) el.classList.remove('active');
+      });
+      // 切换当前菜单
+      navItem.classList.toggle('active', !isActive);
+    }
+
+    // 会员菜单复用同一逻辑
+    function toggleMemberSubmenu(element) {
+      toggleSubmenu(element);
     }
     
     // 处理退出登录
     function handleLogout() {
       if (confirm('确定要退出登录吗？')) {
         // 清除本地存储的登录信息
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('currentUserDb');
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userProfile');
         localStorage.removeItem('userWallet');
@@ -2007,6 +2139,13 @@
         userInfo.realNameVerified = true;
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
+        // 更新 userProfile 并刷新页面显示
+        userProfile.nickname = name;
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        document.getElementById('member-nickname').textContent = name;
+        document.getElementById('space-nickname').textContent = name;
+        updateAvatarDisplay();
+
         alert('实名认证成功！');
         modal.remove();
       });
@@ -2049,12 +2188,30 @@
       }
     }
     
-    // 用户资料数据
-    let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
-      nickname: '张三',
-      avatar: null,
-      bio: ''
-    };
+    // 用户资料数据 - 优先从登录信息获取
+    function initUserProfile() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+
+      // 根据用户类型确定显示名称
+      let displayName = '用户';
+      if (userInfo.userType === 'enterprise') {
+        displayName = userInfo.enterpriseName || userInfo.username || userInfo.phone || '企业用户';
+      } else if (userInfo.userType === 'institution') {
+        displayName = userInfo.institutionName || userInfo.username || userInfo.phone || '机构用户';
+      } else {
+        displayName = userInfo.username || userInfo.phone || '用户';
+      }
+
+      return {
+        nickname: savedProfile.nickname || displayName,
+        avatar: savedProfile.avatar || null,
+        bio: savedProfile.bio || '',
+        userType: userInfo.userType || 'personal'
+      };
+    }
+
+    let userProfile = initUserProfile();
     
     // 头像上传处理
     function handleAvatarUpload(event) {
@@ -2159,6 +2316,14 @@
       document.getElementById('space-nickname').textContent = userProfile.nickname;
       document.getElementById('space-bio').textContent = userProfile.bio || '暂无个人简介';
       updateAvatarDisplay();
+      // 同步积分和信用分
+      const _ui = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const _pts = _ui.member_points !== undefined ? _ui.member_points : (_ui.memberPoints || 0);
+      const _crd = _ui.credit_score !== undefined ? _ui.credit_score : (_ui.creditScore || 0);
+      const spEl = document.getElementById('space-points');
+      const scEl = document.getElementById('space-credit');
+      if (spEl) spEl.textContent = _pts;
+      if (scEl) scEl.textContent = _crd || '-';
       
       // 初始化照片墙、视频墙和日记
       renderPhotos();
@@ -2444,11 +2609,60 @@
         renderDiaries();
       }
     }
-    
+
+    // 根据用户类型更新菜单显示
+    function updateMenuByUserType() {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const userType = userInfo.userType || 'personal';
+
+        const memberMenuTitle = document.getElementById('member-menu-title');
+        const memberCenterLink = document.getElementById('member-center-link');
+
+        if (userType === 'enterprise') {
+          // 企业用户
+          if (memberMenuTitle) memberMenuTitle.textContent = '企业会员';
+          if (memberCenterLink) memberCenterLink.textContent = '企业会员';
+          // 更新页面标题
+          document.querySelector('.header h1').textContent = '企业会员';
+        } else if (userType === 'institution') {
+          // 第三方机构用户
+          if (memberMenuTitle) memberMenuTitle.textContent = '机构会员';
+          if (memberCenterLink) memberCenterLink.textContent = '机构会员中心';
+          document.querySelector('.header h1').textContent = '机构会员中心';
+        } else {
+          // 个人用户
+          if (memberMenuTitle) memberMenuTitle.textContent = '我的会员';
+          if (memberCenterLink) memberCenterLink.textContent = '个人中心';
+          document.querySelector('.header h1').textContent = '我的会员';
+        }
+      } catch (e) {
+        console.error('更新菜单失败:', e);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+      // 检查登录状态（兼容旧版登录数据，旧版可能未设置isLoggedIn但有id字段）
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+      if (!userInfo || (!userInfo.isLoggedIn && !userInfo.id)) {
+        showLoginPromptModal();
+        return;
+      }
+      // 补全isLoggedIn字段确保一致性
+      if (userInfo && !userInfo.isLoggedIn) {
+        userInfo.isLoggedIn = true;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      }
+
+      // 根据用户类型更新菜单显示
+      updateMenuByUserType();
+
       // 初始化用户资料显示
       updateAvatarDisplay();
       document.getElementById('member-nickname').textContent = userProfile.nickname;
+      
+      // 更新会员等级显示
+      updateMemberLevel();
       
       // 点击模态框外部关闭
       document.getElementById('edit-modal').addEventListener('click', function(e) {
@@ -2487,6 +2701,12 @@
         logoutBtn.addEventListener('click', function(e) {
           e.preventDefault();
           if (confirm('确定要退出登录吗？')) {
+            // 清除本地存储的登录信息
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userProfile');
+            localStorage.removeItem('userWallet');
+            localStorage.removeItem('userTransactions');
+            localStorage.removeItem('userInfo');
             // 跳转到登录页面
             window.location.href = 'login.html';
           }
@@ -2782,6 +3002,8 @@
       updateCreditScore();
     });
   </script>
+  <!-- 引用用户菜单动态更新 -->
+  <script src="user_menu.js"></script>
 <!-- 引用蜻蜓聊天器 -->
   <script src="chat_float.js"></script>
   <!-- 引用小雅客服 -->

@@ -70,7 +70,7 @@
     }
     
     .nav-item.has-submenu > a::after {
-      content: ';
+      content: '▼';
       float: right;
       font-size: 12px;
       margin-left: 5px;
@@ -801,42 +801,42 @@
               <div class="tool-card">
                 <div class="tool-icon">🏦</div>
                 <div class="tool-title">银行对账</div>
-                <div class="tool-description">上传银行对账单，自动与企业账务进行对/div>
+                <div class="tool-description">上传银行对账单，自动与企业账务进行对账</div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
-                    <label>上传银行对账/label>
+                    <label>上传银行对账单</label>
                     <input type="file" accept=".csv,.xlsx">
                   </div>
-                  <button class="btn btn-success">开始对/button>
+                  <button class="btn btn-success">开始对账</button>
                 </div>
               </div>
               <div class="tool-card">
                 <div class="tool-icon">🧮</div>
-                <div class="tool-title">财务计算/div>
+                <div class="tool-title">财务计算</div>
                 <div class="tool-description">提供各种财务计算功能，如现值、终值、年金等</div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
                     <label>计算类型</label>
                     <select>
-                      <option>现值计/option>
-                      <option>终值计/option>
+                      <option>现值计算</option>
+                      <option>终值计算</option>
                       <option>年金计算</option>
-                      <option>内部收益/option>
+                      <option>内部收益率</option>
                     </select>
                   </div>
                   <div class="form-group">
                     <label>本金</label>
-                    <input type="number" placeholder="请输入本>
+                    <input type="number" placeholder="请输入本金">
                   </div>
                   <div class="form-group">
                     <label>利率(%)</label>
-                    <input type="number" placeholder="请输入利 step="0.01">
+                    <input type="number" placeholder="请输入利率" step="0.01">
                   </div>
                   <div class="form-group">
                     <label>期数</label>
-                    <input type="number" placeholder="请输入期>
+                    <input type="number" placeholder="请输入期数">
                   </div>
                   <button class="btn btn-success">计算</button>
                   <div class="calculator-result" style="display: none;">
@@ -848,13 +848,13 @@
               <div class="tool-card">
                 <div class="tool-icon">💱</div>
                 <div class="tool-title">汇率转换</div>
-                <div class="tool-description">实时汇率查询和货币转换工/div>
+                <div class="tool-description">实时汇率查询和货币转换工具</div>
                 <button class="btn btn-primary">使用</button>
                 <div class="tool-content" style="display: none;">
                   <div class="form-group">
-                    <label>从货/label>
+                    <label>从货币</label>
                     <select>
-                      <option>CNY - 人民/option>
+                      <option>CNY - 人民币</option>
                       <option>USD - 美元</option>
                       <option>EUR - 欧元</option>
                       <option>JPY - 日元</option>
@@ -862,10 +862,10 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label>到货/label>
+                    <label>到货币</label>
                     <select>
                       <option>USD - 美元</option>
-                      <option>CNY - 人民/option>
+                      <option>CNY - 人民币</option>
                       <option>EUR - 欧元</option>
                       <option>JPY - 日元</option>
                       <option>GBP - 英镑</option>
@@ -873,7 +873,7 @@
                   </div>
                   <div class="form-group">
                     <label>金额</label>
-                    <input type="number" placeholder="请输入金 step="0.01">
+                    <input type="number" placeholder="请输入金额" step="0.01">
                   </div>
                   <button class="btn btn-success">转换</button>
                   <div class="calculator-result" style="display: none;">
@@ -892,18 +892,18 @@
                     <label>票据类型</label>
                     <select>
                       <option>增值税发票</option>
-                      <option>普通发/option>
+                      <option>普通发票</option>
                       <option>收据</option>
                       <option>支票</option>
                     </select>
                   </div>
                   <div class="form-group">
                     <label>票据号码</label>
-                    <input type="text" placeholder="请输入票据号>
+                    <input type="text" placeholder="请输入票据号码">
                   </div>
                   <div class="form-group">
                     <label>金额</label>
-                    <input type="number" placeholder="请输入金 step="0.01">
+                    <input type="number" placeholder="请输入金额" step="0.01">
                   </div>
                   <div class="form-group">
                     <label>日期</label>
@@ -932,25 +932,80 @@
 
     // toggleSubmenu 函数（用于切换二级菜单显隐藏）
     window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (!navItem) return;
+
+      const willOpen = !navItem.classList.contains('active');
+      if (willOpen) {
+        closeSiblingMenus(navItem);
+      }
+
+      navItem.classList.toggle('active', willOpen);
+
+      if (!willOpen) {
+        navItem.querySelectorAll('.submenu-item.has-submenu').forEach(item => {
+          item.classList.remove('active');
+        });
+      }
+    };
+
+    function closeSiblingMenus(navItem) {
+      const isTopLevel = navItem.classList.contains('nav-item');
+      const siblingSelector = isTopLevel ? ':scope > .nav-item.has-submenu' : ':scope > .submenu-item.has-submenu';
+      const container = navItem.parentElement;
+      if (!container) return;
+
+      container.querySelectorAll(siblingSelector).forEach(item => {
+        if (item === navItem) return;
+        item.classList.remove('active');
+        item.querySelectorAll('.submenu-item.has-submenu').forEach(child => child.classList.remove('active'));
+      });
+    }
+
+    // showModule 函数（用于处理子菜单点击）
+    window.showModule = function(moduleName) {
+      console.log('显示模块:', moduleName);
+      // 根据模块名跳转到相应页面
+      if (moduleName === 'inventory-management') {
+        // 进销存模块
+        window.location.href = 'inventory_management.html';
+      } else if (moduleName.startsWith('tax-')) {
+        // 税务专区模块
+        window.location.href = 'tax_zone.html';
+      } else if (moduleName.startsWith('financing-')) {
+        // 企业融资模块
+        window.location.href = 'enterprise_management.html';
+      } else if (moduleName === 'company-management' || moduleName === 'bidding') {
+        // 公司管理、招投标管理 → 企业管理页面
+        window.location.href = 'enterprise_management.html';
+      } else if (moduleName === 'finance-management') {
+        // 财务管理
+        window.location.href = 'finance_management.html';
+      } else {
+        // 其他财务管理子模块
+        window.location.href = 'finance_management.html';
+      }
+    };
+
+    // toggleMemberSubmenu 函数
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
     };
 
-    // showModule 函数（用于处理子菜单点击）
-    window.showModule = function(moduleName) {
-      console.log('显示模块:', moduleName);
-      // 根据模块名跳转到相应页面
-      if (moduleName.startsWith('tax-')) {
-        // 税务专区模块
-        window.location.href = 'tax_zone.html';
-      } else if (moduleName.startsWith('financing-')) {
-        // 企业融资模块
-        window.location.href = 'enterprise_management.html';
-      } else {
-        // 财务管理模块
-        window.location.href = 'finance_management.html';
+    // handleLogout 函数
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+
+        // 跳转到登录页面
+        window.location.href = 'login.html';
       }
     };
 
@@ -1095,7 +1150,7 @@
               resultValue.textContent = '$1,750.00';
             }
           } else {
-            alert('操作成功);
+            alert('操作成功');
           }
         });
       });

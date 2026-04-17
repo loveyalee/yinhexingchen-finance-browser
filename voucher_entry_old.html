@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>凭证录入 - 旧版本</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: #eef4fb;
+      color: #17324b;
+    }
+    
+    .app {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+    
+    .side {
+      background: linear-gradient(180deg, #102641, #163a62);
+      color: #fff;
+      padding: 14px;
+    }
+    
+    .brand {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    
+    .brand img {
+      width: 38px;
+      height: 38px;
+    }
+    
+    .nav div {
+      padding: 9px 10px;
+      margin: 6px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    
+    .nav .on, .nav div:hover {
+      background: linear-gradient(90deg, #c79833, #a9751b);
+    }
+    
+    .main {
+      padding: 14px;
+    }
+    
+    .top {
+      background: #fff;
+      border: 1px solid #d9e5f2;
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .back-btn {
+      margin-right: 10px;
+    }
+    
+    .meta {
+      font-size: 12px;
+      color: #6b7e92;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .card {
+      background: #fff;
+      border: 1px solid #d9e5f2;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(16,39,63,.06);
+      margin-top: 14px;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    
+    .tab {
+      padding: 8px 12px;
+      border: 1px solid #d9e5f2;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+    }
+    
+    .tab.on {
+      background: #dfeefa;
+      color: #184774;
+      font-weight: 700;
+    }
+    
+    .page {
+      display: none;
+    }
+    
+    .page.on {
+      display: block;
+    }
+    
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .p {
+      background: #1d64ae;
+      color: #fff;
+    }
+    
+    .s {
+      background: #eef4fb;
+      border: 1px solid #dbe7f2;
+      color: #35516d;
+    }
+    
+    .g6 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    
+    .f label {
+      display: block;
+      font-size: 12px;
+      color: #6b7e92;
+      margin-bottom: 5px;
+    }
+    
+    .i, .sl {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #d8e5f0;
+      border-radius: 8px;
+    }
+    
+    .vt {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+    
+    .vt th, .vt td {
+      border: 1px solid #e3edf6;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    .vt th {
+      background: #f5f9fd;
+      font-size: 12px;
+    }
+    
+    .vt input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+    }
+    
+    .sm {
+      display: grid;
+      grid-template-columns: 1fr 170px 170px;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .mi {
+      padding: 12px;
+      border: 1px solid #dbe7f2;
+      border-radius: 12px;
+      background: #f8fbfe;
+    }
+    
+    .k {
+      font-size: 12px;
+      color: #6b7e92;
+    }
+    
+    .v {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    
+    .summary-quick {
+      position: relative;
+    }
+    
+    .summary-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      border: 1px solid #e3edf6;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    .summary-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .summary-item:hover {
+      background-color: #f5f7fa;
+    }
+    
+    .ve-acc-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .ve-acc-modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 600px;
+      max-width: 90vw;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .ve-acc-modal-header {
+      padding: 16px;
+      border-bottom: 1px solid #e3edf6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .ve-acc-modal-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    
+    .ve-acc-modal-footer {
+      padding: 16px;
+      border-top: 1px solid #e3edf6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .ve-acc-modal-group-title {
+      font-weight: 700;
+      margin: 12px 0 8px;
+    }
+    
+    .ve-acc-modal-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+    
+    .ve-acc-modal-item:hover {
+      background: #f5f7fa;
+    }
+    
+    .ve-acc-modal-item.selected {
+      background: #dfeefa;
+      color: #184774;
+    }
+    
+    .ve-acc-item-code {
+      display: inline-block;
+      width: 100px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <img src="yinhelogo.png" alt="银河星辰">
+        <div>
+          <div style="font-size: 20px; font-weight: 700">银河星辰</div>
+          <div style="font-size: 12px; opacity: 0.75">会计核算中心</div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="on" onclick="showAccPage('workbench')">🏠 工作台</div>
+        <div class="acc-nav-group">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('group-voucher')">📄 凭证管理</div>
+          <div class="acc-nav-child" onclick="showAccPage('voucher-entry', this)">凭证录入</div>
+          <div class="acc-nav-child" onclick="showAccPage('voucher-query', this)">凭证查询</div>
+        </div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div>
+          <div style="font-size: 22px; font-weight: 700" id="page-title">银河星辰会计核算 · 工作台</div>
+          <div class="meta">
+            <span>账套 <b id="acc-name">湖南考拉环保科技有限公司</b></span>
+            <span>|</span>
+            <span>会计期间 <b id="acc-period">2026-04</b></span>
+            <span>|</span>
+            <span>行业 <b id="acc-industry">其他行业</b></span>
+          </div>
+        </div>
+        <div>
+          <button class="btn s" onclick="location.href='index.html'">返回主页</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="tabs">
+          <div class="tab on" onclick="showAccPage('voucher-entry')">凭证录入</div>
+          <div class="tab" onclick="showAccPage('voucher-query')">凭证查询</div>
+        </div>
+        
+        <div class="page on" id="page-voucher-entry">
+          <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 14px">
+            <div>
+              <h3 style="margin: 0">凭证录入 · 经典版</h3>
+              <div class="k">参照用友/金蝶经典凭证界面，贴近真实财务场景</div>
+            </div>
+            <div>
+              <button class="btn s" onclick="guide()">AI 步骤做账</button>
+              <button class="btn p" onclick="calc()">试算平衡</button>
+            </div>
+          </div>
+          
+          <div class="g6">
+            <div class="f">
+              <label>凭证类别</label>
+              <select class="sl" id="ve-type">
+                <option>记</option>
+                <option>收</option>
+                <option>付</option>
+                <option>转</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>凭证号</label>
+              <input class="i" id="ve-number" value="001">
+            </div>
+            <div class="f">
+              <label>记账日期</label>
+              <input class="i" id="ve-date" type="date" value="2026-04-14">
+            </div>
+            <div class="f">
+              <label>业务日期</label>
+              <input class="i" id="ve-biz-date" type="date" value="2026-04-14">
+            </div>
+            <div class="f">
+              <label>附件张数</label>
+              <input class="i" id="ve-attach" value="3">
+            </div>
+            <div class="f">
+              <label>来源单据</label>
+              <input class="i" id="ve-source" value="销项发票/报销单/回单">
+            </div>
+          </div>
+          
+          <div class="g6" style="margin-bottom: 14px">
+            <div class="f">
+              <label>制单人</label>
+              <input class="i" value="李会计">
+            </div>
+            <div class="f">
+              <label>审核人</label>
+              <input class="i" value="王主管">
+            </div>
+            <div class="f">
+              <label>结算方式</label>
+              <select class="sl">
+                <option>银行转账</option>
+                <option>库存现金</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>单据号</label>
+              <input class="i" value="XS20260414001">
+            </div>
+            <div class="f">
+              <label>摘要说明</label>
+              <input class="i" id="ve-summary" value="本月销售废旧金属收入">
+            </div>
+            <div class="f">
+              <label>业务场景</label>
+              <select class="sl" onchange="prefill(this.value)">
+                <option value="sale">销售收入</option>
+                <option value="purchase">采购付款</option>
+                <option value="expense">费用报销</option>
+                <option value="depreciation">固定资产折旧</option>
+              </select>
+            </div>
+          </div>
+          
+          <table class="vt">
+            <thead>
+              <tr>
+                <th>摘要</th>
+                <th>会计科目</th>
+                <th>辅助核算</th>
+                <th style="text-align: right">借方金额</th>
+                <th style="text-align: right">贷方金额</th>
+                <th>税率</th>
+                <th>票据/往来</th>
+              </tr>
+            </thead>
+            <tbody id="ve-tbody">
+              <!-- 凭证行会通过JavaScript动态生成 -->
+            </tbody>
+          </table>
+          
+          <div style="margin-bottom: 14px">
+            <button class="btn s" onclick="veAddRow()">新增行</button>
+            <button class="btn s" onclick="veDelRow()">删除行</button>
+            <button class="btn s" onclick="veReset()">重置</button>
+          </div>
+          
+          <div class="sm">
+            <div class="mi">
+              <b>AI 做账步骤</b>
+              <div class="k" id="gt">先核对原始单据和发票，再确认收入、税额与附件张数，最后提交审核。</div>
+            </div>
+            <div class="mi">
+              <b>借方合计</b>
+              <div id="sd" style="font-size: 22px; font-weight: 700; margin-top: 6px">0.00</div>
+            </div>
+            <div class="mi">
+              <b>贷方合计</b>
+              <div id="sc" style="font-size: 22px; font-weight: 700; margin-top: 6px">0.00</div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end">
+            <button class="btn s" onclick="veSaveDraft()">保存草稿</button>
+            <button class="btn s" onclick="veUseTemplate()">使用模板</button>
+            <button class="btn s" onclick="veSaveAndNew()">保存并新增</button>
+            <button class="btn p" onclick="veSave()">保存</button>
+          </div>
+        </div>
+        
+        <div class="page" id="page-voucher-query">
+          <h3 style="margin: 0 0 14px">凭证查询</h3>
+          <div class="g6" style="margin-bottom: 14px">
+            <div class="f">
+              <label>凭证类别</label>
+              <select class="sl">
+                <option>全部</option>
+                <option>记</option>
+                <option>收</option>
+                <option>付</option>
+                <option>转</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>凭证号</label>
+              <input class="i">
+            </div>
+            <div class="f">
+              <label>开始日期</label>
+              <input class="i" type="date" value="2026-04-01">
+            </div>
+            <div class="f">
+              <label>结束日期</label>
+              <input class="i" type="date" value="2026-04-30">
+            </div>
+            <div class="f">
+              <label>制单人</label>
+              <input class="i">
+            </div>
+            <div class="f">
+              <label>审核人</label>
+              <input class="i">
+            </div>
+          </div>
+          <button class="btn p" style="margin-bottom: 14px">查询</button>
+          <table class="vt">
+            <thead>
+              <tr>
+                <th>凭证字号</th>
+                <th>日期</th>
+                <th>摘要</th>
+                <th style="text-align: right">借方</th>
+                <th style="text-align: right">贷方</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>记字03</td>
+                <td>2026-04-03</td>
+                <td>计提本月工资</td>
+                <td style="text-align: right">45,000.00</td>
+                <td style="text-align: right">45,000.00</td>
+                <td><span style="padding: 4px 8px; border-radius: 999px; font-size: 12px; background: #fff1dc; color: #a56d0d">待审核</span></td>
+                <td><button class="btn s" style="padding: 4px 8px; font-size: 12px">查看</button></td>
+              </tr>
+              <tr>
+                <td>记字08</td>
+                <td>2026-04-11</td>
+                <td>销售废旧金属收入</td>
+                <td style="text-align: right">320,000.00</td>
+                <td style="text-align: right">320,000.00</td>
+                <td><span style="padding: 4px 8px; border-radius: 999px; font-size: 12px; background: #e9f1fd; color: #1e64aa">已制单</span></td>
+                <td><button class="btn s" style="padding: 4px 8px; font-size: 12px">查看</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // 科目数据
+    const accountGroups = [
+      {
+        label: '资产类',
+        prefix: ['1'],
+        color: '#1d64ae',
+        items: [
+          { code: '1001', name: '库存现金' },
+          { code: '1002', name: '银行存款' },
+          { code: '100201', name: '银行存款-工商银行' },
+          { code: '100202', name: '银行存款-建设银行' },
+          { code: '1122', name: '应收账款' },
+          { code: '112201', name: '应收账款-客户A' },
+          { code: '112202', name: '应收账款-客户B' },
+          { code: '1403', name: '原材料' },
+          { code: '1601', name: '固定资产' },
+          { code: '1602', name: '累计折旧' }
+        ]
+      },
+      {
+        label: '负债类',
+        prefix: ['2'],
+        color: '#27ae60',
+        items: [
+          { code: '2202', name: '应付账款' },
+          { code: '220201', name: '应付账款-供应商A' },
+          { code: '220202', name: '应付账款-供应商B' },
+          { code: '2211', name: '应付职工薪酬' },
+          { code: '2221', name: '应交税费' },
+          { code: '222101', name: '应交税费-应交增值税' },
+          { code: '22210101', name: '应交税费-应交增值税-销项税额' }
+        ]
+      },
+      {
+        label: '所有者权益类',
+        prefix: ['3'],
+        color: '#f39c12',
+        items: [
+          { code: '3001', name: '实收资本' },
+          { code: '3002', name: '资本公积' },
+          { code: '3101', name: '盈余公积' },
+          { code: '3103', name: '本年利润' },
+          { code: '3104', name: '利润分配' }
+        ]
+      },
+      {
+        label: '成本类',
+        prefix: ['5'],
+        color: '#9b59b6',
+        items: [
+          { code: '5001', name: '生产成本' },
+          { code: '5101', name: '制造费用' }
+        ]
+      },
+      {
+        label: '损益类',
+        prefix: ['6'],
+        color: '#e74c3c',
+        items: [
+          { code: '6001', name: '主营业务收入' },
+          { code: '6401', name: '主营业务成本' },
+          { code: '6601', name: '销售费用' },
+          { code: '660101', name: '销售费用-广告费' },
+          { code: '6602', name: '管理费用' },
+          { code: '660201', name: '管理费用-办公费' },
+          { code: '660202', name: '管理费用-差旅费' },
+          { code: '660203', name: '管理费用-工资' },
+          { code: '6603', name: '财务费用' },
+          { code: '6801', name: '所得税费用' }
+        ]
+      }
+    ];
+    
+    // 常用摘要
+    const commonSummaries = [
+      '销售废旧金属收入',
+      '报销运输装卸费',
+      '支付废旧物资采购款',
+      '计提本月工资',
+      '报销办公用品',
+      '支付房租',
+      '收到货款',
+      '购买原材料'
+    ];
+    
+    // 业务场景模板
+    const sceneTemplates = {
+      sale: [
+        ['销售废旧金属收入', '1002 银行存款', '客户', '320000.00', '0.00', '13%', '销项发票'],
+        ['销售废旧金属收入', '6001 主营业务收入', '项目部', '0.00', '283185.84', '13%', '收入确认'],
+        ['销项税额', '22210101 应交税费-应交增值税-销项税额', '税额', '0.00', '36814.16', '13%', '税费']
+      ],
+      expense: [
+        ['报销运输装卸费', '6602 管理费用', '部门', '5800.00', '0.00', '9%', '报销单'],
+        ['支付运输装卸费', '1002 银行存款', '银行', '0.00', '5800.00', '9%', '付款回单']
+      ],
+      purchase: [
+        ['支付废旧物资采购款', '1403 原材料', '供应商', '86000.00', '0.00', '13%', '进项发票'],
+        ['支付废旧物资采购款', '1002 银行存款', '银行', '0.00', '86000.00', '13%', '付款回单']
+      ],
+      depreciation: [
+        ['计提固定资产折旧', '6602 管理费用', '部门', '12000.00', '0.00', '', '折旧表'],
+        ['计提固定资产折旧', '1602 累计折旧', '资产', '0.00', '12000.00', '', '折旧表']
+      ]
+    };
+    
+    // 创建凭证行
+    function veCreateRow(rowNumber) {
+      const row = document.createElement('tr');
+      row.className = 've-row';
+      row.innerHTML = `
+        <td>
+          <div class="summary-quick">
+            <input class="ve-summary-input" placeholder="输入摘要或按F2选择">
+            <div class="summary-dropdown">
+              ${commonSummaries.map(summary => `<div class="summary-item">${summary}</div>`).join('')}
+            </div>
+          </div>
+        </td>
+        <td>
+          <input class="ve-account-input" placeholder="点击选择科目" onclick="veOpenAccountModal(this)">
+        </td>
+        <td><input class="ve-aux-input" placeholder="辅助核算"></td>
+        <td style="text-align: right"><input class="ve-debit-input" type="number" step="0.01" placeholder="0.00" oninput="veUpdateTotals()"></td>
+        <td style="text-align: right"><input class="ve-credit-input" type="number" step="0.01" placeholder="0.00" oninput="veUpdateTotals()"></td>
+        <td><input class="ve-tax-input" placeholder="税率"></td>
+        <td><input class="ve-bill-input" placeholder="票据/往来"></td>
+      `;
+      return row;
+    }
+    
+    // 打开科目选择模态框
+    function veOpenAccountModal(targetInput) {
+      const overlay = document.createElement('div');
+      overlay.className = 've-acc-modal-overlay';
+      overlay.innerHTML = `
+        <div class="ve-acc-modal">
+          <div class="ve-acc-modal-header">
+            <h3 style="margin: 0">选择会计科目</h3>
+            <button id="ve-acc-modal-close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer">&times;</button>
+          </div>
+          <div class="ve-acc-modal-body">
+            <div style="margin-bottom: 12px">
+              <input id="ve-acc-modal-search" type="text" placeholder="搜索科目编码或名称" style="width: 100%; padding: 8px; border: 1px solid #d8e5f0; border-radius: 8px;">
+            </div>
+            <div id="ve-acc-modal-list" style="max-height: 400px; overflow-y: auto;"></div>
+          </div>
+          <div class="ve-acc-modal-footer">
+            <button id="ve-acc-modal-cancel" class="btn s">取消</button>
+            <button id="ve-acc-modal-confirm" class="btn p">确认</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      
+      const searchInp = document.getElementById('ve-acc-modal-search');
+      const body = document.getElementById('ve-acc-modal-list');
+      let selectedItem = null;
+      
+      function renderList(kw) {
+        body.innerHTML = '';
+        accountGroups.forEach(function(grp) {
+          const items = grp.items.filter(function(a) {
+            if (!kw) return true;
+            return a.code.indexOf(kw) !== -1 || a.name.indexOf(kw) !== -1;
+          });
+          if (items.length === 0) return;
+          const gt = document.createElement('div');
+          gt.className = 've-acc-modal-group-title';
+          gt.style.color = grp.color;
+          gt.textContent = grp.label + '（' + items.length + '个）';
+          body.appendChild(gt);
+          items.forEach(function(a) {
+            const item = document.createElement('div');
+            item.className = 've-acc-modal-item';
+            item.dataset.code = a.code;
+            item.dataset.name = a.name;
+            item.innerHTML = '<span class="ve-acc-item-code">' + a.code + '</span>' +
+              '<span class="ve-acc-item-name">' + a.name + '</span>';
+            item.addEventListener('click', function() {
+              body.querySelectorAll('.ve-acc-modal-item').forEach(function(i){ i.classList.remove('selected'); });
+              item.classList.add('selected');
+              selectedItem = item;
+            });
+            item.addEventListener('dblclick', function() {
+              confirmSelect(item);
+            });
+            body.appendChild(item);
+          });
+        });
+        if (body.children.length === 0) {
+          body.innerHTML = '<div style="text-align:center;padding:40px;color:#aab8c8;font-size:13px;">未找到匹配的科目</div>';
+          selectedItem = null;
+        }
+      }
+      
+      function confirmSelect(item) {
+        if (!item) item = selectedItem;
+        if (!item) { alert('请选择一个科目'); return; }
+        targetInput.value = item.dataset.code + ' ' + item.dataset.name;
+        targetInput.dataset.code = item.dataset.code;
+        overlay.remove();
+        veUpdateTotals();
+      }
+      
+      renderList('');
+      searchInp.focus();
+      
+      searchInp.addEventListener('input', function(){
+        selectedItem = null;
+        renderList(searchInp.value);
+      });
+      
+      document.getElementById('ve-acc-modal-close-btn').onclick = function(){ overlay.remove(); };
+      document.getElementById('ve-acc-modal-cancel').onclick = function(){ overlay.remove(); };
+      document.getElementById('ve-acc-modal-confirm').onclick = function(){ confirmSelect(null); };
+      overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+      
+      // 键盘支持
+      searchInp.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { overlay.remove(); return; }
+        if (e.key === 'Enter') { confirmSelect(null); return; }
+        const items = Array.from(body.querySelectorAll('.ve-acc-modal-item'));
+        if (items.length === 0) return;
+        let idx = selectedItem ? items.indexOf(selectedItem) : -1;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          idx = Math.min(idx + 1, items.length - 1);
+          items.forEach(function(i){ i.classList.remove('selected'); });
+          items[idx].classList.add('selected');
+          selectedItem = items[idx];
+          items[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          idx = Math.max(idx - 1, 0);
+          items.forEach(function(i){ i.classList.remove('selected'); });
+          items[idx].classList.add('selected');
+          selectedItem = items[idx];
+          items[idx].scrollIntoView({ block: 'nearest' });
+        }
+      });
+    }
+    
+    // 初始化凭证表格
+    function initVoucherTable() {
+      const tbody = document.getElementById('ve-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        tbody.appendChild(veCreateRow(i));
+      }
+      veUpdateTotals();
+    }
+    
+    // 更新合计
+    function veUpdateTotals() {
+      let totalDebit = 0;
+      let totalCredit = 0;
+      const rows = document.querySelectorAll('.ve-row');
+      rows.forEach(function(row) {
+        const debit = parseFloat(row.querySelector('.ve-debit-input').value) || 0;
+        const credit = parseFloat(row.querySelector('.ve-credit-input').value) || 0;
+        totalDebit += debit;
+        totalCredit += credit;
+      });
+      document.getElementById('sd').textContent = totalDebit.toFixed(2);
+      document.getElementById('sc').textContent = totalCredit.toFixed(2);
+    }
+    
+    // 新增行
+    function veAddRow() {
+      const tbody = document.getElementById('ve-tbody');
+      if (!tbody) return;
+      const rows = tbody.querySelectorAll('.ve-row');
+      tbody.appendChild(veCreateRow(rows.length + 1));
+      veUpdateTotals();
+    }
+    
+    // 删除行
+    function veDelRow() {
+      const tbody = document.getElementById('ve-tbody');
+      if (!tbody) return;
+      const rows = tbody.querySelectorAll('.ve-row');
+      if (rows.length > 2) {
+        rows[rows.length - 1].remove();
+        veUpdateTotals();
+      } else {
+        alert('至少保留2行分录');
+      }
+    }
+    
+    // 重置
+    function veReset() {
+      const today = new Date().toISOString().split('T')[0];
+      const date = document.getElementById('ve-date');
+      const bizDate = document.getElementById('ve-biz-date');
+      const attach = document.getElementById('ve-attach');
+      if(date) date.value = today;
+      if(bizDate) bizDate.value = today;
+      if(attach) attach.value = '0';
+      initVoucherTable();
+    }
+    
+    // 保存
+    function veSave() {
+      const rows = document.querySelectorAll('.ve-row');
+      let totalD = 0, totalC = 0, hasEntry = false;
+      rows.forEach(function(row) {
+        const sum = row.querySelector('.ve-summary-input');
+        const acc = row.querySelector('.ve-account-input');
+        const di = row.querySelector('.ve-debit-input');
+        const ci = row.querySelector('.ve-credit-input');
+        const d = parseFloat((di && di.value) || 0) || 0;
+        const c = parseFloat((ci && ci.value) || 0) || 0;
+        if ((sum && sum.value) || (acc && acc.value)) { hasEntry = true; }
+        totalD += d; totalC += c;
+      });
+      if (!hasEntry) { alert('请填写凭证分录内容'); return; }
+      if (Math.abs(totalD - totalC) > 0.001) {
+        alert('借方合计（' + totalD.toFixed(2) + '）与贷方合计（' + totalC.toFixed(2) + '）不等，请检查！');
+        return;
+      }
+      const vno = (document.getElementById('ve-type').value || '记') + '字第' + (document.getElementById('ve-number').value || '001') + '号';
+      alert('凭证已保存！' + vno + '\n借方合计：¥' + totalD.toFixed(2));
+    }
+    
+    // 保存并新增
+    function veSaveAndNew() {
+      veSave();
+      const el = document.getElementById('ve-number');
+      if (el) {
+        el.value = String(parseInt(el.value || '0') + 1).padStart(3, '0');
+      }
+      veReset();
+    }
+    
+    // 保存草稿
+    function veSaveDraft() {
+      const vno = (document.getElementById('ve-type') && document.getElementById('ve-type').value || '记') + '字第' + (document.getElementById('ve-number') && document.getElementById('ve-number').value || '001') + '号';
+      alert('草稿已保存：' + vno);
+    }
+    
+    // 使用模板
+    function veUseTemplate() {
+      alert('模板功能开发中，敬请期待');
+    }
+    
+    // 业务场景预填充
+    function prefill(scene) {
+      const template = sceneTemplates[scene];
+      if (!template) return;
+      const tbody = document.getElementById('ve-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      template.forEach(function(row, index) {
+        const tr = veCreateRow(index + 1);
+        const inputs = tr.querySelectorAll('input');
+        inputs[0].value = row[0]; // 摘要
+        inputs[1].value = row[1]; // 科目
+        inputs[2].value = row[2]; // 辅助核算
+        inputs[3].value = row[3]; // 借方
+        inputs[4].value = row[4]; // 贷方
+        inputs[5].value = row[5]; // 税率
+        inputs[6].value = row[6]; // 票据/往来
+        tbody.appendChild(tr);
+      });
+      veUpdateTotals();
+    }
+    
+    // AI 步骤做账
+    function guide() {
+      alert('AI 步骤：\n1. 核对原始单据和发票\n2. 选择业务场景\n3. 生成凭证分录\n4. 检查借贷平衡\n5. 提交审核');
+    }
+    
+    // 试算平衡
+    function calc() {
+      veUpdateTotals();
+      const debit = parseFloat(document.getElementById('sd').textContent) || 0;
+      const credit = parseFloat(document.getElementById('sc').textContent) || 0;
+      if (Math.abs(debit - credit) > 0.001) {
+        alert('借贷不平，差额：¥' + Math.abs(debit - credit).toFixed(2));
+      } else {
+        alert('试算平衡');
+      }
+    }
+    
+    // 切换左侧导航菜单组（折叠/展开）
+    function toggleAccGroup(groupId) {
+      const grp = document.getElementById(groupId);
+      if (!grp) return;
+      grp.classList.toggle('collapsed');
+    }
+    
+    // 切换内容页面
+    function showAccPage(pageId, clickedEl) {
+      document.querySelectorAll('.page').forEach(function(p) {
+        p.classList.remove('active');
+      });
+      
+      const target = document.getElementById('page-' + pageId);
+      if (target) {
+        target.classList.add('active');
+      } else {
+        const workbench = document.getElementById('page-workbench');
+        if (workbench) workbench.classList.add('active');
+        pageId = 'workbench';
+      }
+      
+      document.querySelectorAll('.tab').forEach(function(t) {
+        t.classList.remove('on');
+      });
+      document.querySelectorAll('[onclick*="' + pageId + '"]').forEach(function(t) {
+        if (t.classList.contains('tab')) {
+          t.classList.add('on');
+        }
+      });
+      
+      if (pageId === 'voucher-entry') {
+        const tBody = document.getElementById('ve-tbody');
+        if (tBody && tBody.children.length === 0) {
+          initVoucherTable();
+        }
+        const vdate = document.getElementById('ve-date');
+        if (vdate && !vdate.value) {
+          vdate.value = new Date().toISOString().split('T')[0];
+        }
+      }
+    }
+    
+    // 摘要下拉菜单功能
+    document.addEventListener('focus', function(e) {
+      const input = e.target;
+      if (input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+        const dropdown = input.nextElementSibling;
+        if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+          dropdown.style.display = 'block';
+        }
+      }
+    }, true);
+    
+    document.addEventListener('blur', function(e) {
+      const input = e.target;
+      if (input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+        setTimeout(() => {
+          const dropdown = input.nextElementSibling;
+          if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+            dropdown.style.display = 'none';
+          }
+        }, 200);
+      }
+    }, true);
+    
+    document.addEventListener('keydown', function(e) {
+      const input = e.target;
+      if (e.key === 'F2' && input && input.parentElement && input.parentElement.classList.contains('summary-quick')) {
+        e.preventDefault();
+        const dropdown = input.nextElementSibling;
+        if (dropdown && dropdown.classList.contains('summary-dropdown')) {
+          dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+      }
+    });
+    
+    // 摘要选择
+    document.addEventListener('click', function(e) {
+      const item = e.target;
+      if (item && item.classList.contains('summary-item')) {
+        const input = item.parentElement.previousElementSibling;
+        if (input) {
+          input.value = item.textContent;
+          item.parentElement.style.display = 'none';
+        }
+      }
+    });
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      initVoucherTable();
+    });
+  </script>
+</body>
+</html>

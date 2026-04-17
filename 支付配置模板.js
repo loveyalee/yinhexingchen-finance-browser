@@ -30,12 +30,12 @@ const paymentConfig = {
     gatewayUrl: 'https://openapi.alipay.com/gateway.do' // 支付宝网关地址
   },
   
-  // 云闪付配置（可选）
+  // 银联卡在线支付配置（可选）
   unionpay: {
-    merId: '请输入您的云闪付商户号', // 云闪付商户号
-    certPath: '', // 云闪付证书路径
-    certPassword: '', // 云闪付证书密码
-    notifyUrl: 'http://your-domain.com/api/unionpay/notify' // 云闪付回调地址
+    merId: '请输入您的银联卡在线支付商户号', // 银联卡在线支付商户号
+    certPath: '', // 银联卡在线支付证书路径
+    certPassword: '', // 银联卡在线支付证书密码
+    notifyUrl: 'http://your-domain.com/api/unionpay/notify' // 银联卡在线支付回调地址
   },
   
   // 对公账户信息（转账支付）
@@ -63,7 +63,7 @@ const paymentConfig = {
     },
     {
       id: 'unionpay',
-      name: '云闪付',
+      name: '银联卡在线支付',
       icon: '💴',
       enabled: false // 如需启用请设置为true并配置unionpay信息
     },

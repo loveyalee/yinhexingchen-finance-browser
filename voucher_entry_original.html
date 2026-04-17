@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
+  <title>银河星辰会计核算 - 银河星辰财务专用浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+      color: #333;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
+      color: white;
+      padding: 20px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .nav-menu {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-bottom: 10px;
+    }
+    
+    .nav-item a {
+      display: block;
+      padding: 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a.active {
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      height: 60px;
+      background-color: white;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+    }
+    
+    .header h1 {
+      font-size: 20px;
+      color: #1a2d42;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .accounting-tabs {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+    
+    .tab.active {
+      border-bottom-color: #1a5fa8;
+      color: #1a5fa8;
+      font-weight: bold;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(26, 95, 168, 0.10);
+      border-radius: 4px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1a5fa8;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-secondary {
+      background-color: #546e7a;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #7f8c8d;
+    }
+    
+    .table-container {
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .data-table th,
+    .data-table td {
+      border: 1px solid rgba(26, 95, 168, 0.10);
+      padding: 10px;
+      text-align: left;
+    }
+    
+    .data-table th {
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
+      color: #1a2d42;
+      font-weight: bold;
+    }
+    
+    .data-table tr:hover {
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+    }
+  
+    /* ── 商务风格全局增强 ── */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar {
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.30) !important;
+    }
+    .logo {
+      background: rgba(255,255,255,0.06) !important;
+      border-radius: 10px !important;
+      padding: 14px 10px !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      letter-spacing: 0.5px !important;
+      line-height: 1.5 !important;
+    }
+    .nav-item a {
+      border-radius: 6px !important;
+      transition: all 0.22s ease !important;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.10) !important;
+      padding-left: 18px !important;
+    }
+    .submenu { border-left: 2px solid rgba(200, 146, 26, 0.45) !important; }
+    .submenu-item a { transition: all 0.2s !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13, 31, 53, 0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn {
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px !important;
+      transition: all 0.22s ease !important;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(26, 95, 168, 0.38) !important;
+      filter: brightness(1.08) !important;
+    }
+    .btn-secondary {
+      background: rgba(84, 110, 122, 0.12) !important;
+      color: #546e7a !important;
+      border: 1px solid rgba(84, 110, 122, 0.25) !important;
+    }
+    .btn-secondary:hover {
+      background: rgba(84, 110, 122, 0.20) !important;
+    }
+    .software-card, .stat-card, .module-card, .feature-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 10px 28px rgba(26, 95, 168, 0.14) !important;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* Business Theme Global */
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
+    .sidebar { box-shadow: 4px 0 24px rgba(0,0,0,0.28) !important; }
+    .logo {
+      background: rgba(255,255,255,0.06) !important;
+      border-radius: 10px !important; padding: 14px 10px !important;
+      border: 1px solid rgba(255,255,255,0.10) !important;
+      letter-spacing: 0.5px !important; line-height: 1.5 !important;
+    }
+    .nav-item a { border-radius: 6px !important; transition: all 0.22s ease !important; }
+    .nav-item a:hover { background: rgba(255,255,255,0.10) !important; padding-left: 18px !important; }
+    .submenu { border-left: 2px solid rgba(200,146,26,0.45) !important; }
+    .header {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 2px 12px rgba(13,31,53,0.08) !important;
+      background: rgba(255,255,255,0.92) !important;
+    }
+    .btn { border-radius: 6px !important; font-weight: 500 !important; transition: all 0.22s ease !important; }
+    .btn-primary:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(26,95,168,0.38) !important; filter: brightness(1.08) !important; }
+    .btn-secondary { background: rgba(84,110,122,0.10) !important; color: #546e7a !important; border: 1px solid rgba(84,110,122,0.22) !important; }
+    .software-card, .stat-card, .module-card, .feature-card, .card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
+    .software-card:hover, .stat-card:hover, .module-card:hover, .feature-card:hover, .card:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(26,95,168,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* ══════════════════════════════
+       会计核算专业布局
+    ══════════════════════════════ */
+    .acc-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* 顶部信息栏 */
+    .acc-topbar {
+      height: 46px; flex-shrink: 0;
+      background: linear-gradient(90deg, #0c1e35 0%, #1a3a5c 100%);
+      display: flex; align-items: center; padding: 0 20px;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .acc-topbar-left { display: flex; align-items: center; gap: 18px; }
+    .acc-brand { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.5px; white-space: nowrap; }
+    .acc-info-bar { display: flex; align-items: center; gap: 6px; }
+    .acc-info-item { font-size: 12px; color: rgba(255,255,255,0.70); }
+    .acc-info-label { color: rgba(255,255,255,0.45); }
+    .acc-info-val { color: rgba(255,255,255,0.90); font-weight: 500; }
+    .acc-sep { color: rgba(255,255,255,0.22); margin: 0 4px; }
+    .acc-topbar-right { display: flex; align-items: center; gap: 8px; }
+    .acc-user { font-size: 12px; color: rgba(255,255,255,0.65); margin-right: 4px; }
+    .btn-xs {
+      padding: 3px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.85); transition: all 0.2s;
+    }
+    .btn-xs:hover { background: rgba(255,255,255,0.20); }
+    .btn-xs-danger { border-color: rgba(220,60,60,0.6); background: rgba(200,40,40,0.5); color: #fff; }
+    .btn-xs-danger:hover { background: rgba(200,40,40,0.8); }
+    .btn-xs-home { border-color: rgba(200,146,26,0.7); background: rgba(200,146,26,0.25); color: #f5d080; font-weight: 600; }
+    .btn-xs-home:hover { background: rgba(200,146,26,0.55); color: #fff; }
+
+    /* 主体 */
+    .acc-body { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── 左侧功能导航 ── */
+    .acc-nav {
+      width: 176px; flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid rgba(26,95,168,0.10);
+      overflow-y: auto; overflow-x: hidden;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.04);
+    }
+    .acc-nav-workbench {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px;
+      font-size: 13px; color: #3a5068; cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.18s;
+    }
+    .acc-nav-workbench:hover { background: rgba(26,95,168,0.06); color: #1a5fa8; }
+    .acc-nav-workbench.active {
+      background: rgba(26,95,168,0.09); color: #1a5fa8;
+      font-weight: 600; border-left-color: #1a5fa8;
+    }
+    .acc-nav-group { border-top: 1px solid rgba(26,95,168,0.07); }
+    .acc-nav-group-title {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px 9px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+      color: #6a8098; background: #f7f9fc; cursor: pointer;
+      user-select: none; transition: background 0.15s;
+    }
+    .acc-nav-group-title:hover { background: #eef2f8; }
+    .acc-nav-group-title span:first-child { font-size: 12px; text-transform: none; letter-spacing: 0; }
+    .acc-arrow { font-size: 11px; transition: transform 0.22s; }
+    .acc-nav-group.collapsed .acc-arrow { transform: rotate(-90deg); }
+    .acc-nav-group.collapsed .acc-nav-children { display: none; }
+    .acc-nav-children { }
+    .acc-nav-child {
+      padding: 9px 12px 9px 26px;
+      font-size: 13px; color: #4a6280; cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.18s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .acc-nav-child:hover { background: rgba(26,95,168,0.06); color: #1a5fa8; }
+    .acc-nav-child.active {
+      background: rgba(26,95,168,0.09); color: #1a5fa8;
+      font-weight: 600; border-left-color: #1a5fa8;
+    }
+
+    /* ── 内容区 ── */
+    .acc-content { flex: 1; overflow: auto; background: #eef2f8; }
+    .acc-page { display: none; min-height: 100%; }
+    .acc-page.active { display: block; }
+
+    /* 内容页通用头部 */
+    .acc-page-header {
+      background: #fff; padding: 12px 20px;
+      border-bottom: 1px solid rgba(26,95,168,0.10);
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 10;
+    }
+    .acc-page-title { font-size: 15px; font-weight: 700; color: #1a2d42; }
+    .acc-page-sub  { font-size: 12px; color: #7a8fa8; margin-left: 10px; }
+    .acc-page-body  { padding: 16px; }
+
+    /* ── 凭证录入专业样式 ── */
+    .ve-card {
+      background: #fff;
+      border: 1px solid #c8d4e0;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px rgba(26,95,168,0.08);
+      overflow: hidden;
+    }
+    .ve-title-row {
+      text-align: center;
+      padding: 10px 0 8px;
+      border-bottom: 2px solid #1a5fa8;
+      background: #f0f5fc;
+    }
+    .ve-title-text {
+      font-size: 17px; font-weight: 700; color: #1a2d42;
+      letter-spacing: 4px;
+    }
+    .ve-head-row {
+      display: flex; align-items: center; flex-wrap: wrap;
+      padding: 8px 14px; gap: 6px 20px;
+      border-bottom: 1px solid #dde5ef;
+      background: #f7f9fc;
+    }
+    .ve-head-left, .ve-head-center, .ve-head-right {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ve-head-right { margin-left: auto; }
+    .ve-label { font-size: 13px; color: #5a7080; white-space: nowrap; }
+    .ve-input {
+      padding: 4px 7px; border: 1px solid #c0ccd8; border-radius: 3px;
+      font-size: 13px; background: #fff; color: #1a2d42;
+      transition: border-color 0.15s;
+    }
+    .ve-input:focus { outline: none; border-color: #1a5fa8; box-shadow: 0 0 0 2px rgba(26,95,168,0.12); }
+    .ve-input-sm { width: 46px; text-align: center; }
+    .ve-input-no { width: 54px; text-align: center; font-weight: 700; }
+
+    /* 分录表格 */
+    .ve-table-wrap {
+      overflow-x: auto;
+      border-bottom: 1px solid #c8d4e0;
+    }
+    .ve-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; min-width: 1100px;
+    }
+    .ve-thead-top th, .ve-thead-digits th {
+      background: #eef3fa;
+      border: 1px solid #c8d4e0;
+      padding: 5px 2px; text-align: center;
+      font-weight: 600; color: #2a4060;
+      white-space: nowrap;
+    }
+    .ve-th-no  { width: 36px; }
+    .ve-th-summary { width: 18%; min-width: 140px; }
+    .ve-th-account { width: 20%; min-width: 160px; }
+    .ve-th-debit  { background: #eaf3ff !important; color: #1a5fa8 !important; }
+    .ve-th-credit { background: #fff5ea !important; color: #c8641a !important; }
+    .ve-digit { width: 26px; padding: 3px 0 !important; font-size: 11px; color: #6a8098 !important; }
+    /* 金额输入列表头 */
+    .ve-th-input-col {
+      background: rgba(26,95,168,0.06) !important;
+      font-size: 11px; color: #8a9db0 !important;
+    }
+    .ve-dot   { font-size: 14px !important; font-weight: 700 !important; color: #333 !important; width: 12px; }
+    .ve-last  { border-right: 2px solid #a0b8d0 !important; }
+
+    /* 分录行 */
+    .ve-row td {
+      border: 1px solid #dde5ef;
+      padding: 0; vertical-align: middle;
+    }
+    .ve-row:nth-child(even) td { background: #fafcff; }
+    .ve-row:hover td { background: #eef5ff !important; }
+    .ve-row.ve-selected td { background: #ddeeff !important; }
+    .ve-td-no {
+      text-align: center; color: #8a9db0; font-size: 12px;
+      padding: 4px 0; background: #f5f8fc;
+    }
+    .ve-td-summary input, .ve-td-account input {
+      width: 100%; border: none; outline: none;
+      padding: 6px 8px; font-size: 13px; background: transparent;
+      color: #1a2d42;
+    }
+    .ve-td-account { position: relative; }
+    .ve-td-amount {
+      text-align: right; padding: 6px 6px;
+      font-size: 13px; font-family: 'Courier New', monospace;
+      color: #1a2d42; min-width: 32px;
+    }
+
+    /* ── 新版借贷方金额：单输入框 + 位格只读显示 ── */
+    /* 金额输入单元格（输入框所在td，横跨所有位格） */
+    .ve-amount-input-cell {
+      padding: 0; vertical-align: middle;
+      border: 1px solid #dde5ef;
+    }
+    /* 金额输入框本体 */
+    .ve-amount-inp {
+      width: 100%; border: none; outline: none; background: transparent;
+      text-align: right; font-size: 13px; font-family: 'Courier New', monospace;
+      padding: 6px 8px; color: #1a2d42; cursor: text;
+    }
+    .ve-amount-inp:focus { background: #e8f4ff; }
+    /* 位格只读显示格 */
+    .ve-digit-cell {
+      border: 1px solid #dde5ef; text-align: center;
+      font-size: 13px; font-family: 'Courier New', monospace;
+      padding: 0; min-width: 28px; width: 28px;
+      background: transparent; color: #1a2d42; vertical-align: middle;
+      user-select: none; pointer-events: none;
+    }
+    .ve-digit-cell-inner {
+      padding: 6px 0; display: block; min-height: 28px; line-height: 28px;
+    }
+    /* 元与角之间的分隔样式 */
+    .ve-digit-cell.ve-yuan { border-right: 2px solid #8ab4d4 !important; }
+    /* 借贷最后一格右边加粗分隔 */
+    .ve-last-digit { border-right: 2px solid #a0b8d0 !important; }
+    /* 位格有值时高亮 */
+    .ve-digit-cell.has-val { color: #1a2d42; font-weight: 600; }
+    .ve-digit-cell { border: 1px solid #dde5ef; text-align: center; font-size: 13px; padding: 6px 0; }
+    .ve-dot-cell { font-weight: 700; background: #f5f8fc !important; font-size: 15px; }
+
+    /* 科目设置按钮 */
+    .ve-acc-set-btn {
+      flex-shrink: 0; width: 22px; height: 22px; padding: 0;
+      border: 1px solid #c0ccd8; border-radius: 3px; cursor: pointer;
+      background: #f0f5fc; color: #5a7090; font-size: 14px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; margin-left: 2px;
+    }
+    .ve-acc-set-btn:hover { background: #1a5fa8; color: #fff; border-color: #1a5fa8; }
+
+    /* 科目选择弹窗 */
+    .ve-acc-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.38);
+      z-index: 9000; display: flex; align-items: center; justify-content: center;
+    }
+    .ve-acc-modal {
+      background: #fff; border-radius: 8px; width: 560px; max-height: 72vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 8px 40px rgba(26,95,168,0.22);
+      overflow: hidden;
+    }
+    .ve-acc-modal-head {
+      padding: 14px 18px 12px; border-bottom: 1px solid #dde5ef;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #f0f5fc;
+    }
+    .ve-acc-modal-head h3 { font-size: 15px; color: #1a2d42; font-weight: 700; margin: 0; }
+    .ve-acc-modal-close {
+      width: 26px; height: 26px; border: none; border-radius: 50%;
+      background: rgba(26,95,168,0.10); cursor: pointer; font-size: 16px; color: #5a7090;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ve-acc-modal-close:hover { background: #e74c3c; color: #fff; }
+    .ve-acc-modal-search {
+      padding: 10px 18px; border-bottom: 1px solid #eef2f8;
+    }
+    .ve-acc-modal-search input {
+      width: 100%; padding: 8px 12px; border: 1px solid #c0ccd8; border-radius: 4px;
+      font-size: 13px; outline: none;
+    }
+    .ve-acc-modal-search input:focus { border-color: #1a5fa8; box-shadow: 0 0 0 2px rgba(26,95,168,0.12); }
+    .ve-acc-modal-body { overflow-y: auto; flex: 1; }
+    .ve-acc-modal-group-title {
+      padding: 6px 18px; font-size: 11px; font-weight: 700;
+      color: #7a8fa8; background: #f7f9fc; letter-spacing: 0.5px;
+      border-bottom: 1px solid #eef2f8; text-transform: uppercase;
+    }
+    .ve-acc-modal-item {
+      padding: 9px 18px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; border-bottom: 1px solid #f0f4f8; transition: background 0.12s;
+    }
+    .ve-acc-modal-item:hover { background: #eef5ff; }
+    .ve-acc-modal-item.selected { background: #ddeeff; }
+    .ve-acc-item-code { width: 52px; font-size: 12px; color: #8a9db0; font-family: monospace; flex-shrink: 0; }
+    .ve-acc-item-name { flex: 1; font-size: 13px; color: #1a2d42; }
+    .ve-acc-item-cat  { font-size: 11px; color: #aab8c8; }
+    .ve-acc-modal-footer {
+      padding: 10px 18px; border-top: 1px solid #dde5ef; background: #f7f9fc;
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+
+    /* 合计行 */
+    .ve-total-row td {
+      background: #eef3fa !important;
+      border: 1px solid #c0ccd8;
+      font-weight: 700;
+    }
+    .ve-total-label {
+      text-align: center; color: #2a4060;
+      font-size: 13px; padding: 7px 0;
+    }
+
+    /* 底部工具栏 */
+    .ve-toolbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border-top: 1px solid #dde5ef;
+      background: #f7f9fc;
+    }
+    .ve-balance-tip {
+      font-size: 13px; font-weight: 600;
+    }
+    .ve-balance-ok  { color: #27ae60; }
+    .ve-balance-err { color: #e74c3c; }
+
+    /* 脚注 */
+    .ve-footer-row {
+      display: flex; align-items: center; gap: 24px;
+      padding: 7px 16px;
+      border-top: 1px solid #dde5ef;
+      background: #f0f5fc;
+      font-size: 12px; color: #6a8098;
+    }
+    .ve-footer-item span { color: #1a2d42; font-weight: 600; }
+
+    /* 科目选择下拉 */
+    .ve-account-dropdown {
+      position: absolute; left: 0; top: 100%; z-index: 200;
+      background: #fff; border: 1px solid #1a5fa8;
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 4px 16px rgba(26,95,168,0.18);
+      min-width: 280px; max-height: 220px; overflow-y: auto;
+    }
+    .ve-account-opt {
+      padding: 6px 12px; cursor: pointer; font-size: 13px;
+      border-bottom: 1px solid #eef2f8; color: #2a4060;
+    }
+    .ve-account-opt:hover { background: #eef5ff; color: #1a5fa8; }
+    .ve-account-opt .opt-code { color: #8a9db0; font-size: 11px; margin-left: 6px; }
+
+    /* ── 工作台 ── */
+    .wb-banner {
+      background: linear-gradient(135deg, #0f2844 0%, #1a5fa8 100%);
+      padding: 22px 24px 20px; color: #fff;
+    }
+    .wb-banner h2 { font-size: 18px; margin-bottom: 4px; }
+    .wb-banner p { font-size: 12px; opacity: 0.70; }
+    .wb-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      background: #fff; border-bottom: 1px solid rgba(26,95,168,0.08);
+    }
+    .wb-stat {
+      padding: 16px; text-align: center;
+      border-right: 1px solid rgba(26,95,168,0.07);
+    }
+    .wb-stat:last-child { border-right: none; }
+    .wb-stat-num { font-size: 26px; font-weight: 700; color: #1a5fa8; line-height: 1; }
+    .wb-stat-unit { font-size: 12px; color: #9aaabb; }
+    .wb-stat-label { font-size: 12px; color: #7a8fa8; margin-top: 5px; }
+    .wb-body { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .wb-card {
+      background: #fff; border-radius: 8px; padding: 16px;
+      border: 1px solid rgba(26,95,168,0.08);
+      box-shadow: 0 2px 8px rgba(26,95,168,0.05);
+    }
+    .wb-card h4 {
+      font-size: 13px; font-weight: 700; color: #1a2d42;
+      margin-bottom: 12px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(26,95,168,0.08);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .wb-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wb-btn {
+      padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+      border: 1px solid rgba(26,95,168,0.18); background: rgba(26,95,168,0.05);
+      color: #1a5fa8; transition: all 0.2s; text-align: center;
+    }
+    .wb-btn:hover { background: #1a5fa8; color: #fff; border-color: #1a5fa8; }
+    .wb-notice { }
+    .wb-notice-row {
+      padding: 8px 0; border-bottom: 1px solid rgba(26,95,168,0.06);
+      font-size: 13px; color: #4a6280; display: flex; justify-content: space-between; align-items: center;
+    }
+    .wb-notice-row:last-child { border-bottom: none; }
+    .wb-tag { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .tag-warn { background: #fff3cd; color: #8a6200; }
+    .tag-info { background: rgba(26,95,168,0.10); color: #1a5fa8; }
+    .tag-ok   { background: #d4edda; color: #155724; }
+
+    /* 占位页 */
+    .acc-placeholder {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 300px; color: #7a8fa8; gap: 12px;
+    }
+    .acc-placeholder-icon { font-size: 48px; opacity: 0.5; }
+    .acc-placeholder h3 { font-size: 16px; color: #4a6280; font-weight: 600; }
+    .acc-placeholder p { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container" style="flex-direction:column;">
+
+    <!-- ── 顶部信息栏 ── -->
+    <div class="acc-topbar">
+      <div class="acc-topbar-left">
+        <span class="acc-brand">银河星辰会计核算</span>
+        <div class="acc-info-bar">
+          <span class="acc-info-item"><span class="acc-info-label">账套：</span><span class="acc-info-val" id="acc-name">湖南驰雅互联网科技有限公司</span></span>
+          <span class="acc-sep">|</span>
+          <span class="acc-info-item"><span class="acc-info-label">会计期间：</span><span class="acc-info-val" id="acc-period">2026年04月</span></span>
+          <span class="acc-sep">|</span>
+          <span class="acc-info-item"><span class="acc-info-label">行业：</span><span class="acc-info-val" id="acc-industry">信息技术/软件开发</span></span>
+          <span class="acc-sep">|</span>
+          <span class="acc-info-item"><span class="acc-info-label">准则：</span><span class="acc-info-val">企业会计准则</span></span>
+        </div>
+      </div>
+      <div class="acc-topbar-right">
+        <span class="acc-user" id="acc-user">操作员：admin</span>
+        <button class="btn-xs btn-xs-home" onclick="window.location.href='index.html'" title="返回银河星辰主页">🏠 返回主页</button>
+        <button class="btn-xs" onclick="window.location.href='finance_software.html'">切换账套</button>
+        <button class="btn-xs btn-xs-danger" onclick="if(confirm('确定退出会计核算？'))window.location.href='finance_software.html'">退出</button>
+      </div>
+    </div>
+
+    <!-- ── 主体：左侧导航 + 内容区 ── -->
+    <div class="acc-body">
+
+      <!-- 左侧功能导航 -->
+      <div class="acc-nav">
+        <div class="acc-nav-workbench active" onclick="showAccPage('workbench', this)">🏠 工作台</div>
+
+        <div class="acc-nav-group" id="grp-voucher">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-voucher')">
+            <span>📄 凭证管理</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('voucher-entry', this)">凭证录入</div>
+            <div class="acc-nav-child" onclick="showAccPage('voucher-query', this)">凭证查询</div>
+            <div class="acc-nav-child" onclick="showAccPage('voucher-review', this)">凭证审核</div>
+            <div class="acc-nav-child" onclick="showAccPage('voucher-post', this)">凭证过账</div>
+            <div class="acc-nav-child" onclick="showAccPage('voucher-template', this)">凭证模板</div>
+          </div>
+        </div>
+
+        <div class="acc-nav-group" id="grp-ledger">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-ledger')">
+            <span>📒 账簿管理</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('ledger-general', this)">总账</div>
+            <div class="acc-nav-child" onclick="showAccPage('ledger-detail', this)">明细账</div>
+            <div class="acc-nav-child" onclick="showAccPage('ledger-journal', this)">日记账</div>
+            <div class="acc-nav-child" onclick="showAccPage('ledger-balance', this)">科目余额表</div>
+            <div class="acc-nav-child" onclick="showAccPage('ledger-auxiliary', this)">辅助核算账</div>
+          </div>
+        </div>
+
+        <div class="acc-nav-group" id="grp-report">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-report')">
+            <span>📊 财务报表</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('report-balance', this)">资产负债表</div>
+            <div class="acc-nav-child" onclick="showAccPage('report-income', this)">利润表</div>
+            <div class="acc-nav-child" onclick="showAccPage('report-cashflow', this)">现金流量表</div>
+            <div class="acc-nav-child" onclick="showAccPage('report-equity', this)">所有者权益表</div>
+            <div class="acc-nav-child" onclick="showAccPage('report-custom', this)">自定义报表</div>
+          </div>
+        </div>
+
+        <div class="acc-nav-group" id="grp-asset">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-asset')">
+            <span>🏢 固定资产</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('asset-card', this)">资产卡片</div>
+            <div class="acc-nav-child" onclick="showAccPage('asset-depreciation', this)">折旧计提</div>
+            <div class="acc-nav-child" onclick="showAccPage('asset-report', this)">资产报表</div>
+          </div>
+        </div>
+
+        <div class="acc-nav-group" id="grp-period">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-period')">
+            <span>🔄 期末处理</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('period-carry', this)">期末结转</div>
+            <div class="acc-nav-child" onclick="showAccPage('period-close', this)">月末结账</div>
+            <div class="acc-nav-child" onclick="showAccPage('period-unclose', this)">反结账</div>
+          </div>
+        </div>
+
+        <div class="acc-nav-group" id="grp-setup">
+          <div class="acc-nav-group-title" onclick="toggleAccGroup('grp-setup')">
+            <span>⚙️ 基础设置</span><span class="acc-arrow">▾</span>
+          </div>
+          <div class="acc-nav-children">
+            <div class="acc-nav-child" onclick="showAccPage('setup-subject', this)">科目设置</div>
+            <div class="acc-nav-child" onclick="showAccPage('setup-currency', this)">币别设置</div>
+            <div class="acc-nav-child" onclick="showAccPage('setup-user', this)">用户权限</div>
+            <div class="acc-nav-child" onclick="showAccPage('setup-account', this)">账套设置</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧内容区 -->
+      <div class="acc-content">
+
+        <!-- 工作台 -->
+        <div class="acc-page active" id="page-workbench">
+          <div class="wb-banner">
+            <h2>工作台</h2>
+            <p id="wb-account-name">湖南驰雅互联网科技有限公司 · 2026年04月</p>
+          </div>
+          <div class="wb-stats">
+            <div class="wb-stat"><div class="wb-stat-num">0<span class="wb-stat-unit">张</span></div><div class="wb-stat-label">本月凭证</div></div>
+            <div class="wb-stat"><div class="wb-stat-num">0<span class="wb-stat-unit">张</span></div><div class="wb-stat-label">待审核</div></div>
+            <div class="wb-stat"><div class="wb-stat-num">0<span class="wb-stat-unit">张</span></div><div class="wb-stat-label">未过账</div></div>
+            <div class="wb-stat"><div class="wb-stat-num" style="color:#c8921a">未结</div><div class="wb-stat-label">本月状态</div></div>
+          </div>
+          <div class="wb-body">
+            <div class="wb-card">
+              <h4>⚡ 快捷操作</h4>
+              <div class="wb-quick">
+                <div class="wb-btn" onclick="showAccPage('voucher-entry', null)">新增凭证</div>
+                <div class="wb-btn" onclick="showAccPage('voucher-query', null)">凭证查询</div>
+                <div class="wb-btn" onclick="showAccPage('ledger-balance', null)">科目余额</div>
+                <div class="wb-btn" onclick="showAccPage('report-balance', null)">资产负债表</div>
+                <div class="wb-btn" onclick="showAccPage('report-income', null)">利润表</div>
+                <div class="wb-btn" onclick="showAccPage('period-close', null)">月末结账</div>
+              </div>
+            </div>
+            <div class="wb-card">
+              <h4>🔔 待办提醒</h4>
+              <div class="wb-notice">
+                <div class="wb-notice-row"><span>本月尚未录入凭证</span><span class="wb-tag tag-warn">待处理</span></div>
+                <div class="wb-notice-row"><span>4月份账期尚未结账</span><span class="wb-tag tag-warn">待结账</span></div>
+                <div class="wb-notice-row"><span>固定资产折旧未计提</span><span class="wb-tag tag-info">提醒</span></div>
+                <div class="wb-notice-row"><span>上月报表已生成</span><span class="wb-tag tag-ok">已完成</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 凭证录入 -->
+        <div class="acc-page" id="page-voucher-entry">
+          <div class="acc-page-header">
+            <div><span class="acc-page-title">凭证录入</span><span class="acc-page-sub" id="ve-period-label">记账凭证 · 2026年04月</span></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary" id="draft-btn" onclick="veSaveDraft()">草稿</button>
+              <button class="btn btn-secondary" id="ve-prev-btn" onclick="veNavigate(-1)" title="上一张">◀ 上张</button>
+              <button class="btn btn-secondary" id="ve-next-btn" onclick="veNavigate(1)" title="下一张">下张 ▶</button>
+              <button class="btn btn-secondary" id="reset-btn" onclick="veReset()">重置</button>
+              <button class="btn btn-primary" id="save-btn" onclick="veSave()">保存</button>
+              <button class="btn btn-primary" id="save-add-btn" onclick="veSaveAndNew()">保存并新增</button>
+            </div>
+          </div>
+          <div class="acc-page-body" style="padding:12px 16px;">
+
+            <!-- 凭证主体卡片 -->
+            <div class="ve-card">
+
+              <!-- 凭证标题 -->
+              <div class="ve-title-row">
+                <span class="ve-title-text">记　账　凭　证</span>
+              </div>
+
+              <!-- 凭证头信息 -->
+              <div class="ve-head-row">
+                <div class="ve-head-left">
+                  <label class="ve-label">凭证字号：</label>
+                  <select id="ve-type" class="ve-input ve-input-sm">
+                    <option value="记">记</option><option value="收">收</option>
+                    <option value="付">付</option><option value="转">转</option>
+                  </select>
+                  <span class="ve-label" style="margin-left:2px;">字第</span>
+                  <input type="text" id="ve-number" class="ve-input ve-input-no" value="001">
+                  <span class="ve-label">号</span>
+                </div>
+                <div class="ve-head-center">
+                  <label class="ve-label">记账日期：</label>
+                  <input type="date" id="ve-date" class="ve-input">
+                </div>
+                <div class="ve-head-right">
+                  <label class="ve-label">业务日期：</label>
+                  <input type="date" id="ve-biz-date" class="ve-input">
+                  <label class="ve-label" style="margin-left:16px;">附件：</label>
+                  <input type="number" id="ve-attach" class="ve-input ve-input-sm" value="0" min="0" style="text-align:center;">
+                  <span class="ve-label">张</span>
+                </div>
+              </div>
+
+              <!-- 分录表格 -->
+              <div class="ve-table-wrap">
+                <table class="ve-table" id="ve-table">
+                  <thead>
+                    <tr class="ve-thead-top">
+                      <th class="ve-th-no" rowspan="2">行</th>
+                      <th class="ve-th-summary" rowspan="2">摘　　要</th>
+                      <th class="ve-th-account" rowspan="2">会 计 科 目</th>
+                      <th colspan="12" class="ve-th-side ve-th-debit">借　　方</th>
+                      <th colspan="12" class="ve-th-side ve-th-credit">贷　　方</th>
+                    </tr>
+                    <tr class="ve-thead-digits">
+                      <!-- 借方：输入列 + 11位格 -->
+                      <th class="ve-digit ve-th-input-col" style="min-width:90px;width:90px;">金额输入</th>
+                      <th class="ve-digit">亿</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
+                      <th class="ve-digit">万</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
+                      <th class="ve-digit">元</th><th class="ve-digit">角</th><th class="ve-digit ve-last">分</th>
+                      <!-- 贷方：输入列 + 11位格 -->
+                      <th class="ve-digit ve-th-input-col" style="min-width:90px;width:90px;">金额输入</th>
+                      <th class="ve-digit">亿</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
+                      <th class="ve-digit">万</th><th class="ve-digit">千</th><th class="ve-digit">百</th><th class="ve-digit">十</th>
+                      <th class="ve-digit">元</th><th class="ve-digit">角</th><th class="ve-digit ve-last">分</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ve-tbody">
+                    <!-- 由 JS 生成 -->
+                  </tbody>
+                  <tfoot>
+                    <tr class="ve-total-row">
+                      <td colspan="3" class="ve-total-label">合　　计</td>
+                      <!-- 借方合计：输入占位 + 11位格 -->
+                      <td class="ve-digit-cell" style="background:#eef3fa;border-right:1px solid #c0ccd8;"></td>
+                      <td class="ve-digit-cell" id="td-d-yi"></td><td class="ve-digit-cell" id="td-d-qian1"></td>
+                      <td class="ve-digit-cell" id="td-d-bai1"></td><td class="ve-digit-cell" id="td-d-shi1"></td>
+                      <td class="ve-digit-cell" id="td-d-wan"></td><td class="ve-digit-cell" id="td-d-qian2"></td>
+                      <td class="ve-digit-cell" id="td-d-bai2"></td><td class="ve-digit-cell" id="td-d-shi2"></td>
+                      <td class="ve-digit-cell" id="td-d-yuan"></td>
+                      <td class="ve-digit-cell" id="td-d-jiao"></td><td class="ve-digit-cell" id="td-d-fen"></td>
+                      <!-- 贷方合计：输入占位 + 11位格 -->
+                      <td class="ve-digit-cell" style="background:#eef3fa;border-right:1px solid #c0ccd8;"></td>
+                      <td class="ve-digit-cell" id="td-c-yi"></td><td class="ve-digit-cell" id="td-c-qian1"></td>
+                      <td class="ve-digit-cell" id="td-c-bai1"></td><td class="ve-digit-cell" id="td-c-shi1"></td>
+                      <td class="ve-digit-cell" id="td-c-wan"></td><td class="ve-digit-cell" id="td-c-qian2"></td>
+                      <td class="ve-digit-cell" id="td-c-bai2"></td><td class="ve-digit-cell" id="td-c-shi2"></td>
+                      <td class="ve-digit-cell" id="td-c-yuan"></td>
+                      <td class="ve-digit-cell" id="td-c-jiao"></td><td class="ve-digit-cell" id="td-c-fen"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!-- 底部操作栏 -->
+              <div class="ve-toolbar">
+                <button class="btn btn-secondary" onclick="veAddRow()">＋ 增行</button>
+                <button class="btn btn-secondary" onclick="veDelRow()">－ 删行</button>
+                <button class="btn btn-secondary" onclick="veUseTemplate()">📋 使用模板</button>
+                <div style="flex:1"></div>
+                <span class="ve-balance-tip" id="ve-balance-tip"></span>
+              </div>
+
+              <!-- 凭证脚注 -->
+              <div class="ve-footer-row">
+                <div class="ve-footer-item">制单人：<span id="ve-creator">当前用户</span></div>
+                <div class="ve-footer-item">审核人：<span id="ve-auditor">—</span></div>
+                <div class="ve-footer-item">记账：<span id="ve-poster">—</span></div>
+                <div class="ve-footer-item" style="margin-left:auto;">共 <span id="ve-row-count">10</span> 行</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 其他页面占位 -->
+        <div class="acc-page" id="page-voucher-query"><div class="acc-page-header"><span class="acc-page-title">凭证查询</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🔍</div><h3>凭证查询</h3><p>按日期、凭证号、科目等条件查询历史凭证</p></div></div></div>
+        <div class="acc-page" id="page-voucher-review"><div class="acc-page-header"><span class="acc-page-title">凭证审核</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">✅</div><h3>凭证审核</h3><p>对录入的凭证进行审核确认</p></div></div></div>
+        <div class="acc-page" id="page-voucher-post"><div class="acc-page-header"><span class="acc-page-title">凭证过账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📮</div><h3>凭证过账</h3><p>将审核通过的凭证过账到账簿</p></div></div></div>
+        <div class="acc-page" id="page-voucher-template"><div class="acc-page-header"><span class="acc-page-title">凭证模板</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📋</div><h3>凭证模板</h3><p>管理常用凭证模板，提升录入效率</p></div></div></div>
+        <div class="acc-page" id="page-ledger-general"><div class="acc-page-header"><span class="acc-page-title">总账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📒</div><h3>总账</h3><p>查看各科目总账汇总数据</p></div></div></div>
+        <div class="acc-page" id="page-ledger-detail"><div class="acc-page-header"><span class="acc-page-title">明细账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📑</div><h3>明细账</h3><p>查看科目明细流水记录</p></div></div></div>
+        <div class="acc-page" id="page-ledger-journal"><div class="acc-page-header"><span class="acc-page-title">日记账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📅</div><h3>日记账</h3><p>现金/银行日记账查询</p></div></div></div>
+        <div class="acc-page" id="page-ledger-balance"><div class="acc-page-header"><span class="acc-page-title">科目余额表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📊</div><h3>科目余额表</h3><p>查看各科目期初、本期发生额及期末余额</p></div></div></div>
+        <div class="acc-page" id="page-ledger-auxiliary"><div class="acc-page-header"><span class="acc-page-title">辅助核算账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🗂️</div><h3>辅助核算账</h3><p>按部门、项目、客户等维度查询</p></div></div></div>
+        <div class="acc-page" id="page-report-balance"><div class="acc-page-header"><span class="acc-page-title">资产负债表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📈</div><h3>资产负债表</h3><p>生成并查看资产负债表</p></div></div></div>
+        <div class="acc-page" id="page-report-income"><div class="acc-page-header"><span class="acc-page-title">利润表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">💹</div><h3>利润表</h3><p>生成并查看利润表（损益表）</p></div></div></div>
+        <div class="acc-page" id="page-report-cashflow"><div class="acc-page-header"><span class="acc-page-title">现金流量表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">💰</div><h3>现金流量表</h3><p>生成并查看现金流量表</p></div></div></div>
+        <div class="acc-page" id="page-report-equity"><div class="acc-page-header"><span class="acc-page-title">所有者权益表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🏦</div><h3>所有者权益变动表</h3><p>生成并查看所有者权益变动表</p></div></div></div>
+        <div class="acc-page" id="page-report-custom"><div class="acc-page-header"><span class="acc-page-title">自定义报表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🛠️</div><h3>自定义报表</h3><p>自定义报表格式与取数规则</p></div></div></div>
+        <div class="acc-page" id="page-asset-card"><div class="acc-page-header"><span class="acc-page-title">资产卡片</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🏢</div><h3>资产卡片</h3><p>管理固定资产基本信息</p></div></div></div>
+        <div class="acc-page" id="page-asset-depreciation"><div class="acc-page-header"><span class="acc-page-title">折旧计提</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📉</div><h3>折旧计提</h3><p>按月自动计提固定资产折旧</p></div></div></div>
+        <div class="acc-page" id="page-asset-report"><div class="acc-page-header"><span class="acc-page-title">资产报表</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">📋</div><h3>资产报表</h3><p>固定资产汇总与明细报表</p></div></div></div>
+        <div class="acc-page" id="page-period-carry"><div class="acc-page-header"><span class="acc-page-title">期末结转</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🔄</div><h3>期末结转</h3><p>损益类科目期末自动结转</p></div></div></div>
+        <div class="acc-page" id="page-period-close"><div class="acc-page-header"><span class="acc-page-title">月末结账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🔒</div><h3>月末结账</h3><p>完成月末结账，锁定本期数据</p></div></div></div>
+        <div class="acc-page" id="page-period-unclose"><div class="acc-page-header"><span class="acc-page-title">反结账</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🔓</div><h3>反结账</h3><p>撤销结账，重新开放本期数据</p></div></div></div>
+        <div class="acc-page" id="page-setup-subject"><div class="acc-page-header"><span class="acc-page-title">科目设置</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">⚙️</div><h3>科目设置</h3><p>维护会计科目体系</p></div></div></div>
+        <div class="acc-page" id="page-setup-currency"><div class="acc-page-header"><span class="acc-page-title">币别设置</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">💱</div><h3>币别设置</h3><p>设置本位币及外币汇率</p></div></div></div>
+        <div class="acc-page" id="page-setup-user"><div class="acc-page-header"><span class="acc-page-title">用户权限</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">👤</div><h3>用户权限</h3><p>管理操作员及功能权限</p></div></div></div>
+        <div class="acc-page" id="page-setup-account"><div class="acc-page-header"><span class="acc-page-title">账套设置</span></div><div class="acc-page-body"><div class="acc-placeholder"><div class="acc-placeholder-icon">🗄️</div><h3>账套设置</h3><p>修改账套基本信息与参数</p></div></div></div>
+
+      </div><!-- /acc-content -->
+    </div><!-- /acc-body -->
+  </div><!-- /container -->
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 标签切换功能
+      const tabs = document.querySelectorAll('.tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // 移除所有标签的active类
+          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active类
+          this.classList.add('active');
+          
+          // 隐藏所有内容
+          tabContents.forEach(content => content.classList.remove('active'));
+          // 显示对应内容
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // 凭证录入相关功能
+      
+      // 初始化凭证表格，添加默认的分录行
+      // ============================================================
+      // 凭证录入核心逻辑（新版，对应 ve-* 结构）
+      // ============================================================
+
+      // 常用会计科目列表
+      var ACCOUNTS = [
+        {code:'1001',name:'库存现金'},{code:'1002',name:'银行存款'},{code:'1012',name:'其他货币资金'},
+        {code:'1121',name:'应收票据'},{code:'1122',name:'应收账款'},{code:'1123',name:'预付账款'},
+        {code:'1131',name:'应收股利'},{code:'1132',name:'应收利息'},{code:'1221',name:'其他应收款'},
+        {code:'1401',name:'材料采购'},{code:'1403',name:'原材料'},{code:'1405',name:'库存商品'},
+        {code:'1601',name:'固定资产'},{code:'1602',name:'累计折旧'},{code:'1604',name:'在建工程'},
+        {code:'1701',name:'无形资产'},{code:'1702',name:'累计摊销'},{code:'1801',name:'长期待摊费用'},
+        {code:'2001',name:'短期借款'},{code:'2201',name:'应付票据'},{code:'2202',name:'应付账款'},
+        {code:'2203',name:'预收账款'},{code:'2211',name:'应付职工薪酬'},{code:'2221',name:'应交税费'},
+        {code:'2231',name:'应付利息'},{code:'2241',name:'其他应付款'},{code:'2501',name:'长期借款'},
+        {code:'2701',name:'长期应付款'},{code:'2801',name:'预计负债'},
+        {code:'4001',name:'实收资本'},{code:'4002',name:'资本公积'},{code:'4101',name:'盈余公积'},
+        {code:'4103',name:'本年利润'},{code:'4104',name:'利润分配'},
+        {code:'5001',name:'生产成本'},{code:'5101',name:'制造费用'},{code:'5301',name:'研发支出'},
+        {code:'6001',name:'主营业务收入'},{code:'6051',name:'其他业务收入'},{code:'6111',name:'投资收益'},
+        {code:'6301',name:'营业外收入'},{code:'6401',name:'主营业务成本'},{code:'6402',name:'其他业务成本'},
+        {code:'6403',name:'营业税金及附加'},{code:'6601',name:'销售费用'},{code:'6602',name:'管理费用'},
+        {code:'6603',name:'财务费用'},{code:'6701',name:'资产减值损失'},{code:'6711',name:'营业外支出'},
+        {code:'6801',name:'所得税费用'}
+      ];
+
+      // 将金额数字拆分为各位格字符串数组（11位：亿千百十万千百十元角分）
+      function splitAmount(val) {
+        // val: 数值，如 12345.67
+        var cents = Math.round(Math.abs(val) * 100); // 转为分
+        var s = String(cents).padStart(11, '0'); // 11位
+        // 位格顺序：亿(0) 千(1) 百(2) 十(3) 万(4) 千(5) 百(6) 十(7) 元(8) 角(9) 分(10)
+        return [s[0],s[1],s[2],s[3],s[4],s[5],s[6],s[7],s[8],s[9],s[10]];
+      }
+
+      // 填充位格格子（去除前导零）
+      function fillDigitCells(tdCells, digits) {
+        // tdCells: 11个td元素数组, digits: 11位字符串数组
+        var hasNonZero = false;
+        for (var i = 0; i < tdCells.length; i++) {
+          var inner = tdCells[i].querySelector('.ve-digit-cell-inner') || tdCells[i];
+          var d = digits[i];
+          if (i >= 8) {
+            // 元、角、分始终显示（即使是0）
+            inner.textContent = d;
+            tdCells[i].classList.toggle('has-val', d !== '0');
+          } else {
+            if (!hasNonZero && d === '0') {
+              inner.textContent = '';
+              tdCells[i].classList.remove('has-val');
+            } else {
+              hasNonZero = true;
+              inner.textContent = d;
+              tdCells[i].classList.add('has-val');
+            }
+          }
+        }
+      }
+
+      // 用各位格内容填充合计行
+      function fillTotalRow(prefix, digits) {
+        var allKeys = ['yi','qian1','bai1','shi1','wan','qian2','bai2','shi2','yuan','jiao','fen'];
+        var hasNonZero = false;
+        for (var i = 0; i < allKeys.length; i++) {
+          var el = document.getElementById('td-' + prefix + '-' + allKeys[i]);
+          if (!el) continue;
+          var d = digits[i];
+          if (i >= 8) {
+            el.textContent = d;
+          } else {
+            if (!hasNonZero && d === '0') { el.textContent = ''; }
+            else { hasNonZero = true; el.textContent = d; }
+          }
+        }
+      }
+
+      // 更新合计行（读取所有行的借/贷金额 input）
+      function veUpdateTotals() {
+        var rows = document.querySelectorAll('#ve-tbody .ve-row');
+        var totalDebit = 0, totalCredit = 0;
+        rows.forEach(function(row) {
+          var di = row.querySelector('.ve-debit-input');
+          var ci = row.querySelector('.ve-credit-input');
+          totalDebit  += parseFloat((di && di.value) || 0) || 0;
+          totalCredit += parseFloat((ci && ci.value) || 0) || 0;
+        });
+        var dDigits = splitAmount(totalDebit);
+        var cDigits = splitAmount(totalCredit);
+        fillTotalRow('d', dDigits);
+        fillTotalRow('c', cDigits);
+
+        // 平衡提示
+        var tip = document.getElementById('ve-balance-tip');
+        if (tip) {
+          var diff = Math.abs(totalDebit - totalCredit);
+          if (totalDebit === 0 && totalCredit === 0) {
+            tip.textContent = '';
+          } else if (diff < 0.001) {
+            tip.textContent = '✓ 借贷平衡';
+            tip.className = 've-balance-tip ve-balance-ok';
+          } else {
+            tip.textContent = '✗ 借贷差额：¥' + diff.toFixed(2);
+            tip.className = 've-balance-tip ve-balance-err';
+          }
+        }
+        // 更新行数
+        var rc = document.getElementById('ve-row-count');
+        if (rc) rc.textContent = rows.length;
+      }
+
+      // 显示科目搜索下拉
+      function veShowAccountDropdown(td, inputEl) {
+        document.querySelectorAll('.ve-account-dropdown').forEach(function(d){ d.remove(); });
+        var dd = document.createElement('div');
+        dd.className = 've-account-dropdown';
+        var kw = inputEl.value.trim().toLowerCase();
+        var list = kw ? ACCOUNTS.filter(function(a){
+          return a.code.indexOf(kw) !== -1 || a.name.indexOf(kw) !== -1;
+        }) : ACCOUNTS;
+        if (list.length === 0) { dd.innerHTML = '<div class="ve-account-opt" style="color:#aaa;">无匹配科目</div>'; }
+        list.slice(0,30).forEach(function(a) {
+          var item = document.createElement('div');
+          item.className = 've-account-opt';
+          item.innerHTML = a.name + '<span class="opt-code">' + a.code + '</span>';
+          item.onmousedown = function(e) {
+            e.preventDefault();
+            inputEl.value = a.code + ' ' + a.name;
+            inputEl.dataset.code = a.code;
+            dd.remove();
+            veUpdateTotals();
+          };
+          dd.appendChild(item);
+        });
+        td.style.position = 'relative';
+        td.appendChild(dd);
+      }
+
+      // 创建一行凭证分录 tr（新版：单输入框 + 位格只读显示）
+      function veCreateRow(rowNum) {
+        var tr = document.createElement('tr');
+        tr.className = 've-row';
+        tr.dataset.row = rowNum;
+
+        // ── 行号 ──
+        var tdNo = document.createElement('td');
+        tdNo.className = 've-td-no';
+        tdNo.textContent = rowNum;
+        tr.appendChild(tdNo);
+
+        // ── 摘要 ──
+        var tdSum = document.createElement('td');
+        tdSum.className = 've-td-summary';
+        var inpSum = document.createElement('input');
+        inpSum.type = 'text'; inpSum.className = 've-summary-input'; inpSum.placeholder = '摘要';
+        inpSum.setAttribute('autocomplete','off');
+        tdSum.appendChild(inpSum);
+        tr.appendChild(tdSum);
+
+        // ── 科目（含右侧设置按钮）──
+        var tdAcc = document.createElement('td');
+        tdAcc.className = 've-td-account';
+        tdAcc.style.cssText = 'position:relative;';
+
+        var accWrap = document.createElement('div');
+        accWrap.style.cssText = 'display:flex;align-items:center;width:100%;padding:2px 4px;box-sizing:border-box;';
+
+        var inpAcc = document.createElement('input');
+        inpAcc.type = 'text'; inpAcc.className = 've-account-input'; inpAcc.placeholder = '科目代码或名称';
+        inpAcc.style.cssText = 'flex:1;min-width:0;border:none;outline:none;background:transparent;padding:5px 4px;font-size:13px;color:#1a2d42;';
+        inpAcc.setAttribute('autocomplete','off');
+        inpAcc.addEventListener('input', function(){ veShowAccountDropdown(tdAcc, inpAcc); });
+        inpAcc.addEventListener('focus', function(){ veShowAccountDropdown(tdAcc, inpAcc); });
+        inpAcc.addEventListener('blur',  function(){ setTimeout(function(){ var dd=tdAcc.querySelector('.ve-account-dropdown'); if(dd)dd.remove(); },200); });
+
+        // 科目设置按钮（…弹窗选择）
+        var btnSet = document.createElement('button');
+        btnSet.type = 'button';
+        btnSet.className = 've-acc-set-btn';
+        btnSet.title = '会计科目设置';
+        btnSet.innerHTML = '&#8230;'; // "…"
+        btnSet.addEventListener('click', function(e){
+          e.stopPropagation();
+          veOpenAccountSelector(inpAcc);
+        });
+
+        // 隐藏的借方/贷方 input（存最终金额，单位：元）
+        var debitInput = document.createElement('input');
+        debitInput.type = 'hidden'; debitInput.className = 've-debit-input'; debitInput.value = '';
+        var creditInput = document.createElement('input');
+        creditInput.type = 'hidden'; creditInput.className = 've-credit-input'; creditInput.value = '';
+
+        accWrap.appendChild(inpAcc);
+        accWrap.appendChild(btnSet);
+        tdAcc.appendChild(accWrap);
+        tdAcc.appendChild(debitInput);
+        tdAcc.appendChild(creditInput);
+        tr.appendChild(tdAcc);
+
+        // ── 创建借方/贷方金额输入列 + 11个位格只读显示列 ──
+        function createAmountGroup(hiddenInput, sideClass) {
+          var digitCells = []; // 存11个位格td
+
+          // 1. 金额输入框td（带背景色区分）
+          var tdInp = document.createElement('td');
+          tdInp.className = 've-amount-input-cell';
+          tdInp.style.cssText = 'min-width:90px;width:90px;border:1px solid #dde5ef;' +
+            (sideClass === 've-debit-dig' ? 'background:#f5faff;' : 'background:#fffaf5;');
+
+          var amtInp = document.createElement('input');
+          amtInp.type = 'number';
+          amtInp.className = 've-amount-inp ' + sideClass + '-inp';
+          amtInp.placeholder = '0.00';
+          amtInp.min = '0';
+          amtInp.step = '0.01';
+          amtInp.setAttribute('autocomplete','off');
+          amtInp.style.cssText = 'width:100%;border:none;outline:none;background:transparent;' +
+            'text-align:right;font-size:13px;font-family:"Courier New",monospace;' +
+            'padding:6px 6px;color:#1a2d42;';
+
+          // 输入时实时拆分到位格
+          amtInp.addEventListener('input', function(){
+            var v = parseFloat(amtInp.value) || 0;
+            if (v < 0) { amtInp.value = ''; v = 0; }
+            hiddenInput.value = v ? v.toFixed(2) : '';
+            var digits = splitAmount(v);
+            fillDigitCells(digitCells, digits);
+            // 如果借方有值，自动清空贷方，反之亦然
+            if (sideClass === 've-debit-dig') {
+              var cInp = tr.querySelector('.ve-credit-dig-inp');
+              if (cInp && v > 0 && parseFloat(cInp.value) > 0) { cInp.value = ''; creditInput.value = ''; fillDigitCells(creditDigitCells, splitAmount(0)); }
+            } else {
+              var dInp = tr.querySelector('.ve-debit-dig-inp');
+              if (dInp && v > 0 && parseFloat(dInp.value) > 0) { dInp.value = ''; debitInput.value = ''; fillDigitCells(debitDigitCells, splitAmount(0)); }
+            }
+            veUpdateTotals();
+          });
+
+          // 失焦时格式化为两位小数
+          amtInp.addEventListener('blur', function(){
+            var v = parseFloat(amtInp.value);
+            if (!isNaN(v) && v > 0) {
+              amtInp.value = v.toFixed(2);
+              hiddenInput.value = v.toFixed(2);
+              fillDigitCells(digitCells, splitAmount(v));
+            } else {
+              amtInp.value = '';
+              hiddenInput.value = '';
+              fillDigitCells(digitCells, splitAmount(0));
+            }
+            veUpdateTotals();
+          });
+
+          tdInp.appendChild(amtInp);
+          tr.appendChild(tdInp);
+
+          // 2. 11个位格只读显示td
+          var labels = ['亿','千','百','十','万','千','百','十','元','角','分'];
+          for (var i = 0; i < 11; i++) {
+            var tdDig = document.createElement('td');
+            tdDig.className = 've-digit-cell' + (i === 8 ? ' ve-yuan' : '') + (i === 10 ? ' ve-last-digit' : '');
+            tdDig.style.cssText = 'min-width:26px;width:26px;text-align:center;' +
+              'font-family:"Courier New",monospace;font-size:13px;' +
+              'border:1px solid #dde5ef;padding:0;vertical-align:middle;' +
+              'cursor:default;user-select:none;';
+            // 点击位格时，聚焦到金额输入框
+            (function(myAmtInp){
+              tdDig.style.pointerEvents = 'auto';
+              tdDig.addEventListener('click', function(){ myAmtInp.focus(); myAmtInp.select(); });
+            })(amtInp);
+
+            var inner = document.createElement('span');
+            inner.className = 've-digit-cell-inner';
+            inner.style.cssText = 'display:block;padding:6px 0;min-height:26px;line-height:26px;text-align:center;';
+            inner.textContent = (i >= 8) ? '0' : '';
+            tdDig.appendChild(inner);
+            tr.appendChild(tdDig);
+            digitCells.push(tdDig);
+          }
+
+          return { digitCells: digitCells, amtInp: amtInp };
+        }
+
+        var debitGroup  = createAmountGroup(debitInput,  've-debit-dig');
+        var creditGroup = createAmountGroup(creditInput, 've-credit-dig');
+        var debitDigitCells  = debitGroup.digitCells;
+        var creditDigitCells = creditGroup.digitCells;
+
+        // 点击行选中
+        tr.addEventListener('click', function() {
+          document.querySelectorAll('#ve-tbody .ve-row').forEach(function(r){ r.classList.remove('ve-selected'); });
+          tr.classList.add('ve-selected');
+        });
+
+        return tr;
+      }
+
+      // ── 会计科目选择器弹窗 ──
+      function veOpenAccountSelector(targetInput) {
+        // 移除旧弹窗
+        var old = document.getElementById('ve-acc-modal-overlay');
+        if (old) old.remove();
+
+        var overlay = document.createElement('div');
+        overlay.className = 've-acc-modal-overlay';
+        overlay.id = 've-acc-modal-overlay';
+
+        var modal = document.createElement('div');
+        modal.className = 've-acc-modal';
+        modal.innerHTML = [
+          '<div class="ve-acc-modal-head">',
+          '  <h3>📊 选择会计科目</h3>',
+          '  <button class="ve-acc-modal-close" id="ve-acc-modal-close-btn">✕</button>',
+          '</div>',
+          '<div class="ve-acc-modal-search">',
+          '  <input type="text" id="ve-acc-modal-search-inp" placeholder="输入科目代码或名称搜索…" autocomplete="off">',
+          '</div>',
+          '<div class="ve-acc-modal-body" id="ve-acc-modal-body"></div>',
+          '<div class="ve-acc-modal-footer">',
+          '  <button class="btn btn-secondary" id="ve-acc-modal-cancel">取消</button>',
+          '  <button class="btn btn-primary" id="ve-acc-modal-confirm">确定</button>',
+          '</div>'
+        ].join('');
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        var searchInp = document.getElementById('ve-acc-modal-search-inp');
+        var body = document.getElementById('ve-acc-modal-body');
+        var selectedItem = null;
+
+        // 按大类分组渲染
+        var GROUPS = [
+          { label: '资产类', prefix: ['1'], color: '#1a5fa8' },
+          { label: '负债类', prefix: ['2'], color: '#c8641a' },
+          { label: '所有者权益类', prefix: ['4'], color: '#27ae60' },
+          { label: '成本类', prefix: ['5'], color: '#8e44ad' },
+          { label: '损益类', prefix: ['6'], color: '#e67e22' }
+        ];
+
+        function renderList(keyword) {
+          body.innerHTML = '';
+          var kw = (keyword || '').trim().toLowerCase();
+          GROUPS.forEach(function(grp) {
+            var items = ACCOUNTS.filter(function(a) {
+              var matchGroup = grp.prefix.some(function(p){ return a.code.startsWith(p); });
+              if (!matchGroup) return false;
+              if (!kw) return true;
+              return a.code.indexOf(kw) !== -1 || a.name.indexOf(kw) !== -1;
+            });
+            if (items.length === 0) return;
+            var gt = document.createElement('div');
+            gt.className = 've-acc-modal-group-title';
+            gt.style.color = grp.color;
+            gt.textContent = grp.label + '（' + items.length + '个）';
+            body.appendChild(gt);
+            items.forEach(function(a) {
+              var item = document.createElement('div');
+              item.className = 've-acc-modal-item';
+              item.dataset.code = a.code;
+              item.dataset.name = a.name;
+              // 如果当前科目已选中，高亮
+              if (targetInput.value && (targetInput.value.indexOf(a.code) !== -1 || targetInput.value.indexOf(a.name) !== -1)) {
+                item.classList.add('selected');
+                selectedItem = item;
+              }
+              item.innerHTML = '<span class="ve-acc-item-code">' + a.code + '</span>' +
+                '<span class="ve-acc-item-name">' + a.name + '</span>';
+              item.addEventListener('click', function() {
+                body.querySelectorAll('.ve-acc-modal-item').forEach(function(i){ i.classList.remove('selected'); });
+                item.classList.add('selected');
+                selectedItem = item;
+              });
+              item.addEventListener('dblclick', function() {
+                confirmSelect(item);
+              });
+              body.appendChild(item);
+            });
+          });
+          if (body.children.length === 0) {
+            body.innerHTML = '<div style="text-align:center;padding:40px;color:#aab8c8;font-size:13px;">未找到匹配的科目</div>';
+            selectedItem = null;
+          }
+        }
+
+        function confirmSelect(item) {
+          if (!item) item = selectedItem;
+          if (!item) { alert('请选择一个科目'); return; }
+          targetInput.value = item.dataset.code + ' ' + item.dataset.name;
+          targetInput.dataset.code = item.dataset.code;
+          overlay.remove();
+          veUpdateTotals();
+        }
+
+        renderList('');
+        searchInp.focus();
+
+        searchInp.addEventListener('input', function(){
+          selectedItem = null;
+          renderList(searchInp.value);
+        });
+
+        document.getElementById('ve-acc-modal-close-btn').onclick = function(){ overlay.remove(); };
+        document.getElementById('ve-acc-modal-cancel').onclick = function(){ overlay.remove(); };
+        document.getElementById('ve-acc-modal-confirm').onclick = function(){ confirmSelect(null); };
+        overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+
+        // 键盘支持：上下移动、Enter确定、Esc关闭
+        searchInp.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') { overlay.remove(); return; }
+          if (e.key === 'Enter') { confirmSelect(null); return; }
+          var items = Array.from(body.querySelectorAll('.ve-acc-modal-item'));
+          if (items.length === 0) return;
+          var idx = selectedItem ? items.indexOf(selectedItem) : -1;
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            idx = Math.min(idx + 1, items.length - 1);
+            items.forEach(function(i){ i.classList.remove('selected'); });
+            items[idx].classList.add('selected');
+            selectedItem = items[idx];
+            items[idx].scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            idx = Math.max(idx - 1, 0);
+            items.forEach(function(i){ i.classList.remove('selected'); });
+            items[idx].classList.add('selected');
+            selectedItem = items[idx];
+            items[idx].scrollIntoView({ block: 'nearest' });
+          }
+        });
+      }
+
+      // 初始化凭证录入表格
+      function initVoucherTable() {
+        var tbody = document.getElementById('ve-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        for (var i = 1; i <= 10; i++) {
+          tbody.appendChild(veCreateRow(i));
+        }
+        veUpdateTotals();
+      }
+      window.initVoucherTable = initVoucherTable;
+
+      // 增行
+      window.veAddRow = function() {
+        var tbody = document.getElementById('ve-tbody');
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('.ve-row');
+        tbody.appendChild(veCreateRow(rows.length + 1));
+        veUpdateTotals();
+      };
+
+      // 删行（删最后一行，至少保留 2 行）
+      window.veDelRow = function() {
+        var tbody = document.getElementById('ve-tbody');
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('.ve-row');
+        if (rows.length > 2) { rows[rows.length - 1].remove(); veUpdateTotals(); }
+        else { alert('至少保留2行分录'); }
+      };
+
+      // 重置
+      window.veReset = function() {
+        var today = new Date().toISOString().split('T')[0];
+        var d = document.getElementById('ve-date');
+        var b = document.getElementById('ve-biz-date');
+        var a = document.getElementById('ve-attach');
+        if(d) d.value = today; if(b) b.value = today; if(a) a.value = '0';
+        initVoucherTable();
+      };
+
+      // 保存
+      window.veSave = function() {
+        var tbody = document.getElementById('ve-tbody');
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('.ve-row');
+        var totalD = 0, totalC = 0, hasEntry = false;
+        rows.forEach(function(row) {
+          var sum = row.querySelector('.ve-summary-input');
+          var acc = row.querySelector('.ve-account-input');
+          var di  = row.querySelector('.ve-debit-input');
+          var ci  = row.querySelector('.ve-credit-input');
+          var d = parseFloat((di && di.value) || 0) || 0;
+          var c = parseFloat((ci && ci.value) || 0) || 0;
+          if ((sum && sum.value) || (acc && acc.value)) { hasEntry = true; }
+          totalD += d; totalC += c;
+        });
+        if (!hasEntry) { alert('请填写凭证分录内容'); return; }
+        if (Math.abs(totalD - totalC) > 0.001) { alert('借方合计（' + totalD.toFixed(2) + '）与贷方合计（' + totalC.toFixed(2) + '）不等，请检查！'); return; }
+        var vno = (document.getElementById('ve-type').value || '记') + '字第' + (document.getElementById('ve-number').value || '001') + '号';
+        alert('凭证已保存！' + vno + '\n借方合计：¥' + totalD.toFixed(2));
+      };
+
+      // 保存并新增
+      window.veSaveAndNew = function() {
+        window.veSave();
+        // 凭证号+1
+        var el = document.getElementById('ve-number');
+        if (el) { el.value = String(parseInt(el.value || '0') + 1).padStart(3, '0'); }
+        window.veReset();
+      };
+
+      // 草稿
+      window.veSaveDraft = function() {
+        var vno = (document.getElementById('ve-type') && document.getElementById('ve-type').value || '记') + '字第' + (document.getElementById('ve-number') && document.getElementById('ve-number').value || '001') + '号';
+        alert('草稿已保存：' + vno);
+      };
+
+      // 使用模板
+      window.veUseTemplate = function() { alert('模板功能开发中，敬请期待'); };
+
+      // 上/下张
+      window.veNavigate = function(dir) {
+        var el = document.getElementById('ve-number');
+        if (!el) return;
+        var n = parseInt(el.value || '1') + dir;
+        if (n < 1) n = 1;
+        el.value = String(n).padStart(3, '0');
+      };
+
+      // 初始化凭证录入（页面加载时执行）
+      function initVoucherEntry() {
+        var today = new Date().toISOString().split('T')[0];
+        var d = document.getElementById('ve-date');
+        var b = document.getElementById('ve-biz-date');
+        if (d && !d.value) d.value = today;
+        if (b && !b.value) b.value = today;
+        initVoucherTable();
+      }
+      initVoucherEntry();
+
+      // 退出登录按钮点击事件
+      var logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (confirm('确定要退出登录吗？')) {
+            window.location.href = 'login.html';
+          }
+        });
+      }
+    });
+
+    // ============================================================
+    // 全局导航函数（供 onclick 属性调用）
+    // ============================================================
+
+    // 切换左侧导航菜单组（折叠/展开）
+    function toggleAccGroup(groupId) {
+      var grp = document.getElementById(groupId);
+      if (!grp) return;
+      grp.classList.toggle('collapsed');
+    }
+
+    // 切换内容区页面
+    function showAccPage(pageId, clickedEl) {
+      // 隐藏所有 acc-page（通过 class 方式）
+      document.querySelectorAll('.acc-page').forEach(function(p) {
+        p.classList.remove('active');
+      });
+
+      // 显示目标页
+      var target = document.getElementById('page-' + pageId);
+      if (target) {
+        target.classList.add('active');
+      } else {
+        // 找不到目标页则回到工作台
+        var workbench = document.getElementById('page-workbench');
+        if (workbench) workbench.classList.add('active');
+        pageId = 'workbench';
+      }
+
+      // 更新左侧导航激活状态
+      var wb = document.querySelector('.acc-nav-workbench');
+      if (wb) wb.classList.remove('active');
+      document.querySelectorAll('.acc-nav-child').forEach(function(c) { c.classList.remove('active'); });
+
+      if (pageId === 'workbench') {
+        if (wb) wb.classList.add('active');
+      } else if (clickedEl && clickedEl.classList) {
+        clickedEl.classList.add('active');
+        // 展开所在的 group（如果是折叠状态）
+        var group = clickedEl.closest ? clickedEl.closest('.acc-nav-group') : null;
+        if (group && group.classList.contains('collapsed')) {
+          group.classList.remove('collapsed');
+        }
+      } else {
+        // 通过 pageId 找对应的 child 并激活（工作台快捷按钮传 null）
+        document.querySelectorAll('.acc-nav-child').forEach(function(c) {
+          var oc = c.getAttribute('onclick') || '';
+          if (oc.indexOf("'" + pageId + "'") !== -1) {
+            c.classList.add('active');
+            var group = c.closest ? c.closest('.acc-nav-group') : null;
+            if (group && group.classList.contains('collapsed')) {
+              group.classList.remove('collapsed');
+            }
+          }
+        });
+      }
+
+      // 凭证录入页面：进入时初始化
+      if (pageId === 'voucher-entry') {
+        var tBody = document.getElementById('ve-tbody');
+        if (tBody && tBody.children.length === 0) {
+          if (typeof initVoucherTable === 'function') initVoucherTable();
+        }
+        var vdate = document.getElementById('ve-date');
+        if (vdate && !vdate.value) {
+          vdate.value = new Date().toISOString().split('T')[0];
+        }
+      }
+    }
+
+    // 工作台"新增凭证"等快捷按钮使用同一个 showAccPage 函数，不需要额外处理
+  </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+  </body>
+</html>

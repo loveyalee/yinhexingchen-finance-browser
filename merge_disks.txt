@@ -1,0 +1,7 @@
+select disk 1
+select partition 3
+delete partition override
+select partition 1
+extend
+list partition
+exit

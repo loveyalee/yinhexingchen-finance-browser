@@ -88,7 +88,24 @@
     .nav-item.has-submenu.active .submenu {
       display: block;
     }
-    
+
+    /* 嵌套子菜单样式 */
+    .submenu-item.has-submenu.active > .submenu {
+      display: block;
+    }
+
+    .submenu-item.has-submenu > a::after {
+      content: '▸';
+      float: right;
+      margin-left: 10px;
+    }
+
+    .submenu-item .submenu {
+      margin-left: 15px;
+      margin-top: 0;
+      border-left: 2px solid rgba(56, 139, 253, 0.3);
+    }
+
     .submenu-item {
       margin: 0;
     }
@@ -101,17 +118,11 @@
       border-radius: 4px;
       transition: background-color 0.3s;
     }
-    
+
     .submenu-item a:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
-    
-    /* 三级菜单样式 */
-    .submenu-item .submenu {
-      margin-left: 20px;
-      margin-top: 5px;
-    }
-    
+
     .main-content {
       flex: 1;
       display: flex;
@@ -219,7 +230,25 @@
       margin-top: 0;
       color: #1976d2;
     }
-    
+
+    /* 财务报表测算样式 */
+    .result-table {
+      border-collapse: collapse;
+    }
+    .result-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e8ecf0;
+    }
+    .result-table td:first-child {
+      color: #666;
+      width: 60%;
+    }
+    .result-table td:last-child {
+      font-weight: 600;
+      color: #1a2332;
+      text-align: right;
+    }
+
     /* 流程指南样式 */
     .process-guide {
       display: flex;
@@ -459,47 +488,24 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
-          <ul class="submenu">
-            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
-          </ul>
-        </li>
-        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
-        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
-        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
-        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
-        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
-        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
-        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            
-            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
-            
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">出入库管理</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
-              </ul>
-            </li>
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu active">
           <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
           <ul class="submenu" style="display: block;">
             <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
-            <li class="submenu-item"><a href="contract_management.html">合同管理</a></li>
-            <li class="submenu-item"><a href="seal_management.html">电子印章管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('finance-management'); return false;">财务管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
             <li class="submenu-item has-submenu">
               <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
               <ul class="submenu">
@@ -514,19 +520,40 @@
             <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
-        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">财务快聘·个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">财务快聘·企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="showAccountSwitchModal(); return false;">账号切换</a></li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -875,6 +902,159 @@
         <!-- 银行贷款模块 -->
         <div id="financing-bank" class="module-content">
           <div class="card">
+            <h3>财务报表测算</h3>
+            <p style="color: #666; margin-bottom: 20px;">输入企业财务数据，系统将自动计算关键财务指标，并预估可贷款额度</p>
+
+            <div class="form-section">
+              <h4 style="margin-bottom: 15px; color: #388bfd;">一、资产负债表数据</h4>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                  <label>流动资产合计（万元）</label>
+                  <input type="number" id="calc-current-assets" placeholder="请输入流动资产" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>非流动资产合计（万元）</label>
+                  <input type="number" id="calc-noncurrent-assets" placeholder="请输入非流动资产" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>流动负债合计（万元）</label>
+                  <input type="number" id="calc-current-liabilities" placeholder="请输入流动负债" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>非流动负债合计（万元）</label>
+                  <input type="number" id="calc-noncurrent-liabilities" placeholder="请输入非流动负债" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>所有者权益合计（万元）</label>
+                  <input type="number" id="calc-owners-equity" placeholder="请输入所有者权益" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>实收资本（万元）</label>
+                  <input type="number" id="calc-paid-in-capital" placeholder="请输入实收资本" step="0.01">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" style="margin-top: 20px;">
+              <h4 style="margin-bottom: 15px; color: #388bfd;">二、利润表数据</h4>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                  <label>营业收入（万元）</label>
+                  <input type="number" id="calc-revenue" placeholder="请输入营业收入" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>营业成本（万元）</label>
+                  <input type="number" id="calc-cost" placeholder="请输入营业成本" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>营业利润（万元）</label>
+                  <input type="number" id="calc-operating-profit" placeholder="请输入营业利润" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>净利润（万元）</label>
+                  <input type="number" id="calc-net-profit" placeholder="请输入净利润" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>利息支出（万元）</label>
+                  <input type="number" id="calc-interest-expense" placeholder="请输入利息支出" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>所得税费用（万元）</label>
+                  <input type="number" id="calc-income-tax" placeholder="请输入所得税费用" step="0.01">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" style="margin-top: 20px;">
+              <h4 style="margin-bottom: 15px; color: #388bfd;">三、现金流量表数据</h4>
+              <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                  <label>经营活动现金流入（万元）</label>
+                  <input type="number" id="calc-cash-in-operating" placeholder="请输入" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>经营活动现金流出（万元）</label>
+                  <input type="number" id="calc-cash-out-operating" placeholder="请输入" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>投资活动现金净额（万元）</label>
+                  <input type="number" id="calc-cash-net-investing" placeholder="请输入" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>筹资活动现金净额（万元）</label>
+                  <input type="number" id="calc-cash-net-financing" placeholder="请输入" step="0.01">
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+              <button class="btn btn-primary" onclick="calculateFinancialIndicators()">开始测算</button>
+              <button class="btn" onclick="clearFinancialCalcForm()">清空数据</button>
+            </div>
+          </div>
+
+          <!-- 测算结果 -->
+          <div class="card" id="financial-calc-result" style="display: none;">
+            <h3>测算结果</h3>
+
+            <div class="result-section" style="background: linear-gradient(135deg, #f0f7ff, #f5f0ff); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+              <h4 style="color: #388bfd; margin-bottom: 15px;">预估贷款额度</h4>
+              <div style="font-size: 36px; font-weight: bold; color: #27ae60;" id="calc-loan-amount">¥0 万元</div>
+              <p style="color: #888; margin-top: 5px;" id="calc-loan-note">基于财务数据综合评估</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="result-section">
+                <h4 style="color: #388bfd; margin-bottom: 10px;">偿债能力指标</h4>
+                <table class="result-table" style="width: 100%;">
+                  <tr><td>流动比率</td><td id="calc-current-ratio">-</td></tr>
+                  <tr><td>速动比率</td><td id="calc-quick-ratio">-</td></tr>
+                  <tr><td>资产负债率</td><td id="calc-debt-ratio">-</td></tr>
+                  <tr><td>产权比率</td><td id="calc-equity-ratio">-</td></tr>
+                </table>
+              </div>
+
+              <div class="result-section">
+                <h4 style="color: #388bfd; margin-bottom: 10px;">盈利能力指标</h4>
+                <table class="result-table" style="width: 100%;">
+                  <tr><td>毛利率</td><td id="calc-gross-margin">-</td></tr>
+                  <tr><td>净利率</td><td id="calc-net-margin">-</td></tr>
+                  <tr><td>净资产收益率</td><td id="calc-roe">-</td></tr>
+                  <tr><td>总资产收益率</td><td id="calc-roa">-</td></tr>
+                </table>
+              </div>
+
+              <div class="result-section">
+                <h4 style="color: #388bfd; margin-bottom: 10px;">营运能力指标</h4>
+                <table class="result-table" style="width: 100%;">
+                  <tr><td>总资产周转率</td><td id="calc-asset-turnover">-</td></tr>
+                  <tr><td>营业收入增长率</td><td id="calc-revenue-growth">-</td></tr>
+                </table>
+              </div>
+
+              <div class="result-section">
+                <h4 style="color: #388bfd; margin-bottom: 10px;">现金流指标</h4>
+                <table class="result-table" style="width: 100%;">
+                  <tr><td>经营活动净现金流</td><td id="calc-operating-cash-flow">-</td></tr>
+                  <tr><td>现金流动负债比</td><td id="calc-cash-to-liabilities">-</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="result-section" style="margin-top: 20px; background: #fff7e6; padding: 15px; border-radius: 8px; border-left: 4px solid #fa8c16;">
+              <h4 style="color: #fa8c16; margin-bottom: 10px;">综合评估</h4>
+              <div id="calc-comprehensive-assessment">
+                <p style="color: #666;">请先输入财务数据进行测算</p>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <button class="btn btn-success" onclick="exportFinancialCalcReport()">导出测算报告</button>
+              <button class="btn btn-primary" onclick="applyForLoan()">申请贷款</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
             <h3>银行贷款申请</h3>
             <div class="form-group">
               <label>贷款类型</label>
@@ -889,7 +1069,7 @@
             </div>
             <div class="form-group">
               <label>贷款金额</label>
-              <input type="number" placeholder="请输入贷款金额">
+              <input type="number" placeholder="请输入贷款金额" id="loan-amount-input">
             </div>
             <div class="form-group">
               <label>贷款期限</label>
@@ -1233,6 +1413,7 @@
                 <p>查询附近的征信报告打印点</p>
                 <button class="btn btn-sm btn-success" onclick="window.location.href='credit_print_points.html'">查询打印点</button>
               </div>
+
             </div>
           </div>
           
@@ -1353,7 +1534,9 @@
             </div>
           </div>
         </div>
-        
+
+
+
         <!-- 招投标管理模块 -->
         <div id="bidding" class="module-content">
           <div class="card">
@@ -1452,23 +1635,23 @@
   
   <script>
     // 切换二级菜单
-    function toggleSubmenu(element) {
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
-    
+    };
+
     // 切换会员子菜单
-    function toggleMemberSubmenu(element) {
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
-    
+    };
+
     // 处理退出登录
-    function handleLogout() {
+    window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         // 清除本地存储的登录信息
         localStorage.removeItem('isLoggedIn');
@@ -1479,7 +1662,7 @@
         // 跳转到登录页面
         window.location.href = 'login.html';
       }
-    }
+    };
 
     // 实名认证弹窗
     function showRealNameAuth() {
@@ -1536,7 +1719,7 @@
     }
     
     // 显示模块内容
-    function showModule(moduleId) {
+    window.showModule = function(moduleId) {
       console.log('Showing module:', moduleId);
       // 隐藏所有模块
       const modules = document.querySelectorAll('.module-content');
@@ -1545,7 +1728,7 @@
         module.classList.remove('active');
         console.log('Removed active class from:', module.id);
       });
-      
+
       // 显示选中的模块
       const selectedModule = document.getElementById(moduleId);
       console.log('Selected module:', selectedModule);
@@ -1556,7 +1739,7 @@
       } else {
         console.log('Module not found:', moduleId);
       }
-    }
+    };
     
     // 更新城市选项
     function updateCities() {
@@ -1749,6 +1932,420 @@
           pointsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #e74c3c;">网络错误，请稍后重试</div>';
         });
     }
+
+    // 财务报表测算功能
+    function calculateFinancialIndicators() {
+      // 获取输入数据
+      const currentAssets = parseFloat(document.getElementById('calc-current-assets').value) || 0;
+      const noncurrentAssets = parseFloat(document.getElementById('calc-noncurrent-assets').value) || 0;
+      const currentLiabilities = parseFloat(document.getElementById('calc-current-liabilities').value) || 0;
+      const noncurrentLiabilities = parseFloat(document.getElementById('calc-noncurrent-liabilities').value) || 0;
+      const ownersEquity = parseFloat(document.getElementById('calc-owners-equity').value) || 0;
+      const paidInCapital = parseFloat(document.getElementById('calc-paid-in-capital').value) || 0;
+
+      const revenue = parseFloat(document.getElementById('calc-revenue').value) || 0;
+      const cost = parseFloat(document.getElementById('calc-cost').value) || 0;
+      const operatingProfit = parseFloat(document.getElementById('calc-operating-profit').value) || 0;
+      const netProfit = parseFloat(document.getElementById('calc-net-profit').value) || 0;
+      const interestExpense = parseFloat(document.getElementById('calc-interest-expense').value) || 0;
+      const incomeTax = parseFloat(document.getElementById('calc-income-tax').value) || 0;
+
+      const cashInOperating = parseFloat(document.getElementById('calc-cash-in-operating').value) || 0;
+      const cashOutOperating = parseFloat(document.getElementById('calc-cash-out-operating').value) || 0;
+      const cashNetInvesting = parseFloat(document.getElementById('calc-cash-net-investing').value) || 0;
+      const cashNetFinancing = parseFloat(document.getElementById('calc-cash-net-financing').value) || 0;
+
+      // 计算总资产和总负债
+      const totalAssets = currentAssets + noncurrentAssets;
+      const totalLiabilities = currentLiabilities + noncurrentLiabilities;
+      const operatingCashFlow = cashInOperating - cashOutOperating;
+
+      // 验证数据
+      if (totalAssets === 0) {
+        alert('请至少输入资产数据');
+        return;
+      }
+
+      // 计算财务指标
+      // 1. 偿债能力指标
+      const currentRatio = currentLiabilities > 0 ? (currentAssets / currentLiabilities).toFixed(2) : '-';
+      const quickRatio = currentLiabilities > 0 ? ((currentAssets * 0.5) / currentLiabilities).toFixed(2) : '-'; // 简化计算，假设存货占流动资产50%
+      const debtRatio = totalAssets > 0 ? ((totalLiabilities / totalAssets) * 100).toFixed(2) + '%' : '-';
+      const equityRatio = ownersEquity > 0 ? (totalLiabilities / ownersEquity).toFixed(2) : '-';
+
+      // 2. 盈利能力指标
+      const grossMargin = revenue > 0 ? (((revenue - cost) / revenue) * 100).toFixed(2) + '%' : '-';
+      const netMargin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(2) + '%' : '-';
+      const roe = ownersEquity > 0 ? ((netProfit / ownersEquity) * 100).toFixed(2) + '%' : '-';
+      const roa = totalAssets > 0 ? ((netProfit / totalAssets) * 100).toFixed(2) + '%' : '-';
+
+      // 3. 营运能力指标
+      const assetTurnover = totalAssets > 0 ? (revenue / totalAssets).toFixed(2) : '-';
+
+      // 4. 现金流指标
+      const cashToLiabilities = currentLiabilities > 0 ? (operatingCashFlow / currentLiabilities).toFixed(2) : '-';
+
+      // 显示结果
+      document.getElementById('calc-current-ratio').textContent = currentRatio;
+      document.getElementById('calc-quick-ratio').textContent = quickRatio;
+      document.getElementById('calc-debt-ratio').textContent = debtRatio;
+      document.getElementById('calc-equity-ratio').textContent = equityRatio;
+
+      document.getElementById('calc-gross-margin').textContent = grossMargin;
+      document.getElementById('calc-net-margin').textContent = netMargin;
+      document.getElementById('calc-roe').textContent = roe;
+      document.getElementById('calc-roa').textContent = roa;
+
+      document.getElementById('calc-asset-turnover').textContent = assetTurnover;
+      document.getElementById('calc-revenue-growth').textContent = '需上年数据';
+
+      document.getElementById('calc-operating-cash-flow').textContent = operatingCashFlow.toFixed(2) + ' 万元';
+      document.getElementById('calc-cash-to-liabilities').textContent = cashToLiabilities;
+
+      // 计算预估贷款额度
+      let loanAmount = 0;
+      let loanNote = '';
+
+      // 基于多种方法综合评估
+      const methods = [];
+
+      // 方法1：基于净资产
+      if (ownersEquity > 0) {
+        const loan1 = ownersEquity * 0.7; // 最高可贷净资产的70%
+        methods.push({ name: '净资产法', amount: loan1, weight: 0.3 });
+      }
+
+      // 方法2：基于营业收入
+      if (revenue > 0) {
+        const loan2 = revenue * 0.2; // 最高可贷年收入的20%
+        methods.push({ name: '收入法', amount: loan2, weight: 0.25 });
+      }
+
+      // 方法3：基于净利润
+      if (netProfit > 0) {
+        const loan3 = netProfit * 3; // 最高可贷净利润的3倍
+        methods.push({ name: '利润法', amount: loan3, weight: 0.25 });
+      }
+
+      // 方法4：基于经营现金流
+      if (operatingCashFlow > 0) {
+        const loan4 = operatingCashFlow * 2; // 最高可贷经营现金流的2倍
+        methods.push({ name: '现金流法', amount: loan4, weight: 0.2 });
+      }
+
+      if (methods.length > 0) {
+        // 加权平均
+        let totalWeight = methods.reduce((sum, m) => sum + m.weight, 0);
+        loanAmount = methods.reduce((sum, m) => sum + m.amount * m.weight, 0) / totalWeight;
+
+        // 根据财务健康度调整
+        const debtRatioValue = parseFloat(debtRatio) / 100;
+        if (debtRatioValue > 0.7) {
+          loanAmount *= 0.5; // 资产负债率过高，降低额度
+          loanNote = '资产负债率偏高，贷款额度已调整';
+        } else if (debtRatioValue > 0.5) {
+          loanAmount *= 0.8;
+          loanNote = '资产负债率中等，贷款额度适度调整';
+        } else {
+          loanNote = '财务结构健康，可获最优贷款额度';
+        }
+
+        // 根据盈利情况调整
+        if (netProfit <= 0) {
+          loanAmount *= 0.5;
+          loanNote = '企业亏损，贷款额度已大幅调整';
+        }
+
+        // 根据现金流情况调整
+        if (operatingCashFlow <= 0) {
+          loanAmount *= 0.7;
+          loanNote += '；经营现金流为负，建议关注';
+        }
+      } else {
+        loanAmount = totalAssets * 0.3;
+        loanNote = '数据不完整，仅基于资产估算';
+      }
+
+      // 确保贷款额度为正
+      loanAmount = Math.max(0, loanAmount);
+
+      document.getElementById('calc-loan-amount').textContent = '¥' + loanAmount.toFixed(2) + ' 万元';
+      document.getElementById('calc-loan-note').textContent = loanNote;
+
+      // 综合评估
+      let assessment = '<div style="display: grid; gap: 10px;">';
+
+      // 偿债能力评估
+      const currentRatioNum = parseFloat(currentRatio);
+      if (currentRatioNum >= 2) {
+        assessment += '<div style="padding: 10px; background: #f6ffed; border-radius: 6px;"><strong style="color: #52c41a;">偿债能力：优秀</strong><br>流动比率大于2，短期偿债能力强</div>';
+      } else if (currentRatioNum >= 1) {
+        assessment += '<div style="padding: 10px; background: #fff7e6; border-radius: 6px;"><strong style="color: #fa8c16;">偿债能力：一般</strong><br>流动比率在1-2之间，短期偿债能力尚可</div>';
+      } else {
+        assessment += '<div style="padding: 10px; background: #fff1f0; border-radius: 6px;"><strong style="color: #f5222d;">偿债能力：较弱</strong><br>流动比率低于1，短期偿债压力较大</div>';
+      }
+
+      // 盈利能力评估
+      const netMarginNum = parseFloat(netMargin);
+      if (netMarginNum >= 10) {
+        assessment += '<div style="padding: 10px; background: #f6ffed; border-radius: 6px;"><strong style="color: #52c41a;">盈利能力：优秀</strong><br>净利率超过10%，盈利能力强</div>';
+      } else if (netMarginNum >= 5) {
+        assessment += '<div style="padding: 10px; background: #fff7e6; border-radius: 6px;"><strong style="color: #fa8c16;">盈利能力：一般</strong><br>净利率在5%-10%之间，盈利能力尚可</div>';
+      } else if (netMarginNum > 0) {
+        assessment += '<div style="padding: 10px; background: #fff1f0; border-radius: 6px;"><strong style="color: #f5222d;">盈利能力：较弱</strong><br>净利率低于5%，盈利空间有限</div>';
+      } else {
+        assessment += '<div style="padding: 10px; background: #fff1f0; border-radius: 6px;"><strong style="color: #f5222d;">盈利能力：亏损</strong><br>企业处于亏损状态，需关注经营状况</div>';
+      }
+
+      // 现金流评估
+      if (operatingCashFlow > 0) {
+        assessment += '<div style="padding: 10px; background: #f6ffed; border-radius: 6px;"><strong style="color: #52c41a;">现金流：健康</strong><br>经营活动产生正向现金流</div>';
+      } else {
+        assessment += '<div style="padding: 10px; background: #fff1f0; border-radius: 6px;"><strong style="color: #f5222d;">现金流：需关注</strong><br>经营活动现金流为负，需关注资金周转</div>';
+      }
+
+      assessment += '</div>';
+      document.getElementById('calc-comprehensive-assessment').innerHTML = assessment;
+
+      // 显示结果区域
+      document.getElementById('financial-calc-result').style.display = 'block';
+
+      // 存储测算结果供导出使用
+      window.financialCalcResult = {
+        timestamp: new Date().toISOString(),
+        inputs: { currentAssets, noncurrentAssets, currentLiabilities, noncurrentLiabilities, ownersEquity, revenue, cost, netProfit, operatingCashFlow },
+        indicators: { currentRatio, quickRatio, debtRatio, equityRatio, grossMargin, netMargin, roe, roa, assetTurnover },
+        loanAmount,
+        loanNote
+      };
+    }
+
+    function clearFinancialCalcForm() {
+      const inputs = document.querySelectorAll('#financing-bank input[type="number"]');
+      inputs.forEach(input => input.value = '');
+      document.getElementById('financial-calc-result').style.display = 'none';
+    }
+
+    function exportFinancialCalcReport() {
+      if (!window.financialCalcResult) {
+        alert('请先进行测算');
+        return;
+      }
+
+      const result = window.financialCalcResult;
+      const reportContent = `
+财务报表测算报告
+================
+生成时间: ${new Date(result.timestamp).toLocaleString()}
+
+一、输入数据
+-----------
+【资产负债表】
+流动资产: ${result.inputs.currentAssets} 万元
+非流动资产: ${result.inputs.noncurrentAssets} 万元
+流动负债: ${result.inputs.currentLiabilities} 万元
+非流动负债: ${result.inputs.noncurrentLiabilities} 万元
+所有者权益: ${result.inputs.ownersEquity} 万元
+
+【利润表】
+营业收入: ${result.inputs.revenue} 万元
+营业成本: ${result.inputs.cost} 万元
+净利润: ${result.inputs.netProfit} 万元
+
+【现金流量表】
+经营活动现金流: ${result.inputs.operatingCashFlow} 万元
+
+二、财务指标
+-----------
+【偿债能力】
+流动比率: ${result.indicators.currentRatio}
+速动比率: ${result.indicators.quickRatio}
+资产负债率: ${result.indicators.debtRatio}
+产权比率: ${result.indicators.equityRatio}
+
+【盈利能力】
+毛利率: ${result.indicators.grossMargin}
+净利率: ${result.indicators.netMargin}
+净资产收益率: ${result.indicators.roe}
+总资产收益率: ${result.indicators.roa}
+
+【营运能力】
+总资产周转率: ${result.indicators.assetTurnover}
+
+三、贷款额度评估
+---------------
+预估贷款额度: ${result.loanAmount.toFixed(2)} 万元
+评估说明: ${result.loanNote}
+
+================
+报告由银河星辰财务系统自动生成
+      `;
+
+      const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `财务报表测算报告_${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function applyForLoan() {
+      if (!window.financialCalcResult) {
+        alert('请先进行测算');
+        return;
+      }
+      // 自动填充测算的贷款金额到贷款申请表单
+      const loanAmountInput = document.getElementById('loan-amount-input');
+      if (loanAmountInput) {
+        // 将万元转换为元
+        loanAmountInput.value = (window.financialCalcResult.loanAmount * 10000).toFixed(0);
+      }
+      // 滚动到贷款申请表单
+      const loanForm = document.querySelector('#financing-bank .card:nth-child(3)');
+      if (loanForm) {
+        loanForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      alert('已为您预填贷款额度: ' + window.financialCalcResult.loanAmount.toFixed(2) + ' 万元');
+    }
+
+    // 账号切换功能
+    function showAccountSwitchModal() {
+      const existing = document.getElementById('account-switch-modal');
+      if (existing) existing.remove();
+
+      // 获取当前登录的手机号
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const currentPhone = userInfo.phone || '';
+
+      if (!currentPhone) {
+        alert('未获取到登录信息，请重新登录');
+        return;
+      }
+
+      // 显示加载状态
+      const modal = document.createElement('div');
+      modal.id = 'account-switch-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:32px;width:480px;max-width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:80vh;overflow-y:auto;">
+          <h3 style="margin:0 0 20px 0;color:#1a2332;font-size:22px;text-align:center;">账号切换</h3>
+          <p style="color:#666;font-size:14px;margin-bottom:20px;text-align:center;">当前手机号：<strong>${currentPhone}</strong></p>
+          <div id="account-list-loading" style="text-align:center;padding:30px;color:#888;">
+            <div style="display:inline-block;width:24px;height:24px;border:3px solid #e0e4e8;border-top-color:#388bfd;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <p style="margin-top:10px;">正在查询关联账号...</p>
+          </div>
+          <div id="account-list-container" style="display:none;"></div>
+          <div style="margin-top:20px;display:flex;gap:12px;">
+            <button id="account-switch-cancel" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;background:#f1f5f9;color:#64748b;font-weight:500;">关闭</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // 关闭按钮
+      document.getElementById('account-switch-cancel').addEventListener('click', function() { modal.remove(); });
+      modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+      // 调用API获取关联账号
+      fetch('/api/users/related-accounts?phone=' + encodeURIComponent(currentPhone))
+        .then(resp => resp.json())
+        .then(result => {
+          document.getElementById('account-list-loading').style.display = 'none';
+          const container = document.getElementById('account-list-container');
+          container.style.display = 'block';
+
+          if (result.success && result.data && result.data.length > 0) {
+            const currentUserId = userInfo.id || userInfo.userId;
+            let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+
+            result.data.forEach(account => {
+              const isCurrent = account.id === currentUserId;
+              const typeLabel = account.user_type === 'enterprise' ? '企业账号' :
+                               account.user_type === 'institution' ? '机构账号' : '个人账号';
+              const typeColor = account.user_type === 'enterprise' ? '#388bfd' :
+                               account.user_type === 'institution' ? '#8b5cf6' : '#27ae60';
+              const typeIcon = account.user_type === 'enterprise' ? '🏢' :
+                              account.user_type === 'institution' ? '🏛️' : '👤';
+
+              html += `
+                <div class="account-item" data-account-id="${account.id}" style="padding:15px;border:2px solid ${isCurrent ? typeColor : '#e8ecf0'};border-radius:10px;cursor:${isCurrent ? 'default' : 'pointer'};background:${isCurrent ? '#f0f7ff' : '#fff'};transition:all 0.2s;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:28px;">${typeIcon}</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:600;color:#1a2332;font-size:15px;">${account.username || account.enterprise_name || account.institution_name || '未设置用户名'}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                        <span style="font-size:12px;padding:2px 8px;border-radius:4px;background:${typeColor}15;color:${typeColor};">${typeLabel}</span>
+                        ${isCurrent ? '<span style="font-size:12px;color:#27ae60;">当前账号</span>' : ''}
+                      </div>
+                      ${account.user_type === 'enterprise' && account.enterprise_name ? `<div style="font-size:12px;color:#888;margin-top:4px;">企业：${account.enterprise_name}</div>` : ''}
+                    </div>
+                    ${!isCurrent ? `<button class="switch-btn" data-account='${JSON.stringify(account)}' style="padding:8px 16px;background:${typeColor};color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500;">切换</button>` : ''}
+                  </div>
+                </div>
+              `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // 绑定切换按钮事件
+            container.querySelectorAll('.switch-btn').forEach(btn => {
+              btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const accountData = JSON.parse(this.dataset.account);
+                switchToAccount(accountData);
+              });
+            });
+          } else {
+            container.innerHTML = `
+              <div style="text-align:center;padding:30px;color:#888;">
+                <span style="font-size:48px;display:block;margin-bottom:15px;">🔍</span>
+                <p>该手机号下暂无其他关联账号</p>
+                <p style="font-size:12px;margin-top:8px;">您可以使用此手机号注册新的企业账号</p>
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          document.getElementById('account-list-loading').style.display = 'none';
+          document.getElementById('account-list-container').innerHTML = '<div style="text-align:center;padding:20px;color:#e74c3c;">查询失败，请稍后重试</div>';
+          document.getElementById('account-list-container').style.display = 'block';
+        });
+    }
+
+    function switchToAccount(account) {
+      // 更新本地存储的用户信息
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const newUserInfo = {
+        ...userInfo,
+        id: account.id,
+        userId: account.id,
+        username: account.username,
+        userType: account.user_type,
+        enterpriseName: account.enterprise_name || '',
+        institutionName: account.institution_name || '',
+        creditCode: account.credit_code || ''
+      };
+
+      localStorage.setItem('userInfo', JSON.stringify(newUserInfo));
+      localStorage.setItem('isLoggedIn', 'true');
+
+      // 更新用户名显示
+      const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+      userProfile.name = account.username;
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+      alert('已切换到账号：' + (account.username || account.enterprise_name || account.institution_name));
+      document.getElementById('account-switch-modal').remove();
+
+      // 刷新页面
+      window.location.reload();
+    }
   </script>
+  <!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
 </body>
 </html>

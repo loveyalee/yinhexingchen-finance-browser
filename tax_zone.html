@@ -417,39 +417,16 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
-        <li class="nav-item has-submenu active">
-          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
-          <ul class="submenu" style="display: block;">
-            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
-          </ul>
-        </li>
-        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
-        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
-        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
-        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
-        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
-        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
-        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            
-            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
-            
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">出入库管理</a></li>
+            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
             <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
-                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
-              </ul>
-            </li>
+            <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -458,13 +435,43 @@
             <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
             <li class="submenu-item"><a href="contract_management.html">合同管理</a></li>
             <li class="submenu-item"><a href="seal_management.html">电子印章管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('finance-management'); return false;">财务管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('financing'); return false;">企业融资</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
+              </ul>
+            </li>
             <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
-        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item has-submenu active">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu" style="display: block;">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">财务快聘·个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">财务快聘·企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
         <li class="nav-item"><a href="news.html">行业头条</a></li>
@@ -475,7 +482,6 @@
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
     
@@ -803,23 +809,23 @@
   
   <script>
     // 切换二级菜单
-    function toggleSubmenu(element) {
+    window.toggleSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
-    
+    };
+
     // 切换会员子菜单
-    function toggleMemberSubmenu(element) {
+    window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
-    }
-    
+    };
+
     // 处理退出登录
-    function handleLogout() {
+    window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         // 清除本地存储的登录信息
         localStorage.removeItem('isLoggedIn');
@@ -830,7 +836,7 @@
         // 跳转到登录页面
         window.location.href = 'login.html';
       }
-    }
+    };
 
     // 实名认证弹窗
     function showRealNameAuth() {
@@ -887,18 +893,18 @@
     }
     
     // 显示模块内容
-    function showModule(moduleId) {
+    window.showModule = function(moduleId) {
       // 隐藏所有模块
       document.querySelectorAll('.module-content').forEach(module => {
         module.classList.remove('active');
       });
-      
+
       // 显示选中的模块
       const selectedModule = document.getElementById(moduleId);
       if (selectedModule) {
         selectedModule.classList.add('active');
       }
-    }
+    };
     
     // 处理查看详情按钮点击
     function showDetail(type) {
@@ -997,5 +1003,9 @@
       document.body.appendChild(modal);
     }
   </script>
+  <!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
 </body>
 </html>

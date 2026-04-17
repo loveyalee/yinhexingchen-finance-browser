@@ -68,29 +68,47 @@
     .nav-item.has-submenu {
       position: relative;
     }
-    
+
     .nav-item.has-submenu > a::after {
-      content: ';
+      content: '▼';
       float: right;
-      font-size: 12px;
+      font-size: 10px;
       margin-left: 5px;
+      display: inline-block;
+      transition: transform 0.3s ease;
     }
-    
+
+    .nav-item.has-submenu.active > a::after {
+      transform: rotate(-180deg);
+    }
+
     .submenu {
-      position: absolute;
+      position: relative;
       left: 0;
-      top: 100%;
       width: 100%;
-      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
+      background: rgba(0, 0, 0, 0.18);
+      border-left: 3px solid rgba(200, 146, 26, 0.6);
       border-radius: 0 0 4px 4px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      display: none;
-      z-index: 1000;
       list-style: none;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.25s ease,
+                  transform 0.25s ease;
     }
-    
-    .nav-item.has-submenu:hover .submenu {
-      display: block;
+
+    .nav-item.has-submenu.active > .submenu {
+      max-height: 600px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .submenu-item.has-submenu.active > .submenu {
+      max-height: 300px;
+      opacity: 1;
+      transform: translateY(0);
     }
     
     .submenu-item {
@@ -588,7 +606,7 @@
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器/div>
+      <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item has-submenu">
@@ -596,8 +614,6 @@
           <ul class="submenu">
             <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
             <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
-            <li class="submenu-item"><a href="data_analysis.html">数据分析</a></li>
-            <li class="submenu-item"><a href="risk_management.html">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
             <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
             <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
@@ -607,8 +623,8 @@
           <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
-            <li class="submenu-item"><a href="contract_management.html">合同管理</a></li>
-            <li class="submenu-item"><a href="seal_management.html">电子印章管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
             <li class="submenu-item has-submenu">
               <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
               <ul class="submenu">
@@ -637,8 +653,8 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">财务快聘·个人求职</a></li>
-            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">财务快聘·企业招聘</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit">企业招聘</a></li>
           </ul>
         </li>
         <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
@@ -652,7 +668,7 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
@@ -677,7 +693,7 @@
         <div class="store">
           <div class="store-tabs">
             <div class="tab active" data-tab="products">商品列表</div>
-            <div class="tab" data-tab="cart">购物/div>
+            <div class="tab" data-tab="cart">购物车</div>
             <div class="tab" data-tab="orders">我的订单</div>
           </div>
           
@@ -687,14 +703,14 @@
               <div class="product-card">
                 <div class="product-image">💾</div>
                 <div class="product-content">
-                  <div class="product-title">金蝶KIS专业/div>
+                  <div class="product-title">金蝶KIS专业版</div>
                   <div class="product-description">企业级财务管理软件，提供会计核算、进销存、工资管理等功能</div>
                   <div class="product-meta">
                     <span>销 1254</span>
                     <span>评分: 4.9</span>
                   </div>
                   <div class="product-price">¥8,800.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
@@ -708,21 +724,21 @@
                     <span>评分: 4.8</span>
                   </div>
                   <div class="product-price">¥15,800.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
               <div class="product-card">
                 <div class="product-image">📈</div>
                 <div class="product-content">
-                  <div class="product-title">财务分析与决策课/div>
+                  <div class="product-title">财务分析与决策课程</div>
                   <div class="product-description">掌握财务分析的核心方法，提升企业决策能力</div>
                   <div class="product-meta">
                     <span>销 2345</span>
                     <span>评分: 4.9</span>
                   </div>
                   <div class="product-price">¥299.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
@@ -736,7 +752,7 @@
                     <span>评分: 4.7</span>
                   </div>
                   <div class="product-price">¥199.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
@@ -744,27 +760,27 @@
                 <div class="product-image">🏢</div>
                 <div class="product-content">
                   <div class="product-title">财务办公套装</div>
-                  <div class="product-description">包含财务专用计算器、印章、文件夹等办公用/div>
+                  <div class="product-description">包含财务专用计算器、印章、文件夹等办公用品</div>
                   <div class="product-meta">
                     <span>销 892</span>
                     <span>评分: 4.6</span>
                   </div>
                   <div class="product-price">¥299.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
               <div class="product-card">
                 <div class="product-image">📄</div>
                 <div class="product-content">
-                  <div class="product-title">财务模板/div>
+                  <div class="product-title">财务模板大全</div>
                   <div class="product-description">包含财务报表、税务申报、合同等各类模板</div>
                   <div class="product-meta">
                     <span>销 1123</span>
                     <span>评分: 4.8</span>
                   </div>
                   <div class="product-price">¥149.00</div>
-                  <button class="btn btn-primary">加入购物/button>
+                  <button class="btn btn-primary">加入购物车</button>
                   <button class="btn btn-secondary">立即购买</button>
                 </div>
               </div>
@@ -774,14 +790,14 @@
           <div class="tab-content" id="cart">
             <div class="cart">
               <div class="cart-header">
-                <div class="cart-title">购物/div>
-                <button class="btn btn-danger">清空购物/button>
+                <div class="cart-title">购物车</div>
+                <button class="btn btn-danger">清空购物车</button>
               </div>
               <div class="cart-items">
                 <div class="cart-item">
                   <div class="cart-item-image">💾</div>
                   <div class="cart-item-info">
-                    <div class="cart-item-title">金蝶KIS专业/div>
+                    <div class="cart-item-title">金蝶KIS专业版</div>
                     <div class="cart-item-price">¥8,800.00</div>
                     <div class="cart-item-quantity">
                       <button class="quantity-btn">-</button>
@@ -794,7 +810,7 @@
                 <div class="cart-item">
                   <div class="cart-item-image">📈</div>
                   <div class="cart-item-info">
-                    <div class="cart-item-title">财务分析与决策课/div>
+                    <div class="cart-item-title">财务分析与决策课程</div>
                     <div class="cart-item-price">¥299.00</div>
                     <div class="cart-item-quantity">
                       <button class="quantity-btn">-</button>
@@ -811,7 +827,7 @@
               </div>
               <div class="cart-actions">
                 <button class="btn btn-secondary">继续购物</button>
-                <button class="btn btn-primary">去结/button>
+                <button class="btn btn-primary">去结算</button>
               </div>
             </div>
           </div>
@@ -822,11 +838,11 @@
               <div class="order-card">
                 <div class="order-header">
                   <div class="order-id">订单 20240326001</div>
-                  <span class="order-status status-completed">已完/span>
+                  <span class="order-status status-completed">已完成</span>
                 </div>
                 <div class="order-items">
                   <div class="order-item">
-                    <div class="order-item-name">财务分析与决策课/div>
+                    <div class="order-item-name">财务分析与决策课程</div>
                     <div class="order-item-price">¥299.00 x 1</div>
                   </div>
                 </div>
@@ -838,7 +854,7 @@
               <div class="order-card">
                 <div class="order-header">
                   <div class="order-id">订单 20240320002</div>
-                  <span class="order-status status-processing">处理/span>
+                  <span class="order-status status-processing">处理中</span>
                 </div>
                 <div class="order-items">
                   <div class="order-item">
@@ -854,11 +870,11 @@
               <div class="order-card">
                 <div class="order-header">
                   <div class="order-id">订单 20240315003</div>
-                  <span class="order-status status-pending">待支/span>
+                  <span class="order-status status-pending">待支付</span>
                 </div>
                 <div class="order-items">
                   <div class="order-item">
-                    <div class="order-item-name">财务模板/div>
+                    <div class="order-item-name">财务模板大全</div>
                     <div class="order-item-price">¥149.00 x 1</div>
                   </div>
                 </div>
@@ -875,37 +891,77 @@
   </div>
   
   <script>
-    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
-      const navItem = element.closest('.nav-item.has-submenu');
+    // 切换二级菜单显隐
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
       }
     };
-    
+
+    // 我的会员子菜单切换
+    window.toggleMemberSubmenu = function(element) {
+      window.toggleSubmenu(element);
+    };
+
+    // 退出登录
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('userInfo');
+        window.location.href = 'login.html';
+      }
+    };
+
+    // 登录检查跳转
+    window.checkLoginAndRedirect = function(url) {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+      const isLoggedIn = userInfo && (userInfo.isLoggedIn || userInfo.id);
+      if (!isLoggedIn) {
+        if (confirm('您还未登录，请先登录后再访问')) {
+          window.location.href = 'login.html';
+        }
+        return false;
+      }
+      if (userInfo && !userInfo.isLoggedIn) {
+        userInfo.isLoggedIn = true;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      }
+      window.location.href = url;
+    };
+
+    // 显示模块（此页面无模块弹窗，跳转到主页）
+    window.showModule = function(moduleId) {
+      window.location.href = 'index.html#' + moduleId;
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
       // 标签切换功能
       const tabs = document.querySelectorAll('.tab');
       const tabContents = document.querySelectorAll('.tab-content');
-      
+
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active          this.classList.add('active');
-          
-          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
+          // 移除所有标签的active
+          tabs.forEach(t => t.classList.remove('active'));
+          // 添加当前标签的active
+          this.classList.add('active');
+
+          // 隐藏所有内容
+          tabContents.forEach(content => content.classList.remove('active'));
           // 显示对应内容
           const tabId = this.getAttribute('data-tab');
           document.getElementById(tabId).classList.add('active');
         });
       });
-      
-      // 加入购物车按钮点击事      const addToCartButtons = document.querySelectorAll('.product-card .btn-primary');
+
+      // 加入购物车按钮点击事件
+      const addToCartButtons = document.querySelectorAll('.product-card .btn-primary');
       addToCartButtons.forEach(button => {
         button.addEventListener('click', function() {
-          alert('商品已加入购物车);
+          alert('商品已加入购物车');
         });
       });
-      
+
       // 立即购买按钮点击事件
       const buyNowButtons = document.querySelectorAll('.product-card .btn-secondary');
       buyNowButtons.forEach(button => {
@@ -914,11 +970,12 @@
           const productName = productCard.querySelector('.product-title').textContent;
           const priceText = productCard.querySelector('.product-price').textContent;
           const amount = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-          
-          // 跳转到支付页          window.location.href = `payment.htmlamount=${amount}&productName=${encodeURIComponent(productName)}&type=product`;
+
+          // 跳转到支付页
+          window.location.href = `payment.html?amount=${amount}&productName=${encodeURIComponent(productName)}&type=product`;
         });
       });
-      
+
       // 数量调整按钮点击事件
       const quantityButtons = document.querySelectorAll('.quantity-btn');
       quantityButtons.forEach(button => {
@@ -933,20 +990,22 @@
           input.value = value;
         });
       });
-      
-      // 清空购物车按钮点击事      const clearCartButton = document.querySelector('.btn-danger');
+
+      // 清空购物车按钮点击事件
+      const clearCartButton = document.querySelector('.btn-danger');
       if (clearCartButton) {
         clearCartButton.addEventListener('click', function() {
           if (confirm('确定要清空购物车吗？')) {
-            alert('购物车已清空);
+            alert('购物车已清空');
           }
         });
       }
-      
-      // 去结算按钮点击事      const checkoutButton = document.querySelector('.cart-actions .btn-primary');
+
+      // 去结算按钮点击事件
+      const checkoutButton = document.querySelector('.cart-actions .btn-primary');
       if (checkoutButton) {
         checkoutButton.addEventListener('click', function() {
-          alert('正在跳转到结算页..');
+          alert('正在跳转到结算页...');
         });
       }
     });

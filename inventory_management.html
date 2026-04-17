@@ -1020,11 +1020,18 @@
 
         <!-- 商品管理 -->
         <div class="card">
-          <h3>商品管理</h3>
+          <div class="section-header">
+            <h3>商品管理</h3>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="btn btn-sm btn-primary" onclick="toggleSelectAllProducts()">全选/取消全选</button>
+              <button type="button" class="btn btn-sm btn-danger" onclick="batchDeleteProducts()">批量删除</button>
+            </div>
+          </div>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
+                  <th><input type="checkbox" id="select-all-products" onchange="toggleSelectAllProducts()"></th>
                   <th>商品编号</th>
                   <th>商品名称</th>
                   <th>类别</th>
@@ -1035,82 +1042,7 @@
                   <th>操作</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>SP001</td>
-                  <td>财务软件专业版</td>
-                  <td>软件</td>
-                  <td>45</td>
-                  <td>套</td>
-                  <td>¥2,999</td>
-                  <td><span class="status-badge status-in-stock">库存充足</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-success">编辑</button>
-                      <button class="btn btn-sm btn-danger">删除</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP002</td>
-                  <td>税务筹划服务</td>
-                  <td>服务</td>
-                  <td>20</td>
-                  <td>次</td>
-                  <td>¥1,500</td>
-                  <td><span class="status-badge status-in-stock">库存充足</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-success">编辑</button>
-                      <button class="btn btn-sm btn-danger">删除</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP003</td>
-                  <td>会计培训课程</td>
-                  <td>课程</td>
-                  <td>5</td>
-                  <td>套</td>
-                  <td>¥999</td>
-                  <td><span class="status-badge status-low-stock">库存偏低</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-success">编辑</button>
-                      <button class="btn btn-sm btn-danger">删除</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP004</td>
-                  <td>财务咨询服务</td>
-                  <td>服务</td>
-                  <td>0</td>
-                  <td>次</td>
-                  <td>¥2,000</td>
-                  <td><span class="status-badge status-out-of-stock">缺货</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-success">编辑</button>
-                      <button class="btn btn-sm btn-danger">删除</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP005</td>
-                  <td>财务模板包</td>
-                  <td>模板</td>
-                  <td>30</td>
-                  <td>套</td>
-                  <td>¥199</td>
-                  <td><span class="status-badge status-in-stock">库存充足</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-success">编辑</button>
-                      <button class="btn btn-sm btn-danger">删除</button>
-                    </div>
-                  </td>
-                </tr>
+              <tbody id="products-tbody">
               </tbody>
             </table>
           </div>
@@ -1120,7 +1052,10 @@
         <div class="card">
           <div class="section-header">
             <h3>送货单管理</h3>
-            <button type="button" class="btn btn-primary" onclick="openDeliveryNoteModal()">新增送货单</button>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="btn btn-primary" onclick="openDeliveryNoteModal()">新增送货单</button>
+              <button type="button" class="btn btn-success" onclick="exportDeliveryNotesToWord()">导出Word</button>
+            </div>
           </div>
           <div class="table-container">
             <table>
@@ -1164,7 +1099,10 @@
 
         <!-- 出入库记录 -->
         <div class="card">
-          <h3>出入库记录</h3>
+          <div class="section-header">
+            <h3>出入库记录</h3>
+            <button type="button" class="btn btn-primary" onclick="openInventoryRecordModal()">新增出入库记录</button>
+          </div>
           <div class="table-container">
             <table>
               <thead>
@@ -1176,53 +1114,12 @@
                   <th>日期</th>
                   <th>操作人</th>
                   <th>备注</th>
+                  <th>操作</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="inventory-records-tbody">
                 <tr>
-                  <td>RK001</td>
-                  <td>财务软件专业版</td>
-                  <td>入库</td>
-                  <td>50</td>
-                  <td>2026-03-15</td>
-                  <td>张三</td>
-                  <td>新批次到货</td>
-                </tr>
-                <tr>
-                  <td>CK001</td>
-                  <td>税务筹划服务</td>
-                  <td>出库</td>
-                  <td>5</td>
-                  <td>2026-03-14</td>
-                  <td>李四</td>
-                  <td>客户订单</td>
-                </tr>
-                <tr>
-                  <td>RK002</td>
-                  <td>会计培训课程</td>
-                  <td>入库</td>
-                  <td>10</td>
-                  <td>2026-03-13</td>
-                  <td>张三</td>
-                  <td>补充库存</td>
-                </tr>
-                <tr>
-                  <td>CK002</td>
-                  <td>财务咨询服务</td>
-                  <td>出库</td>
-                  <td>10</td>
-                  <td>2026-03-12</td>
-                  <td>李四</td>
-                  <td>批量订单</td>
-                </tr>
-                <tr>
-                  <td>RK003</td>
-                  <td>财务模板包</td>
-                  <td>入库</td>
-                  <td>50</td>
-                  <td>2026-03-11</td>
-                  <td>张三</td>
-                  <td>季度采购</td>
+                  <td colspan="8" class="empty-text">加载中...</td>
                 </tr>
               </tbody>
             </table>
@@ -1362,16 +1259,14 @@
             <input id="delivery-contact" type="text" placeholder="输入联系人">
           </div>
           <div class="form-group">
+            <label for="delivery-contact-phone">联系电话</label>
+            <input id="delivery-contact-phone" type="text" placeholder="输入联系电话">
+          </div>
+          <div class="form-group">
             <label for="delivery-date">送货日期 <span style="color:#e74c3c;">*</span></label>
             <input id="delivery-date" type="date" required>
           </div>
-          <div class="form-group">
-            <label for="delivery-status">送货状态</label>
-            <select id="delivery-status">
-              <option value="待送达">待送达</option>
-              <option value="已送达">已送达</option>
-            </select>
-          </div>
+
           <div class="form-group full-width">
             <label for="delivery-address">送货地址</label>
             <input id="delivery-address" type="text" placeholder="输入送货地址">
@@ -1416,8 +1311,9 @@
         </div>
 
         <div class="btn-group" style="margin-top:20px;">
-          <button class="btn btn-primary" type="submit">保存送货单</button>
-          <button class="btn btn-success" type="button" onclick="printDeliveryNotePreview()">打印预览</button>
+          <button class="btn btn-primary" type="button" onclick="saveDeliveryNote()">保存</button>
+          <button class="btn btn-success" type="button" onclick="saveAndNewDeliveryNote()">保存并新增</button>
+          <button class="btn btn-info" type="button" onclick="printDeliveryNotePreview()">打印预览</button>
           <button class="btn btn-danger" type="button" onclick="closeDeliveryNoteModal()">取消</button>
         </div>
       </form>
@@ -1509,8 +1405,64 @@
           <input id="product-price" type="number" step="0.01" placeholder="输入单价">
         </div>
         <div class="customer-modal-actions">
-          <button class="btn btn-primary" type="submit">保存</button>
+          <button id="product-save-btn" class="btn btn-primary" type="button">保存</button>
           <button class="btn btn-danger" type="button" onclick="closeProductModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 出入库记录弹窗 -->
+  <div class="customer-modal" id="inventory-record-modal">
+    <div class="customer-modal-content">
+      <div class="customer-modal-header">
+        <h3 id="inventory-record-modal-title">新增出入库记录</h3>
+        <button class="btn btn-danger btn-sm" type="button" onclick="closeInventoryRecordModal()">关闭</button>
+      </div>
+      <form class="customer-modal-form" id="inventory-record-form">
+        <input type="hidden" id="inventory-record-edit-index" value="">
+        <div class="form-group">
+          <label for="inventory-record-no">记录编号 *</label>
+          <input id="inventory-record-no" type="text" placeholder="输入记录编号" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-product-name">商品名称 *</label>
+          <input id="inventory-product-name" type="text" placeholder="输入商品名称" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-product-code">商品编号</label>
+          <input id="inventory-product-code" type="text" placeholder="输入商品编号">
+        </div>
+        <div class="form-group">
+          <label for="inventory-type">类型 *</label>
+          <select id="inventory-type" required>
+            <option value="入库">入库</option>
+            <option value="出库">出库</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="inventory-quantity">数量 *</label>
+          <input id="inventory-quantity" type="number" placeholder="输入数量" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-unit">单位 *</label>
+          <input id="inventory-unit" type="text" placeholder="输入单位" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-date">日期 *</label>
+          <input id="inventory-date" type="date" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-operator">操作人 *</label>
+          <input id="inventory-operator" type="text" placeholder="输入操作人" required>
+        </div>
+        <div class="form-group">
+          <label for="inventory-remark">备注</label>
+          <textarea id="inventory-remark" placeholder="输入备注" style="height:60px;"></textarea>
+        </div>
+        <div class="customer-modal-actions">
+          <button id="inventory-record-save-btn" class="btn btn-primary" type="button">保存</button>
+          <button class="btn btn-danger" type="button" onclick="closeInventoryRecordModal()">取消</button>
         </div>
       </form>
     </div>
@@ -1556,6 +1508,253 @@
     ];
 
     var deliveryNoteStorageKey = 'inventoryDeliveryNotes';
+    var editingDeliveryNoteIndex = -1;
+    
+    // ==================== API调用辅助函数 ====================
+    // 获取当前用户ID
+    function getCurrentUserId() {
+      try {
+        var profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        return profile.id || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    // 商品管理API
+    async function apiGetProducts() {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/products?userId=' + encodeURIComponent(userId));
+        var data = await response.json();
+        if (data.success) {
+          return data.data;
+        }
+        return [];
+      } catch (e) {
+        console.error('获取商品列表失败:', e);
+        return [];
+      }
+    }
+
+    async function apiAddProduct(product) {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...product, userId: userId })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('添加商品失败:', e);
+        return { success: false, message: '添加商品失败' };
+      }
+    }
+
+    async function apiUpdateProduct(product) {
+      try {
+        var response = await fetch('/api/products', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(product)
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('更新商品失败:', e);
+        return { success: false, message: '更新商品失败' };
+      }
+    }
+
+    async function apiDeleteProduct(id) {
+      try {
+        var response = await fetch('/api/products', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('删除商品失败:', e);
+        return { success: false, message: '删除商品失败' };
+      }
+    }
+
+    // 客户管理API
+    async function apiGetCustomers() {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/customers?userId=' + encodeURIComponent(userId));
+        var data = await response.json();
+        if (data.success) {
+          return data.data;
+        }
+        return [];
+      } catch (e) {
+        console.error('获取客户列表失败:', e);
+        return [];
+      }
+    }
+
+    // 出入库记录API
+    async function apiGetInventoryRecords() {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/inventory-records?userId=' + encodeURIComponent(userId));
+        var data = await response.json();
+        if (data.success) {
+          return data.data;
+        }
+        return [];
+      } catch (e) {
+        console.error('获取出入库记录失败:', e);
+        return [];
+      }
+    }
+
+    async function apiAddInventoryRecord(record) {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/inventory-records', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...record, userId: userId })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('添加出入库记录失败:', e);
+        return { success: false, message: '添加出入库记录失败' };
+      }
+    }
+
+    async function apiDeleteInventoryRecord(id) {
+      try {
+        var response = await fetch('/api/inventory-records', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('删除出入库记录失败:', e);
+        return { success: false, message: '删除出入库记录失败' };
+      }
+    }
+
+    async function apiAddCustomer(customer) {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...customer, userId: userId })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('添加客户失败:', e);
+        return { success: false, message: '添加客户失败' };
+      }
+    }
+
+    async function apiUpdateCustomer(customer) {
+      try {
+        var response = await fetch('/api/customers', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customer)
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('更新客户失败:', e);
+        return { success: false, message: '更新客户失败' };
+      }
+    }
+
+    async function apiDeleteCustomer(id) {
+      try {
+        var response = await fetch('/api/customers', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('删除客户失败:', e);
+        return { success: false, message: '删除客户失败' };
+      }
+    }
+
+    // 送货单管理API
+    async function apiGetDeliveryNotes() {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/delivery-notes?userId=' + encodeURIComponent(userId));
+        var data = await response.json();
+        if (data.success) {
+          return data.data;
+        }
+        return [];
+      } catch (e) {
+        console.error('获取送货单列表失败:', e);
+        return [];
+      }
+    }
+
+    async function apiAddDeliveryNote(note) {
+      try {
+        var userId = getCurrentUserId();
+        var response = await fetch('/api/delivery-notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...note, userId: userId })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('添加送货单失败:', e);
+        return { success: false, message: '添加送货单失败' };
+      }
+    }
+
+    async function apiUpdateDeliveryNote(note) {
+      try {
+        var response = await fetch('/api/delivery-notes', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(note)
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('更新送货单失败:', e);
+        return { success: false, message: '更新送货单失败' };
+      }
+    }
+
+    async function apiDeleteDeliveryNote(id) {
+      try {
+        var response = await fetch('/api/delivery-notes', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        var data = await response.json();
+        return data;
+      } catch (e) {
+        console.error('删除送货单失败:', e);
+        return { success: false, message: '删除送货单失败' };
+      }
+    }
+    // ==================== API调用辅助函数结束 ====================
+
     var defaultDeliveryNotes = [
       {
         no: 'SHD20260414001',
@@ -1584,7 +1783,54 @@
       }
     ];
 
+    // 全局变量存储送货单数据
+    var deliveryNotesCache = null;
+    var deliveryNotesLoaded = false;
+
+    async function getDeliveryNotesAsync() {
+      try {
+        // 先尝试从API获取
+        var apiNotes = await apiGetDeliveryNotes();
+        if (apiNotes && apiNotes.length > 0) {
+          deliveryNotesCache = apiNotes;
+          deliveryNotesLoaded = true;
+          return apiNotes;
+        }
+      } catch (e) {
+        console.warn('API获取送货单失败，使用localStorage:', e);
+      }
+      
+      // 回退到localStorage
+      try {
+        var saved = JSON.parse(localStorage.getItem(deliveryNoteStorageKey) || 'null');
+        if (Array.isArray(saved) && saved.length) {
+          // 兼容旧数据：单行商品转为items数组
+          var notes = saved.map(function(n) {
+            if (!n.items && n.product) {
+              n.items = [{ product: n.product, quantity: n.quantity, price: 0 }];
+            }
+            return n;
+          });
+          deliveryNotesCache = notes;
+          deliveryNotesLoaded = true;
+          return notes;
+        }
+      } catch (error) {
+        console.error('Error getting delivery notes from localStorage:', error);
+      }
+      
+      console.log('Using default delivery notes:', defaultDeliveryNotes);
+      deliveryNotesCache = defaultDeliveryNotes.slice();
+      deliveryNotesLoaded = true;
+      return defaultDeliveryNotes.slice();
+    }
+
     function getDeliveryNotes() {
+      // 同步版本，优先使用缓存
+      if (deliveryNotesLoaded && deliveryNotesCache) {
+        return deliveryNotesCache;
+      }
+      
       try {
         var saved = JSON.parse(localStorage.getItem(deliveryNoteStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
@@ -1599,11 +1845,26 @@
       } catch (error) {
         console.error('Error getting delivery notes from localStorage:', error);
       }
+      
       console.log('Using default delivery notes:', defaultDeliveryNotes);
       return defaultDeliveryNotes.slice();
     }
 
+    async function saveDeliveryNotesAsync(notes) {
+      deliveryNotesCache = notes;
+      deliveryNotesLoaded = true;
+      
+      try {
+        // 先保存到localStorage
+        localStorage.setItem(deliveryNoteStorageKey, JSON.stringify(notes));
+      } catch (e) {
+        console.warn('API保存送货单失败，已保存到localStorage:', e);
+      }
+    }
+
     function saveDeliveryNotes(notes) {
+      deliveryNotesCache = notes;
+      deliveryNotesLoaded = true;
       localStorage.setItem(deliveryNoteStorageKey, JSON.stringify(notes));
     }
 
@@ -1662,7 +1923,12 @@
             '<td>' + (note.contact || '--') + '</td>' +
             '<td><span class="status-badge ' + getDeliveryStatusClass(note.status) + '" onclick="toggleDeliveryStatus(' + index + ')">' + note.status + '</span></td>' +
             '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
-            '<td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(' + index + ')">删除</button></td>' +
+            '<td>' +
+              '<div class="action-buttons">' +
+                '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + index + ')">复制</button>' +
+                '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNote(' + index + ')">删除</button>' +
+              '</div>' +
+            '</td>' +
           '</tr>';
         }).join('');
         console.log('Generated HTML:', html);
@@ -2010,15 +2276,24 @@
 
     window.openDeliveryNoteModal = function() {
       try {
+        // 重置编辑索引
+        editingDeliveryNoteIndex = -1;
+
         var modal = document.getElementById('delivery-note-modal');
         if (!modal) {
           console.error('delivery-note-modal not found');
           return;
         }
+
+        // 清空表单字段
+        document.getElementById('delivery-customer').value = '';
+        document.getElementById('delivery-contact').value = '';
+        document.getElementById('delivery-contact-phone').value = '';
+        document.getElementById('delivery-address').value = '';
+        document.getElementById('delivery-remark').value = '';
+
         var dateInput = document.getElementById('delivery-date');
-        if (dateInput && !dateInput.value) {
-          dateInput.value = new Date().toISOString().slice(0, 10);
-        }
+        dateInput.value = new Date().toISOString().slice(0, 10);
         // 清空商品行并添加5行空行
         var tbody = document.getElementById('delivery-items-tbody');
         if (tbody) {
@@ -2196,10 +2471,16 @@
         }
         console.log('Found delivery-note-modal:', modal);
 
+        // 设置编辑索引
+        editingDeliveryNoteIndex = index;
+
         // 填充表单字段
         document.getElementById('delivery-customer').value = note.customer;
         document.getElementById('delivery-date').value = note.date;
         document.getElementById('delivery-contact').value = note.contact || '';
+        document.getElementById('delivery-contact-phone').value = note.contactPhone || '';
+        document.getElementById('delivery-address').value = note.address || '';
+        document.getElementById('delivery-remark').value = note.remark || '';
 
         // 清空商品行并填充现有商品
         var tbody = document.getElementById('delivery-items-tbody');
@@ -2526,10 +2807,160 @@
       alert('送货单已删除');
     };
 
+    // 复制送货单
+    window.copyDeliveryNote = function(index) {
+      var notes = getDeliveryNotes();
+      var note = notes[index];
+      if (!note) return;
+
+      // 创建新的送货单，复制原单据的内容，但使用新的单号
+      var newNote = {
+        no: generateDeliveryNoteNo(),
+        customer: note.customer,
+        contact: note.contact || '',
+        contactPhone: note.contactPhone || '',
+        date: new Date().toISOString().split('T')[0],
+        status: '待送达',
+        address: note.address || '',
+        remark: note.remark || '',
+        items: note.items ? JSON.parse(JSON.stringify(note.items)) : []
+      };
+
+      // 添加到送货单列表
+      notes.push(newNote);
+      saveDeliveryNotes(notes);
+      renderDeliveryNotes();
+      alert('送货单已复制，新单号：' + newNote.no);
+    };
+
+    // 收集送货单数据（内部函数）
+    function collectDeliveryNoteData() {
+      var customer = document.getElementById('delivery-customer').value.trim();
+      var contact = document.getElementById('delivery-contact').value.trim();
+      var contactPhone = document.getElementById('delivery-contact-phone').value.trim();
+      var date = document.getElementById('delivery-date').value;
+      var address = document.getElementById('delivery-address').value.trim();
+      var remark = document.getElementById('delivery-remark').value.trim();
+      var items = collectDeliveryItems();
+
+      if (!customer) {
+        alert('请先填写客户名称');
+        return null;
+      }
+
+      if (items.length === 0) {
+        alert('请至少添加一行商品');
+        return null;
+      }
+
+      return {
+        customer: customer,
+        contact: contact,
+        contactPhone: contactPhone,
+        date: date,
+        address: address,
+        remark: remark,
+        items: items,
+        status: '待送达'
+      };
+    }
+
+    // 保存送货单
+    window.saveDeliveryNote = function() {
+      var data = collectDeliveryNoteData();
+      if (!data) return;
+
+      var notes = getDeliveryNotes();
+      var noteNo;
+      
+      if (editingDeliveryNoteIndex >= 0) {
+        // 更新现有送货单，保持原单号
+        noteNo = notes[editingDeliveryNoteIndex].no;
+      } else {
+        // 新增送货单，生成新单号
+        noteNo = 'SHD' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + String(Date.now()).slice(-3);
+      }
+
+      var newNote = {
+        no: noteNo,
+        customer: data.customer,
+        contact: data.contact,
+        contactPhone: data.contactPhone,
+        date: data.date,
+        status: data.status,
+        address: data.address,
+        remark: data.remark,
+        items: data.items
+      };
+
+      if (editingDeliveryNoteIndex >= 0) {
+        notes[editingDeliveryNoteIndex] = newNote;
+      } else {
+        notes.push(newNote);
+      }
+
+      saveDeliveryNotes(notes);
+      renderDeliveryNotes();
+      closeDeliveryNoteModal();
+      alert('送货单已保存');
+    };
+
+    // 保存并新增送货单
+    window.saveAndNewDeliveryNote = function() {
+      var data = collectDeliveryNoteData();
+      if (!data) return;
+
+      var notes = getDeliveryNotes();
+      var noteNo = 'SHD' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + String(Date.now()).slice(-3);
+
+      var newNote = {
+        no: noteNo,
+        customer: data.customer,
+        contact: data.contact,
+        contactPhone: data.contactPhone,
+        date: data.date,
+        status: data.status,
+        address: data.address,
+        remark: data.remark,
+        items: data.items
+      };
+
+      if (editingDeliveryNoteIndex >= 0) {
+        notes[editingDeliveryNoteIndex] = newNote;
+      } else {
+        notes.push(newNote);
+      }
+
+      saveDeliveryNotes(notes);
+      renderDeliveryNotes();
+
+      // 重置表单，准备新增
+      editingDeliveryNoteIndex = -1;
+      document.getElementById('delivery-customer').value = '';
+      document.getElementById('delivery-contact').value = '';
+      document.getElementById('delivery-contact-phone').value = '';
+      document.getElementById('delivery-address').value = '';
+      document.getElementById('delivery-remark').value = '';
+      document.getElementById('delivery-date').value = new Date().toISOString().slice(0, 10);
+
+      // 清空商品行并添加5行空行
+      var tbody = document.getElementById('delivery-items-tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        for (var i = 0; i < 5; i++) {
+          addDeliveryItemRow();
+        }
+      }
+
+      updateDeliveryTotal();
+      alert('送货单已保存，可继续新增');
+    };
+
     // 打印预览功能
     window.printDeliveryNotePreview = function() {
       var customer = document.getElementById('delivery-customer').value.trim();
       var contact = document.getElementById('delivery-contact').value.trim();
+      var contactPhone = document.getElementById('delivery-contact-phone').value.trim();
       var date = document.getElementById('delivery-date').value;
       var address = document.getElementById('delivery-address').value.trim();
       var remark = document.getElementById('delivery-remark').value.trim();
@@ -2579,6 +3010,7 @@
           '<div class="info-left">' +
             '<div class="info-item"><span class="info-label">客户名称：</span>' + customer + '</div>' +
             '<div class="info-item"><span class="info-label">联系人：</span>' + (contact || '-') + '</div>' +
+            '<div class="info-item"><span class="info-label">联系电话：</span>' + (contactPhone || '-') + '</div>' +
             '<div class="info-item"><span class="info-label">送货地址：</span>' + (address || '-') + '</div>' +
           '</div>' +
           '<div class="info-right">' +
@@ -2843,20 +3275,73 @@
     var customerStorageKey = 'inventoryCustomers';
 
     // 获取所有客户（优先从localStorage读取，否则使用预设数据）
+    // 全局变量存储客户数据
+    var customersCache = null;
+    var customersLoaded = false;
+
+    async function getAllCustomersAsync() {
+      try {
+        // 先尝试从API获取
+        var apiCustomers = await apiGetCustomers();
+        if (apiCustomers && apiCustomers.length > 0) {
+          customersCache = apiCustomers;
+          customersLoaded = true;
+          return apiCustomers;
+        }
+      } catch (e) {
+        console.warn('API获取客户失败，使用localStorage:', e);
+      }
+      
+      // 回退到localStorage
+      try {
+        var saved = JSON.parse(localStorage.getItem(customerStorageKey) || 'null');
+        if (Array.isArray(saved) && saved.length) {
+          customersCache = saved;
+          customersLoaded = true;
+          return saved;
+        }
+      } catch (error) {}
+      
+      // 首次使用时保存预设数据
+      saveCustomers(customerDatabase);
+      customersCache = customerDatabase.slice();
+      customersLoaded = true;
+      return customerDatabase.slice();
+    }
+
     function getAllCustomers() {
+      // 同步版本，优先使用缓存
+      if (customersLoaded && customersCache) {
+        return customersCache;
+      }
+      
       try {
         var saved = JSON.parse(localStorage.getItem(customerStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
           return saved;
         }
       } catch (error) {}
-      // 首次使用时保存预设数据
+      
       saveCustomers(customerDatabase);
       return customerDatabase.slice();
     }
 
+    async function saveCustomersAsync(customers) {
+      customersCache = customers;
+      customersLoaded = true;
+      
+      try {
+        // 先保存到localStorage
+        localStorage.setItem(customerStorageKey, JSON.stringify(customers));
+      } catch (e) {
+        console.warn('API保存客户失败，已保存到localStorage:', e);
+      }
+    }
+
     // 保存客户数据
     function saveCustomers(customers) {
+      customersCache = customers;
+      customersLoaded = true;
       localStorage.setItem(customerStorageKey, JSON.stringify(customers));
     }
 
@@ -2969,9 +3454,11 @@
           var name = this.getAttribute('data-name');
           var contact = this.getAttribute('data-contact');
           var address = this.getAttribute('data-address');
+          var phone = this.getAttribute('data-phone');
 
           document.getElementById('delivery-customer').value = name;
           if (contact) document.getElementById('delivery-contact').value = contact;
+          if (phone) document.getElementById('delivery-contact-phone').value = phone;
           if (address) document.getElementById('delivery-address').value = address;
 
           dropdown.classList.remove('show');
@@ -3053,6 +3540,7 @@
       // 更新送货单表单中的客户输入
       document.getElementById('delivery-customer').value = name;
       if (contact) document.getElementById('delivery-contact').value = contact;
+      if (phone) document.getElementById('delivery-contact-phone').value = phone;
       if (address) document.getElementById('delivery-address').value = address;
 
       alert(index === '' ? '客户添加成功' : '客户修改成功');
@@ -3077,22 +3565,213 @@
     var productStorageKey = 'inventoryProducts';
 
     // 获取所有商品
+    // 全局变量存储产品数据
+    var productsCache = null;
+    var productsLoaded = false;
+
+    async function getAllProductsAsync() {
+      try {
+        // 先尝试从API获取
+        var apiProducts = await apiGetProducts();
+        if (apiProducts && apiProducts.length > 0) {
+          productsCache = apiProducts;
+          productsLoaded = true;
+          return apiProducts;
+        }
+      } catch (e) {
+        console.warn('API获取商品失败，使用localStorage:', e);
+      }
+      
+      // 回退到localStorage
+      try {
+        var saved = JSON.parse(localStorage.getItem(productStorageKey) || 'null');
+        if (Array.isArray(saved) && saved.length) {
+          productsCache = saved;
+          productsLoaded = true;
+          return saved;
+        }
+      } catch (error) {}
+      
+      // 首次使用时保存预设数据
+      saveProducts(productDatabase);
+      productsCache = productDatabase.slice();
+      productsLoaded = true;
+      return productDatabase.slice();
+    }
+
     function getAllProducts() {
+      // 同步版本，优先使用缓存
+      if (productsLoaded && productsCache) {
+        return productsCache;
+      }
+      
       try {
         var saved = JSON.parse(localStorage.getItem(productStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
           return saved;
         }
       } catch (error) {}
-      // 首次使用时保存预设数据
+      
       saveProducts(productDatabase);
       return productDatabase.slice();
     }
 
+    async function saveProductsAsync(products) {
+      productsCache = products;
+      productsLoaded = true;
+      
+      try {
+        // 先保存到localStorage
+        localStorage.setItem(productStorageKey, JSON.stringify(products));
+        
+        // 然后同步到API（对于已有数据，这里需要更复杂的逻辑）
+        // 简化处理：目前只保存到localStorage，完整迁移后再改
+      } catch (e) {
+        console.warn('API保存商品失败，已保存到localStorage:', e);
+      }
+    }
+
     // 保存商品数据
     function saveProducts(products) {
+      productsCache = products;
+      productsLoaded = true;
       localStorage.setItem(productStorageKey, JSON.stringify(products));
     }
+
+    // 渲染商品表格
+    function renderProductsTable() {
+      var tbody = document.getElementById('products-tbody');
+      if (!tbody) return;
+
+      var products = getAllProducts();
+      
+      // 为商品添加stock和threshold字段（如果不存在）
+      products = products.map(function(product) {
+        return {
+          ...product,
+          stock: product.stock !== undefined ? product.stock : Math.floor(Math.random() * 100),
+          threshold: product.threshold !== undefined ? product.threshold : 10
+        };
+      });
+
+      var html = products.map(function(product, index) {
+        var statusClass = 'status-in-stock';
+        var statusText = '库存充足';
+        if (product.stock < product.threshold) {
+          statusClass = 'status-low-stock';
+          statusText = '库存偏低';
+        }
+        if (product.stock === 0) {
+          statusClass = 'status-out-of-stock';
+          statusText = '缺货';
+        }
+
+        return '<tr>' +
+          '<td><input type="checkbox" class="product-checkbox" data-index="' + index + '"></td>' +
+          '<td>' + (product.code || '') + '</td>' +
+          '<td>' + product.name + '</td>' +
+          '<td>' + (product.category || '') + '</td>' +
+          '<td>' + (product.stock || 0) + '</td>' +
+          '<td>' + (product.unit || '') + '</td>' +
+          '<td>¥' + (product.price || 0).toLocaleString() + '</td>' +
+          '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+          '<td>' +
+            '<div class="action-buttons">' +
+              '<button class="btn btn-sm btn-success" onclick="editProductRow(' + index + ')">编辑</button>' +
+              '<button class="btn btn-sm btn-danger" onclick="deleteProductRow(' + index + ')">删除</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      tbody.innerHTML = html;
+      
+      // 绑定复选框事件
+      document.querySelectorAll('.product-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateSelectAllCheckbox);
+      });
+    }
+
+    // 全选/取消全选商品
+    window.toggleSelectAllProducts = function() {
+      var selectAllCheckbox = document.getElementById('select-all-products');
+      var productCheckboxes = document.querySelectorAll('.product-checkbox');
+      
+      // 判断当前是否全选
+      var allChecked = true;
+      productCheckboxes.forEach(function(checkbox) {
+        if (!checkbox.checked) {
+          allChecked = false;
+        }
+      });
+      
+      // 切换状态
+      var newChecked = !allChecked;
+      selectAllCheckbox.checked = newChecked;
+      productCheckboxes.forEach(function(checkbox) {
+        checkbox.checked = newChecked;
+      });
+    };
+
+    // 更新全选复选框状态
+    function updateSelectAllCheckbox() {
+      var selectAllCheckbox = document.getElementById('select-all-products');
+      var productCheckboxes = document.querySelectorAll('.product-checkbox');
+      var checkedCount = 0;
+      
+      productCheckboxes.forEach(function(checkbox) {
+        if (checkbox.checked) checkedCount++;
+      });
+      
+      selectAllCheckbox.checked = checkedCount === productCheckboxes.length && productCheckboxes.length > 0;
+    }
+
+    // 批量删除商品
+    window.batchDeleteProducts = function() {
+      var productCheckboxes = document.querySelectorAll('.product-checkbox:checked');
+      if (productCheckboxes.length === 0) {
+        alert('请先选择要删除的商品');
+        return;
+      }
+      
+      if (!confirm('确定要删除选中的 ' + productCheckboxes.length + ' 个商品吗？')) return;
+      
+      var products = getAllProducts();
+      // 获取要删除的索引（从大到小排序，避免删除时索引变化问题）
+      var indicesToDelete = [];
+      productCheckboxes.forEach(function(checkbox) {
+        indicesToDelete.push(parseInt(checkbox.getAttribute('data-index')));
+      });
+      indicesToDelete.sort(function(a, b) { return b - a; });
+      
+      // 删除商品
+      indicesToDelete.forEach(function(index) {
+        products.splice(index, 1);
+      });
+      
+      saveProducts(products);
+      renderProductsTable();
+      alert('已删除 ' + productCheckboxes.length + ' 个商品');
+    };
+
+    // 从表格中删除商品行
+    window.deleteProductRow = function(index) {
+      var products = getAllProducts();
+      var product = products[index];
+      if (!product) return;
+
+      if (!confirm('确定要删除商品"' + product.name + '"吗？')) return;
+
+      products.splice(index, 1);
+      saveProducts(products);
+      renderProductsTable();
+      alert('商品已删除');
+    };
+
+    // 编辑商品行
+    window.editProductRow = function(index) {
+      openEditProductModal(index);
+    };
 
     // 初始化商品搜索
     function initProductSearch() {
@@ -3204,7 +3883,7 @@
     };
 
     // 从表单保存商品
-    function saveProductFromForm() {
+    window.saveProductFromForm = function() {
       var index = document.getElementById('product-edit-index').value;
       var name = document.getElementById('product-name').value.trim();
       var code = document.getElementById('product-code').value.trim();
@@ -3241,6 +3920,7 @@
       saveProducts(products);
       closeProductModal();
       showAllProducts();
+      renderProductsTable();
 
       // 更新送货单表单中的商品输入
       document.getElementById('delivery-product').value = name;
@@ -3259,6 +3939,7 @@
       products.splice(index, 1);
       saveProducts(products);
       showAllProducts();
+      renderProductsTable();
       alert('商品已删除');
     };
     
@@ -3266,8 +3947,21 @@
     console.log('Calling renderDeliveryNotes directly');
     renderDeliveryNotes();
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       console.log('DOMContentLoaded event fired');
+      
+      // 预加载数据到缓存（混合模式：API优先，失败回退到localStorage）
+      try {
+        console.log('正在预加载数据...');
+        await Promise.all([
+          getAllProductsAsync().catch(e => console.warn('预加载商品失败:', e)),
+          getAllCustomersAsync().catch(e => console.warn('预加载客户失败:', e)),
+          getDeliveryNotesAsync().catch(e => console.warn('预加载送货单失败:', e))
+        ]);
+        console.log('数据预加载完成');
+      } catch (e) {
+        console.warn('数据预加载过程出错，继续使用localStorage:', e);
+      }
       
       // 定义toggleDeliveryStatus函数
       window.toggleDeliveryStatus = function(index) {
@@ -3292,12 +3986,14 @@
       // 商品搜索功能
       initProductSearch();
 
-      // 商品表单提交
-      var productForm = document.getElementById('product-form');
-      if (productForm) {
-        productForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          saveProductFromForm();
+      // 渲染商品表格
+      renderProductsTable();
+
+      // 绑定保存按钮点击事件
+      var saveBtn = document.getElementById('product-save-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          window.saveProductFromForm();
         });
       }
 
@@ -3314,8 +4010,8 @@
 
           var customer = document.getElementById('delivery-customer').value.trim();
           var contact = document.getElementById('delivery-contact').value.trim();
+          var contactPhone = document.getElementById('delivery-contact-phone').value.trim();
           var date = document.getElementById('delivery-date').value;
-          var status = document.getElementById('delivery-status').value;
           var address = document.getElementById('delivery-address').value.trim();
           var remark = document.getElementById('delivery-remark').value.trim();
 
@@ -3339,8 +4035,9 @@
             no: generateDeliveryNoteNo(),
             customer: customer,
             contact: contact,
+            contactPhone: contactPhone,
             date: date,
-            status: status,
+            status: '待送达',
             address: address,
             remark: remark,
             items: items
@@ -3349,7 +4046,6 @@
           saveDeliveryNotes(notes);
           renderDeliveryNotes();
           deliveryForm.reset();
-          document.getElementById('delivery-status').value = '待送达';
           closeDeliveryNoteModal();
           alert('送货单已新增，共 ' + items.length + ' 行商品');
         });
@@ -3380,6 +4076,361 @@
         productModal.addEventListener('click', function(e) {
           if (e.target === productModal) {
             closeProductModal();
+          }
+        });
+      }
+    });
+
+    // 导出送货单为Word
+    window.exportDeliveryNotesToWord = function() {
+      var notes = getDeliveryNotes();
+      if (notes.length === 0) {
+        alert('没有送货单数据可导出');
+        return;
+      }
+
+      // 生成Word文档内容
+      var docContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>送货单导出</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #333;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #333;
+    }
+    .header .date {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
+    }
+    .delivery-note {
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      page-break-inside: avoid;
+    }
+    .delivery-note-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .delivery-note-header .info {
+      font-size: 14px;
+    }
+    .delivery-note-header .info strong {
+      color: #333;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .items-table th,
+    .items-table td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    .items-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    .items-table .product-name {
+      text-align: left;
+    }
+    .total-section {
+      text-align: right;
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .total-section .amount {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>送货单汇总</h1>
+    <div class="date">导出日期：${new Date().toLocaleDateString()}</div>
+  </div>
+  
+  ${notes.map((note, index) => {
+    const totalAmount = note.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return `
+    <div class="delivery-note">
+      <div class="delivery-note-header">
+        <div class="info">
+          <p><strong>送货单号：</strong>${note.no}</p>
+          <p><strong>客户名称：</strong>${note.customer}</p>
+          <p><strong>联系人：</strong>${note.contact || '-'}</p>
+          ${note.contactPhone ? `<p><strong>联系电话：</strong>${note.contactPhone}</p>` : ''}
+        </div>
+        <div class="info">
+          <p><strong>送货日期：</strong>${note.date}</p>
+          <p><strong>送货地址：</strong>${note.address || '-'}</p>
+          <p><strong>状态：</strong>${note.status}</p>
+        </div>
+      </div>
+      
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>商品名称</th>
+            <th>型号</th>
+            <th>数量</th>
+            <th>单位</th>
+            <th>单价</th>
+            <th>小计</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${note.items.map((item, itemIndex) => {
+            const subtotal = item.price * item.quantity;
+            return `
+            <tr>
+              <td>${itemIndex + 1}</td>
+              <td class="product-name">${item.name}</td>
+              <td>${item.model || '-'}</td>
+              <td>${item.quantity}</td>
+              <td>${item.unit}</td>
+              <td>¥${item.price.toFixed(2)}</td>
+              <td>¥${subtotal.toFixed(2)}</td>
+            </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+      
+      <div class="total-section">
+        合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span>
+      </div>
+      
+      ${note.remark ? `<div style="margin-top: 15px;"><strong>备注：</strong>${note.remark}</div>` : ''}
+    </div>
+    `;
+  }).join('')}
+</body>
+</html>
+      `;
+
+      // 创建Blob对象
+      var blob = new Blob([docContent], { type: 'application/msword' });
+      
+      // 创建下载链接
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `送货单汇总_${new Date().toISOString().slice(0, 10)}.doc`;
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 显示成功提示
+      alert('送货单已成功导出为Word文档');
+    };
+
+    // ==================== 出入库记录管理 ====================
+    var inventoryRecordStorageKey = 'inventoryRecords';
+    var editingInventoryRecordIndex = -1;
+
+    // 生成出入库记录编号
+    function generateInventoryRecordNo() {
+      const type = document.getElementById('inventory-type')?.value || '入库';
+      const prefix = type === '入库' ? 'RK' : 'CK';
+      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const records = getInventoryRecords();
+      const todayRecords = records.filter(r => r.record_no.startsWith(prefix + date));
+      const serial = String(todayRecords.length + 1).padStart(3, '0');
+      return prefix + date + serial;
+    }
+
+    // 获取出入库记录
+    function getInventoryRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(inventoryRecordStorageKey) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // 保存出入库记录
+    function saveInventoryRecords(records) {
+      localStorage.setItem(inventoryRecordStorageKey, JSON.stringify(records));
+    }
+
+    // 打开出入库记录弹窗
+    window.openInventoryRecordModal = function() {
+      editingInventoryRecordIndex = -1;
+      document.getElementById('inventory-record-modal-title').textContent = '新增出入库记录';
+      document.getElementById('inventory-record-form').reset();
+      document.getElementById('inventory-date').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('inventory-record-modal').classList.add('show');
+    };
+
+    // 关闭出入库记录弹窗
+    window.closeInventoryRecordModal = function() {
+      document.getElementById('inventory-record-modal').classList.remove('show');
+    };
+
+    // 保存出入库记录
+    window.saveInventoryRecord = async function() {
+      const recordNo = document.getElementById('inventory-record-no').value.trim();
+      const productName = document.getElementById('inventory-product-name').value.trim();
+      const productCode = document.getElementById('inventory-product-code').value.trim();
+      const type = document.getElementById('inventory-type').value;
+      const quantity = parseInt(document.getElementById('inventory-quantity').value) || 0;
+      const unit = document.getElementById('inventory-unit').value.trim();
+      const date = document.getElementById('inventory-date').value;
+      const operator = document.getElementById('inventory-operator').value.trim();
+      const remark = document.getElementById('inventory-remark').value.trim();
+
+      if (!recordNo || !productName || !type || !quantity || !unit || !date || !operator) {
+        alert('请填写所有必填项');
+        return;
+      }
+
+      const record = {
+        record_no: recordNo,
+        product_name: productName,
+        product_code: productCode,
+        type: type,
+        quantity: quantity,
+        unit: unit,
+        date: date,
+        operator: operator,
+        remark: remark
+      };
+
+      // 调用API保存
+      const result = await apiAddInventoryRecord(record);
+      if (result.success) {
+        // 同时保存到本地存储
+        const records = getInventoryRecords();
+        records.unshift({
+          ...record,
+          id: result.data.id,
+          create_time: new Date().toISOString()
+        });
+        saveInventoryRecords(records);
+        
+        // 重新渲染列表
+        renderInventoryRecords();
+        closeInventoryRecordModal();
+        alert('出入库记录保存成功');
+      } else {
+        alert('保存失败：' + result.message);
+      }
+    };
+
+    // 删除出入库记录
+    window.deleteInventoryRecord = async function(id, index) {
+      if (!confirm('确定要删除这条出入库记录吗？')) return;
+
+      // 调用API删除
+      const result = await apiDeleteInventoryRecord(id);
+      if (result.success) {
+        // 同时从本地存储删除
+        const records = getInventoryRecords();
+        records.splice(index, 1);
+        saveInventoryRecords(records);
+        
+        // 重新渲染列表
+        renderInventoryRecords();
+        alert('出入库记录删除成功');
+      } else {
+        alert('删除失败：' + result.message);
+      }
+    };
+
+    // 渲染出入库记录
+    function renderInventoryRecords() {
+      const tbody = document.getElementById('inventory-records-tbody');
+      if (!tbody) return;
+
+      // 从API获取数据
+      apiGetInventoryRecords().then(records => {
+        if (records.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-text">暂无出入库记录</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = records.map((record, index) => `
+          <tr>
+            <td>${record.record_no}</td>
+            <td>${record.product_name}</td>
+            <td>${record.type}</td>
+            <td>${record.quantity}</td>
+            <td>${record.date}</td>
+            <td>${record.operator}</td>
+            <td>${record.remark || '-'}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="deleteInventoryRecord(${record.id}, ${index})")">删除</button>
+            </td>
+          </tr>
+        `).join('');
+      }).catch(() => {
+        // 回退到本地存储
+        const records = getInventoryRecords();
+        if (records.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-text">暂无出入库记录</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = records.map((record, index) => `
+          <tr>
+            <td>${record.record_no}</td>
+            <td>${record.product_name}</td>
+            <td>${record.type}</td>
+            <td>${record.quantity}</td>
+            <td>${record.date}</td>
+            <td>${record.operator}</td>
+            <td>${record.remark || '-'}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="deleteInventoryRecord(${record.id || index}, ${index})")">删除</button>
+            </td>
+          </tr>
+        `).join('');
+      });
+    }
+
+    // 绑定出入库记录保存按钮
+    document.addEventListener('DOMContentLoaded', function() {
+      const saveBtn = document.getElementById('inventory-record-save-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          window.saveInventoryRecord();
+        });
+      }
+
+      // 渲染出入库记录
+      renderInventoryRecords();
+
+      // 出入库记录弹窗点击外部关闭
+      var inventoryModal = document.getElementById('inventory-record-modal');
+      if (inventoryModal) {
+        inventoryModal.addEventListener('click', function(e) {
+          if (e.target === inventoryModal) {
+            closeInventoryRecordModal();
           }
         });
       }

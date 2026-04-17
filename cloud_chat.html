@@ -281,12 +281,54 @@
       border-radius: 8px;
       padding: 15px;
       text-align: center;
-      transition: box-shadow 0.3s;
+      transition: box-shadow 0.3s, transform 0.2s;
       cursor: pointer;
+      position: relative;
     }
-    
+
     .file-card:hover {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .file-actions-overlay {
+      display: none;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-sm:hover {
+      background: #f0f0f0;
+    }
+
+    .btn-sm.btn-danger {
+      color: #e74c3c;
+      border-color: #e74c3c;
+    }
+
+    .btn-sm.btn-danger:hover {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .storage-info {
+      background: linear-gradient(90deg, #eef2f8, #e4ecf8);
     }
     
     .file-icon {
@@ -1163,47 +1205,93 @@
       </div>
       <div class="form-group">
         <label>选择文件</label>
-        <input type="file" multiple>
+        <input type="file" multiple id="fileInput">
+        <div id="fileList" style="margin-top: 10px;"></div>
       </div>
       <div class="form-group">
         <label>存储位置</label>
-        <select>
-          <option>我的文件</option>
-          <option>财务报表</option>
-          <option>税务资料</option>
-          <option>合同文档</option>
+        <select id="uploadLocation">
+          <option value="all">我的文件</option>
+          <option value="finance">财务报表</option>
+          <option value="tax">税务资料</option>
+          <option value="contract">合同文档</option>
         </select>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('uploadModal')">取消</button>
-        <button class="btn btn-primary">上传</button>
+        <button class="btn btn-primary" onclick="uploadFiles()">上传</button>
       </div>
     </div>
   </div>
-  
+
   <!-- 新建文件夹模态框 -->
   <div class="modal" id="folderModal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">新建文件/div>
+        <div class="modal-title">新建文件夹</div>
         <div class="modal-close" onclick="closeModal('folderModal')">&times;</div>
       </div>
       <div class="form-group">
-        <label>文件夹名/label>
-        <input type="text" placeholder="请输入文件夹名称">
+        <label>文件夹名称</label>
+        <input type="text" id="folderName" placeholder="请输入文件夹名称">
       </div>
       <div class="form-group">
         <label>存储位置</label>
-        <select>
-          <option>我的文件</option>
-          <option>财务报表</option>
-          <option>税务资料</option>
-          <option>合同文档</option>
+        <select id="folderLocation">
+          <option value="all">我的文件</option>
+          <option value="finance">财务报表</option>
+          <option value="tax">税务资料</option>
+          <option value="contract">合同文档</option>
         </select>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeModal('folderModal')">取消</button>
-        <button class="btn btn-primary">创建</button>
+        <button class="btn btn-primary" onclick="createFolder()">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文件详情模态框 -->
+  <div class="modal" id="fileDetailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">文件详情</div>
+        <div class="modal-close" onclick="closeModal('fileDetailModal')">&times;</div>
+      </div>
+      <div id="fileDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- 分享文件模态框 -->
+  <div class="modal" id="shareModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">分享文件</div>
+        <div class="modal-close" onclick="closeModal('shareModal')">&times;</div>
+      </div>
+      <div class="form-group">
+        <label>分享链接</label>
+        <input type="text" id="shareLink" readonly style="background-color: #f5f5f5;">
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="copyShareLink()">复制链接</button>
+      </div>
+      <div class="form-group">
+        <label>分享设置</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label><input type="checkbox" id="sharePassword"> 设置访问密码</label>
+          <input type="text" id="passwordInput" placeholder="请输入密码" style="display: none; width: 150px;">
+        </div>
+        <div style="margin-top: 10px;">
+          <label>有效期：</label>
+          <select id="shareExpiry">
+            <option value="7">7天</option>
+            <option value="30">30天</option>
+            <option value="0">永久</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('shareModal')">取消</button>
+        <button class="btn btn-primary" onclick="confirmShare()">确认分享</button>
       </div>
     </div>
   </div>
@@ -1214,19 +1302,14 @@
       const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
       if (navItem) {
         navItem.classList.toggle('active');
-        // 关闭所有子菜单
         const subItems = navItem.querySelectorAll('.submenu-item.has-submenu');
-        subItems.forEach(item => {
-          item.classList.remove('active');
-        });
+        subItems.forEach(item => item.classList.remove('active'));
       }
     };
 
     window.toggleMemberSubmenu = function(element) {
       const navItem = element.closest('.nav-item.has-submenu');
-      if (navItem) {
-        navItem.classList.toggle('active');
-      }
+      if (navItem) navItem.classList.toggle('active');
     };
 
     window.handleLogout = function() {
@@ -1243,7 +1326,7 @@
       const moduleMap = {
         'contract-management': 'finance_software.html',
         'seal-management': 'finance_software.html',
-        'inventory-management': 'finance_software.html',
+        'inventory-management': 'inventory_management.html',
         'company-management': 'member.html',
         'financing-bank': 'online_store.html',
         'financing-equity': 'online_store.html',
@@ -1258,120 +1341,221 @@
         'tax-risk': 'tax_reporting.html',
         'tax-equity': 'tax_reporting.html'
       };
-
       const target = moduleMap[module];
-      if (target) {
-        window.location.href = target;
-      }
+      if (target) window.location.href = target;
     };
 
     document.addEventListener('DOMContentLoaded', function() {
-      // 标签切换功能
-      const tabs = document.querySelectorAll('.tab');
-      const tabContents = document.querySelectorAll('.tab-content');
-      
-      tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active          this.classList.add('active');
-          
-          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
-          // 显示对应内容
-          const tabId = this.getAttribute('data-tab');
-          document.getElementById(tabId).classList.add('active');
+      // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
+      document.querySelectorAll('.submenu-item a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.stopPropagation();
         });
       });
-      
-      // 文件导航项点击事      const fileNavItems = document.querySelectorAll('.file-nav-item a');
+
+      // 文件导航切换
+      const fileNavItems = document.querySelectorAll('.file-nav-item a');
       fileNavItems.forEach(item => {
         item.addEventListener('click', function(e) {
           e.preventDefault();
-          // 移除所有导航项的active          fileNavItems.forEach(i => i.classList.remove('active'));
-          // 添加当前导航项的active          this.classList.add('active');
+          fileNavItems.forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          const category = this.dataset.category;
+          document.getElementById('currentCategory').textContent = this.textContent;
+          filterFiles(category);
         });
       });
-      
-      // 聊天项点击事      const chatItems = document.querySelectorAll('.chat-item');
-      chatItems.forEach(item => {
-        item.addEventListener('click', function() {
-          // 移除所有聊天项的active          chatItems.forEach(i => i.classList.remove('active'));
-          // 添加当前聊天项的active          this.classList.add('active');
+
+      // 文件搜索
+      const searchInput = document.getElementById('searchFile');
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          const keyword = this.value.toLowerCase();
+          document.querySelectorAll('.file-card').forEach(card => {
+            card.style.display = card.dataset.name.toLowerCase().includes(keyword) ? 'block' : 'none';
+          });
+        });
+      }
+
+      // 上传按钮
+      document.getElementById('uploadBtn').addEventListener('click', () => openModal('uploadModal'));
+
+      // 新建文件夹按钮
+      document.getElementById('newFolderBtn').addEventListener('click', () => openModal('folderModal'));
+
+      // 文件输入变化
+      document.getElementById('fileInput').addEventListener('change', function() {
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+          const div = document.createElement('div');
+          div.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+          div.style.cssText = 'padding: 5px; background: #f0f0f0; margin: 2px; border-radius: 4px;';
+          fileList.appendChild(div);
         });
       });
-      
-      // 上传文件按钮点击事件
-      const uploadButton = document.querySelector('.header-actions .btn-primary');
-      uploadButton.addEventListener('click', function() {
-        openModal('uploadModal');
+
+      // 分享密码切换
+      document.getElementById('sharePassword').addEventListener('change', function() {
+        document.getElementById('passwordInput').style.display = this.checked ? 'inline-block' : 'none';
       });
-      
-      // 新建文件夹按钮点击事      const newFolderButton = document.querySelector('.header-actions .btn-secondary');
-      newFolderButton.addEventListener('click', function() {
-        openModal('folderModal');
-      });
-      
-      // 发送消息按钮点击事- 已移至chat_float.js
-      /*
-      const sendButton = document.querySelector('.chat-input-actions button:last-child');
-      if (sendButton) {
-        sendButton.addEventListener('click', function() {
-          const textarea = document.querySelector('.chat-input textarea');
-          const message = textarea.value.trim();
-          if (message) {
-            // 模拟发送消            const chatMessages = document.querySelector('.chat-messages');
-            const now = new Date();
-            const time = now.getHours() + ':' + (now.getMinutes() < 10  '0' : '') + now.getMinutes();
-            
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message sent';
-            messageElement.innerHTML = `
-              <div class="message-content">
-                <div>${message}</div>
-                <div class="message-time">${time}</div>
-              </div>
-              <div class="message-avatar">/div>
-            `;
-            
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            textarea.value = '';
+
+      // 文件卡片悬停效果
+      document.querySelectorAll('.file-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          const overlay = this.querySelector('.file-actions-overlay');
+          if (overlay) overlay.style.display = 'flex';
+        });
+        card.addEventListener('mouseleave', function() {
+          const overlay = this.querySelector('.file-actions-overlay');
+          if (overlay) overlay.style.display = 'none';
+        });
+        card.addEventListener('dblclick', function() {
+          if (this.dataset.type === 'folder') {
+            alert('打开文件夹: ' + this.dataset.name);
+          } else {
+            showFileDetail(this);
           }
         });
-        
-        // 按Enter发送消        const textarea = document.querySelector('.chat-input textarea');
-        if (textarea) {
-          textarea.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              sendButton.click();
-            }
-          });
-        }
-      }
-      */
-    });
-    
-    // 打开模态框
-    function openModal(modalId) {
-      document.getElementById(modalId).style.display = 'flex';
-    }
-    
-    // 关闭模态框
-    function closeModal(modalId) {
-      document.getElementById(modalId).style.display = 'none';
-    }
-    
-    // 点击模态框外部关闭
-    window.onclick = function(event) {
-      const modals = document.querySelectorAll('.modal');
-      modals.forEach(modal => {
-        if (event.target == modal) {
-          modal.style.display = 'none';
+      });
+
+      // 排序功能
+      document.getElementById('sortBtn').addEventListener('click', function() {
+        const choice = prompt('选择排序方式:\n1. 名称\n2. 日期\n3. 大小\n4. 类型');
+        if (choice) sortFiles(parseInt(choice) - 1);
+      });
+
+      // 视图切换
+      let isGridView = true;
+      document.getElementById('viewToggle').addEventListener('click', function() {
+        isGridView = !isGridView;
+        const grid = document.getElementById('fileGrid');
+        if (isGridView) {
+          grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+          this.textContent = '列表';
+        } else {
+          grid.style.gridTemplateColumns = '1fr';
+          this.textContent = '网格';
         }
       });
+    });
+
+    // 过滤文件
+    function filterFiles(category) {
+      document.querySelectorAll('.file-card').forEach(card => {
+        const type = card.dataset.type;
+        let show = true;
+        if (category === 'finance') show = type === 'excel' || card.dataset.name.includes('财务');
+        else if (category === 'tax') show = type === 'pdf' || card.dataset.name.includes('税');
+        else if (category === 'contract') show = card.dataset.name.includes('合同') || type === 'folder';
+        card.style.display = show ? 'block' : 'none';
+      });
     }
-    
-    // 聊天功能已移至chat_float.js
+
+    // 排序文件
+    function sortFiles(sortType) {
+      const grid = document.getElementById('fileGrid');
+      const cards = Array.from(grid.querySelectorAll('.file-card'));
+      cards.sort((a, b) => {
+        if (sortType === 0) return a.dataset.name.localeCompare(b.dataset.name);
+        if (sortType === 3) return a.dataset.type.localeCompare(b.dataset.type);
+        return 0;
+      });
+      cards.forEach(card => grid.appendChild(card));
+    }
+
+    // 打开/关闭模态框
+    function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // 上传文件
+    function uploadFiles() {
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput.files.length === 0) { alert('请选择要上传的文件'); return; }
+      alert('成功上传 ' + fileInput.files.length + ' 个文件');
+      closeModal('uploadModal');
+      fileInput.value = '';
+      document.getElementById('fileList').innerHTML = '';
+    }
+
+    // 创建文件夹
+    function createFolder() {
+      const folderName = document.getElementById('folderName').value.trim();
+      if (!folderName) { alert('请输入文件夹名称'); return; }
+      const grid = document.getElementById('fileGrid');
+      const newFolder = document.createElement('div');
+      newFolder.className = 'file-card';
+      newFolder.dataset.type = 'folder';
+      newFolder.dataset.name = folderName;
+      newFolder.innerHTML = `
+        <div class="file-icon">📁</div>
+        <div class="file-name">${folderName}</div>
+        <div class="file-meta">${new Date().toLocaleDateString()}</div>
+        <div class="file-actions-overlay" style="display:none;">
+          <button class="btn btn-sm" onclick="openFolder(this)">打开</button>
+          <button class="btn btn-sm" onclick="shareFile(this)">分享</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteFile(this)">删除</button>
+        </div>`;
+      grid.insertBefore(newFolder, grid.firstChild);
+      closeModal('folderModal');
+      document.getElementById('folderName').value = '';
+      alert('文件夹创建成功');
+    }
+
+    // 文件操作
+    function downloadFile(btn) { alert('开始下载: ' + btn.closest('.file-card').dataset.name); }
+    function shareFile(btn) {
+      document.getElementById('shareLink').value = 'https://zonya.work/share/' + Date.now();
+      openModal('shareModal');
+    }
+    function copyShareLink() {
+      const link = document.getElementById('shareLink');
+      link.select();
+      document.execCommand('copy');
+      alert('链接已复制到剪贴板');
+    }
+    function confirmShare() { alert('分享成功！'); closeModal('shareModal'); }
+    function deleteFile(btn) {
+      const card = btn.closest('.file-card');
+      if (confirm('确定要删除 "' + card.dataset.name + '" 吗？')) {
+        card.remove();
+        alert('已移至回收站');
+      }
+    }
+    function openFolder(btn) { alert('打开文件夹: ' + btn.closest('.file-card').dataset.name); }
+
+    function showFileDetail(card) {
+      document.getElementById('fileDetailContent').innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; margin-bottom: 20px;">${card.querySelector('.file-icon').textContent}</div>
+          <h3>${card.dataset.name}</h3>
+          <p style="color: #666; margin: 10px 0;">类型: ${card.dataset.type.toUpperCase()}</p>
+          <p style="color: #666; margin: 10px 0;">${card.querySelector('.file-meta').textContent}</p>
+          <div style="margin-top: 20px;">
+            <button class="btn btn-primary" onclick="alert('开始下载')">下载</button>
+            <button class="btn btn-secondary" onclick="alert('分享文件')">分享</button>
+          </div>
+        </div>`;
+      openModal('fileDetailModal');
+    }
+
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+      document.querySelectorAll('.modal').forEach(modal => {
+        if (event.target == modal) modal.style.display = 'none';
+      });
+    };
   </script>
+<!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
 </body>
 </html>

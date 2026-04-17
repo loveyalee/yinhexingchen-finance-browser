@@ -30,6 +30,8 @@
       background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
       padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
     }
     
     .logo {
@@ -79,9 +81,7 @@
     }
     
     .submenu {
-      position: absolute;
-      left: 0;
-      top: 100%;
+      position: relative;
       width: 100%;
       background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
@@ -89,9 +89,11 @@
       display: none;
       z-index: 1000;
       list-style: none;
+      margin-top: 5px;
     }
     
-    .nav-item.has-submenu:hover .submenu {
+    .nav-item.has-submenu.active > .submenu,
+    .submenu-item.has-submenu.active > .submenu {
       display: block;
     }
     
@@ -136,6 +138,42 @@
       flex: 1;
       padding: 20px;
       overflow-y: auto;
+    }
+
+    .page-entry-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #eef6ff, #f9fcff);
+      border: 1px solid #d8e7f5;
+      box-shadow: 0 12px 24px rgba(16, 39, 63, 0.06);
+    }
+
+    .page-entry-banner.show {
+      display: flex;
+    }
+
+    .page-entry-banner strong {
+      display: block;
+      font-size: 15px;
+      color: #17324b;
+      margin-bottom: 4px;
+    }
+
+    .page-entry-banner span {
+      font-size: 12px;
+      color: #60758f;
+      line-height: 1.8;
+    }
+
+    .page-entry-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     
     .data-analysis {
@@ -404,7 +442,7 @@
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
     ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
-</style>
+.center-top-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#0f2742,#184a79);box-shadow:0 14px 32px rgba(15,39,66,.16);color:#fff}.center-top-meta{display:grid;gap:4px}.center-top-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72)}.center-top-meta strong{font-size:18px;line-height:1.2}.center-top-meta em{font-style:normal;font-size:12px;color:rgba(255,255,255,.76);line-height:1.8}.center-top-actions{display:flex;gap:10px;flex-wrap:wrap}@media(max-width:1080px){.center-top-strip{flex-direction:column;align-items:flex-start}}</style>
 </head>
 <body>
   <div class="container">
@@ -412,7 +450,7 @@
       <div class="logo">银河星辰财务专用浏览器</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
-        <li class="nav-item has-submenu">
+        <li class="nav-item has-submenu active">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
@@ -482,13 +520,14 @@
     
     <div class="main-content">
       <div class="header">
-        <h1>财务数据分析</h1>
+        <h1>数据分析中心</h1>
         <div>
-          <button class="btn btn-primary">导出报告</button>
+          <button class="btn btn-primary">导出分析</button>
         </div>
       </div>
       
       <div class="content-area">
+        <div class="center-top-strip"><div class="center-top-meta"><span class="center-top-kicker">智能工作台联动中心</span><strong>数据分析中心</strong><em>统一承接首页入口、分析视图与继续动作</em></div><div class="center-top-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><a href="index.html" class="btn btn-secondary" style="text-decoration:none">返回首页总览</a></div></div><div id="analysisEntryBanner" class="page-entry-banner"><div><strong id="analysisEntryTitle">来自蜻蜓智能工作台</strong><span id="analysisEntryDesc">已为你切换到数据分析中心视角，可继续查看报表、趋势与现金流重点。</span></div><div class="page-entry-actions"><a href="smart_assistant.html" class="btn btn-secondary" style="text-decoration:none">返回智能工作台</a><button class="btn btn-primary" type="button" onclick="exportEntryReport()">继续当前任务</button></div></div>
         <div class="data-analysis">
           <div class="analysis-tabs">
             <div class="tab active" data-tab="dashboard">数据概览</div>
@@ -528,7 +567,7 @@
                   <option>服务</option>
                 </select>
               </div>
-              <button class="btn btn-primary">应用</button>
+              <button class="btn btn-primary">应用筛选</button>
             </div>
             
             <div class="metrics-grid">
@@ -597,7 +636,7 @@
           </div>
           
           <div class="tab-content" id="trend">
-            <h3>趋势分析</h3>
+            <h3>经营趋势分析</h3>
             <div class="chart-container">
               <div class="chart-title">销售收入趋/div>
               <div class="chart-wrapper" id="salesTrendChart"></div>
@@ -610,7 +649,7 @@
           </div>
           
           <div class="tab-content" id="cost">
-            <h3>成本分析</h3>
+            <h3>成本结构分析</h3>
             <div class="chart-container">
               <div class="chart-title">成本构成</div>
               <div class="chart-wrapper" id="costCompositionChart"></div>
@@ -664,10 +703,35 @@
   </div>
   
   <script>
-    // toggleSubmenu 函数（用于切换二级菜单显隐藏    window.toggleSubmenu = function(element) {
-      const navItem = element.closest('.nav-item.has-submenu');
-      if (navItem) {
-        navItem.classList.toggle('active');
+    function closeSiblingMenus(navItem) {
+      const isTopLevel = navItem.classList.contains('nav-item');
+      const siblingSelector = isTopLevel ? ':scope > .nav-item.has-submenu' : ':scope > .submenu-item.has-submenu';
+      const container = navItem.parentElement;
+      if (!container) return;
+
+      container.querySelectorAll(siblingSelector).forEach(item => {
+        if (item === navItem) return;
+        item.classList.remove('active');
+        item.querySelectorAll('.submenu-item.has-submenu').forEach(child => child.classList.remove('active'));
+      });
+    }
+
+    // toggleSubmenu 函数：二级菜单点击不主动折叠，切换同级菜单时再自动收起其他菜单
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (!navItem) return;
+
+      const willOpen = !navItem.classList.contains('active');
+      if (willOpen) {
+        closeSiblingMenus(navItem);
+      }
+
+      navItem.classList.toggle('active', willOpen);
+
+      if (!willOpen) {
+        navItem.querySelectorAll('.submenu-item.has-submenu').forEach(item => {
+          item.classList.remove('active');
+        });
       }
     };
     
@@ -709,6 +773,60 @@
       }
     };
 
+
+    function getAnalysisEntryMeta() {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get('from') || '';
+      const view = params.get('view') || '';
+      const map = {
+        reports: { tab: 'dashboard', title: '来自蜻蜓智能工作台：报表中心', desc: '已切换到报表总览视角，适合继续查看经营总览、核心指标与图表。' },
+        cashflow: { tab: 'cashflow', title: '来自蜻蜓智能工作台：资金看板', desc: '已切换到现金流视角，建议重点查看现金净流量与收支节奏。' },
+        budget: { tab: 'cost', title: '来自蜻蜓智能工作台：预算与成本', desc: '已切换到成本分析视角，可继续查看预算偏差与成本结构。' },
+        risk: { tab: 'insights', title: '来自蜻蜓智能工作台：风险洞察', desc: '已切换到智能洞察视角，适合快速浏览经营异常与风险解释。' }
+      };
+      const meta = map[view] || map.reports;
+      return { from: from, view: view, tab: meta.tab, title: meta.title, desc: meta.desc };
+    }
+
+    function activateAnalysisTab(tabId) {
+      const tabs = document.querySelectorAll('.tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabs.forEach(tab => tab.classList.toggle('active', tab.getAttribute('data-tab') === tabId));
+      tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
+      if (tabId === 'dashboard') {
+        initRevenueChart();
+        initRevenueCompositionChart();
+      } else if (tabId === 'financial') {
+        initFinancialIndicatorsChart();
+      } else if (tabId === 'trend') {
+        initSalesTrendChart();
+        initProfitTrendChart();
+      } else if (tabId === 'cost') {
+        initCostCompositionChart();
+        initCostTrendChart();
+      } else if (tabId === 'cashflow') {
+        initCashflowChart();
+        initCashflowTrendChart();
+      }
+    }
+
+    function renderAnalysisEntryBanner() {
+      const meta = getAnalysisEntryMeta();
+      if (meta.from !== 'smart_assistant') return;
+      const banner = document.getElementById('analysisEntryBanner');
+      const title = document.getElementById('analysisEntryTitle');
+      const desc = document.getElementById('analysisEntryDesc');
+      if (!banner || !title || !desc) return;
+      title.textContent = meta.title;
+      desc.textContent = meta.desc;
+      banner.classList.add('show');
+      activateAnalysisTab(meta.tab);
+    }
+
+    function exportEntryReport() {
+      alert('已为你聚焦当前分析视图，可继续查看报表、趋势、现金流或智能洞察。');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
       document.querySelectorAll('.submenu-item a').forEach(link => {
@@ -732,34 +850,14 @@
       
       tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-          // 移除所有标签的active          tabs.forEach(t => t.classList.remove('active'));
-          // 添加当前标签的active          this.classList.add('active');
-          
-          // 隐藏所有内          tabContents.forEach(content => content.classList.remove('active'));
-          // 显示对应内容
           const tabId = this.getAttribute('data-tab');
-          document.getElementById(tabId).classList.add('active');
-          
-          // 初始化对应标签页的图          if (tabId === 'dashboard') {
-            initRevenueChart();
-            initRevenueCompositionChart();
-          } else if (tabId === 'financial') {
-            initFinancialIndicatorsChart();
-          } else if (tabId === 'trend') {
-            initSalesTrendChart();
-            initProfitTrendChart();
-          } else if (tabId === 'cost') {
-            initCostCompositionChart();
-            initCostTrendChart();
-          } else if (tabId === 'cashflow') {
-            initCashflowChart();
-            initCashflowTrendChart();
-          }
+          activateAnalysisTab(tabId);
         });
       });
       
-      // 初始化默认图      initRevenueChart();
+      initRevenueChart();
       initRevenueCompositionChart();
+      renderAnalysisEntryBanner();
       
       // 收入与支出趋势图      function initRevenueChart() {
         const chart = echarts.init(document.getElementById('revenueChart'));

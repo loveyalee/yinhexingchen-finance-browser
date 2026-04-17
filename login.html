@@ -384,6 +384,88 @@
       text-decoration: underline;
     }
 
+    .update-banner {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      width: min(420px, calc(100vw - 48px));
+      padding: 18px 18px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+      z-index: 12000;
+      display: none;
+    }
+
+    .update-banner.show {
+      display: block;
+    }
+
+    .update-banner h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #0f172a;
+    }
+
+    .update-banner p {
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .update-banner-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .update-banner .btn {
+      width: auto;
+      min-width: 116px;
+      padding: 11px 18px;
+      font-size: 14px;
+    }
+
+    .btn-secondary {
+      background: #eef2f7;
+      color: #334155;
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(148, 163, 184, 0.2);
+    }
+
+    .update-progress {
+      margin-top: 12px;
+      height: 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+      display: none;
+    }
+
+    .update-progress.show {
+      display: block;
+    }
+
+    .update-progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      transition: width 0.25s ease;
+    }
+
+    .update-meta {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
     /* 弹窗样式 */
     .modal-overlay {
       position: fixed;
@@ -496,6 +578,8 @@
       background: #e2e8f0;
     }
 
+
+
     /* 响应式 */
     @media (max-width: 900px) {
       .login-wrapper {
@@ -535,9 +619,65 @@
         padding: 40px 30px;
       }
     }
+
+    /* 用户类型选择卡片 */
+    .user-type-cards {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .user-type-card {
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid #e8ecf0;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .user-type-card:hover {
+      border-color: #388bfd;
+      background: #f0f7ff;
+    }
+
+    .user-type-card.active {
+      border-color: #388bfd;
+      background: #f0f7ff;
+      box-shadow: 0 2px 8px rgba(56, 139, 253, 0.15);
+    }
+
+    .user-type-card input[type="radio"] {
+      display: none;
+    }
+
+    .user-type-card .type-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .user-type-card .type-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3a4654;
+    }
   </style>
 </head>
 <body>
+  <div class="update-banner" id="update-banner">
+    <h3 id="update-title">桌面端更新</h3>
+    <p id="update-message">正在检查最新版本...</p>
+    <div class="update-progress" id="update-progress">
+      <div class="update-progress-bar" id="update-progress-bar"></div>
+    </div>
+    <div class="update-meta" id="update-meta"></div>
+    <div class="update-banner-actions" id="update-actions">
+      <button type="button" class="btn btn-primary" id="update-primary-btn">立即处理</button>
+      <button type="button" class="btn btn-secondary" id="update-secondary-btn">稍后</button>
+    </div>
+  </div>
   <div class="login-wrapper">
     <!-- 左侧品牌区域 -->
     <div class="brand-section">
@@ -568,16 +708,32 @@
     <div class="login-section">
       <div class="login-header">
         <h2>欢迎登录</h2>
-        <p>请输入您的账号信息</p>
+        <p>请选择用户类型并输入账号信息</p>
+      </div>
+
+      <!-- 用户类型选择卡片 -->
+      <div class="user-type-cards">
+        <div class="user-type-card active" onclick="selectUserType(this, 'personal')">
+          <input type="radio" name="user-type" value="personal" checked>
+          <div class="type-icon">👤</div>
+          <div class="type-name">个人用户</div>
+        </div>
+        <div class="user-type-card" onclick="selectUserType(this, 'enterprise')">
+          <input type="radio" name="user-type" value="enterprise">
+          <div class="type-icon">🏢</div>
+          <div class="type-name">企业用户</div>
+        </div>
       </div>
 
       <form id="login-form">
         <div class="form-group">
           <label for="account">账号</label>
-          <input type="text" id="account" placeholder="请输入手机号 / 邮箱 / 身份证号" required autocomplete="username">
-          <div class="input-hint">支持手机号、邮箱或身份证号登录</div>
+          <input type="text" id="account" placeholder="请输入手机号、邮箱或身份证号" required autocomplete="username">
+          <div class="input-hint">支持手机号、邮箱和身份证号登录</div>
           <span class="login-type-badge unknown" id="login-type-badge"></span>
         </div>
+
+
 
         <div class="form-group">
           <label for="password">密码</label>

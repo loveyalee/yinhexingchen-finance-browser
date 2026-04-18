@@ -41,6 +41,17 @@ try {
 }
 
 // ============================================================
+// 蜻蜓Chat 内存存储（备用方案）
+// ============================================================
+const dragonflyMemoryStore = {
+  groups: [],
+  circles: [],
+  groupMembers: {},
+  circleMembers: {},
+  messages: []
+};
+
+// ============================================================
 // MySQL数据库连接（阿里云RDS）
 // ============================================================
 let mysql = null;
@@ -4029,8 +4040,12 @@ if (!data.id) {
 
   } else if (pathname === '/api/dragonfly/groups' && req.method === 'GET') {
     try {
-      if (!usersDb) throw new Error('数据库未初始化');
-      const groups = usersDb.prepare('SELECT * FROM dragonfly_groups WHERE status = ? ORDER BY create_time DESC').all('active');
+      let groups = [];
+      if (usersDb) {
+        groups = usersDb.prepare('SELECT * FROM dragonfly_groups WHERE status = ? ORDER BY create_time DESC').all('active');
+      } else {
+        groups = dragonflyMemoryStore.groups;
+      }
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: true, data: groups }));
@@ -4047,13 +4062,30 @@ if (!data.id) {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.name || !data.creator_id) throw new Error('群组名称和创建者ID为必填项');
-        if (!usersDb) throw new Error('数据库未初始化');
 
         const groupId = 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        usersDb.prepare(`
-          INSERT INTO dragonfly_groups (group_id, name, description, icon, creator_id, creator_name, create_time, update_time)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(groupId, data.name, data.description || '', data.icon || '👥', data.creator_id, data.creator_name || '创建者', new Date().toISOString(), new Date().toISOString());
+        const group = {
+          group_id: groupId,
+          name: data.name,
+          description: data.description || '',
+          icon: data.icon || '👥',
+          creator_id: data.creator_id,
+          creator_name: data.creator_name || '创建者',
+          max_members: 500,
+          member_count: 1,
+          status: 'active',
+          create_time: new Date().toISOString(),
+          update_time: new Date().toISOString()
+        };
+
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT INTO dragonfly_groups (group_id, name, description, icon, creator_id, creator_name, create_time, update_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(groupId, data.name, data.description || '', data.icon || '👥', data.creator_id, data.creator_name || '创建者', new Date().toISOString(), new Date().toISOString());
+        } else {
+          dragonflyMemoryStore.groups.push(group);
+        }
 
         res.statusCode = 201;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4067,8 +4099,12 @@ if (!data.id) {
 
   } else if (pathname === '/api/dragonfly/circles' && req.method === 'GET') {
     try {
-      if (!usersDb) throw new Error('数据库未初始化');
-      const circles = usersDb.prepare('SELECT * FROM dragonfly_circles WHERE status = ? ORDER BY create_time DESC').all('active');
+      let circles = [];
+      if (usersDb) {
+        circles = usersDb.prepare('SELECT * FROM dragonfly_circles WHERE status = ? ORDER BY create_time DESC').all('active');
+      } else {
+        circles = dragonflyMemoryStore.circles;
+      }
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: true, data: circles }));
@@ -4085,13 +4121,32 @@ if (!data.id) {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.name || !data.category || !data.creator_id) throw new Error('圈子名称、分类和创建者ID为必填项');
-        if (!usersDb) throw new Error('数据库未初始化');
 
         const circleId = 'circle_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        usersDb.prepare(`
-          INSERT INTO dragonfly_circles (circle_id, name, description, icon, category, creator_id, creator_name, tags, create_time, update_time)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(circleId, data.name, data.description || '', data.icon || '⭐', data.category, data.creator_id, data.creator_name || '创建者', JSON.stringify(data.tags || []), new Date().toISOString(), new Date().toISOString());
+        const circle = {
+          circle_id: circleId,
+          name: data.name,
+          description: data.description || '',
+          icon: data.icon || '⭐',
+          category: data.category,
+          creator_id: data.creator_id,
+          creator_name: data.creator_name || '创建者',
+          max_users: 500,
+          member_count: 1,
+          tags: JSON.stringify(data.tags || []),
+          status: 'active',
+          create_time: new Date().toISOString(),
+          update_time: new Date().toISOString()
+        };
+
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT INTO dragonfly_circles (circle_id, name, description, icon, category, creator_id, creator_name, tags, create_time, update_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(circleId, data.name, data.description || '', data.icon || '⭐', data.category, data.creator_id, data.creator_name || '创建者', JSON.stringify(data.tags || []), new Date().toISOString(), new Date().toISOString());
+        } else {
+          dragonflyMemoryStore.circles.push(circle);
+        }
 
         res.statusCode = 201;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4111,14 +4166,25 @@ if (!data.id) {
         const groupId = pathname.split('/')[4];
         const data = JSON.parse(body || '{}');
         if (!data.user_id) throw new Error('用户ID为必填项');
-        if (!usersDb) throw new Error('数据库未初始化');
 
-        usersDb.prepare(`
-          INSERT OR IGNORE INTO dragonfly_group_members (group_id, user_id, user_name, join_time)
-          VALUES (?, ?, ?, ?)
-        `).run(groupId, data.user_id, data.user_name || '用户', new Date().toISOString());
-
-        usersDb.prepare('UPDATE dragonfly_groups SET member_count = (SELECT COUNT(*) FROM dragonfly_group_members WHERE group_id = ?) WHERE group_id = ?').run(groupId, groupId);
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT OR IGNORE INTO dragonfly_group_members (group_id, user_id, user_name, join_time)
+            VALUES (?, ?, ?, ?)
+          `).run(groupId, data.user_id, data.user_name || '用户', new Date().toISOString());
+          usersDb.prepare('UPDATE dragonfly_groups SET member_count = (SELECT COUNT(*) FROM dragonfly_group_members WHERE group_id = ?) WHERE group_id = ?').run(groupId, groupId);
+        } else {
+          if (!dragonflyMemoryStore.groupMembers[groupId]) {
+            dragonflyMemoryStore.groupMembers[groupId] = [];
+          }
+          if (!dragonflyMemoryStore.groupMembers[groupId].find(m => m.user_id === data.user_id)) {
+            dragonflyMemoryStore.groupMembers[groupId].push({
+              user_id: data.user_id,
+              user_name: data.user_name || '用户',
+              join_time: new Date().toISOString()
+            });
+          }
+        }
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4138,14 +4204,25 @@ if (!data.id) {
         const circleId = pathname.split('/')[4];
         const data = JSON.parse(body || '{}');
         if (!data.user_id) throw new Error('用户ID为必填项');
-        if (!usersDb) throw new Error('数据库未初始化');
 
-        usersDb.prepare(`
-          INSERT OR IGNORE INTO dragonfly_circle_members (circle_id, user_id, user_name, join_time)
-          VALUES (?, ?, ?, ?)
-        `).run(circleId, data.user_id, data.user_name || '用户', new Date().toISOString());
-
-        usersDb.prepare('UPDATE dragonfly_circles SET member_count = (SELECT COUNT(*) FROM dragonfly_circle_members WHERE circle_id = ?) WHERE circle_id = ?').run(circleId, circleId);
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT OR IGNORE INTO dragonfly_circle_members (circle_id, user_id, user_name, join_time)
+            VALUES (?, ?, ?, ?)
+          `).run(circleId, data.user_id, data.user_name || '用户', new Date().toISOString());
+          usersDb.prepare('UPDATE dragonfly_circles SET member_count = (SELECT COUNT(*) FROM dragonfly_circle_members WHERE circle_id = ?) WHERE circle_id = ?').run(circleId, circleId);
+        } else {
+          if (!dragonflyMemoryStore.circleMembers[circleId]) {
+            dragonflyMemoryStore.circleMembers[circleId] = [];
+          }
+          if (!dragonflyMemoryStore.circleMembers[circleId].find(m => m.user_id === data.user_id)) {
+            dragonflyMemoryStore.circleMembers[circleId].push({
+              user_id: data.user_id,
+              user_name: data.user_name || '用户',
+              join_time: new Date().toISOString()
+            });
+          }
+        }
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4164,13 +4241,26 @@ if (!data.id) {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.type || !data.target_id || !data.user_id || !data.content) throw new Error('消息类型、目标ID、用户ID和内容为必填项');
-        if (!usersDb) throw new Error('数据库未初始化');
 
         const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        usersDb.prepare(`
-          INSERT INTO dragonfly_messages (message_id, type, target_id, user_id, user_name, content, create_time)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).run(messageId, data.type, data.target_id, data.user_id, data.user_name || '用户', data.content, new Date().toISOString());
+        const message = {
+          message_id: messageId,
+          type: data.type,
+          target_id: data.target_id,
+          user_id: data.user_id,
+          user_name: data.user_name || '用户',
+          content: data.content,
+          create_time: new Date().toISOString()
+        };
+
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT INTO dragonfly_messages (message_id, type, target_id, user_id, user_name, content, create_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `).run(messageId, data.type, data.target_id, data.user_id, data.user_name || '用户', data.content, new Date().toISOString());
+        } else {
+          dragonflyMemoryStore.messages.push(message);
+        }
 
         res.statusCode = 201;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

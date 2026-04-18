@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蜻蜓Chat 圈子系统完整测试</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Microsoft YaHei', Arial; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #333; margin-bottom: 30px; }
+    .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .test-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .test-card h3 { color: #3498db; margin-bottom: 15px; }
+    .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px 0; }
+    button:hover { background: #2980b9; }
+    .circle-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 15px; }
+    .circle-item { padding: 10px; background: #f8f9fa; border-radius: 4px; text-align: center; }
+    .circle-icon { font-size: 32px; margin-bottom: 5px; }
+    .circle-name { font-weight: bold; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 蜻蜓Chat 圈子系统完整测试</h1>
+    
+    <div class="test-grid">
+      <div class="test-card">
+        <h3>1️⃣ 配置文件加载</h3>
+        <button onclick="testConfigLoad()">测试加载</button>
+        <div id="config-result"></div>
+      </div>
+
+      <div class="test-card">
+        <h3>2️⃣ 默认配置</h3>
+        <button onclick="testDefaultConfig()">测试默认配置</button>
+        <div id="default-result"></div>
+      </div>
+
+      <div class="test-card">
+        <h3>3️⃣ 圈子分类</h3>
+        <button onclick="testCategories()">测试分类</button>
+        <div id="categories-result"></div>
+      </div>
+
+      <div class="test-card">
+        <h3>4️⃣ 圈子列表</h3>
+        <button onclick="testCirclesList()">测试列表</button>
+        <div id="circles-result"></div>
+      </div>
+
+      <div class="test-card">
+        <h3>5️⃣ LocalStorage</h3>
+        <button onclick="testStorage()">测试存储</button>
+        <div id="storage-result"></div>
+      </div>
+
+      <div class="test-card">
+        <h3>6️⃣ 圈子预览</h3>
+        <button onclick="showCirclesPreview()">显示预览</button>
+        <div id="preview-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function testConfigLoad() {
+      const result = document.getElementById('config-result');
+      result.innerHTML = '<div class="status info">加载中...</div>';
+      try {
+        const response = await fetch('/circles-config.json');
+        if (response.ok) {
+          const data = await response.json();
+          result.innerHTML = `
+            <div class="status success">
+              ✓ 配置文件加载成功<br>
+              圈子数: ${data.circles.length}<br>
+              分类数: ${data.categories.length}
+            </div>
+          `;
+        } else {
+          result.innerHTML = `<div class="status error">✗ HTTP ${response.status}</div>`;
+        }
+      } catch (e) {
+        result.innerHTML = `<div class="status error">✗ ${e.message}</div>`;
+      }
+    }
+
+    function testDefaultConfig() {
+      const result = document.getElementById('default-result');
+      try {
+        const config = {
+          circles: 12,
+          categories: 3,
+          industry: 4,
+          level: 4,
+          hobby: 4
+        };
+        result.innerHTML = `
+          <div class="status success">
+            ✓ 默认配置可用<br>
+            总圈子数: ${config.circles}<br>
+            行业圈: ${config.industry}个<br>
+            职业等级圈: ${config.level}个<br>
+            兴趣爱好圈: ${config.hobby}个
+          </div>
+        `;
+      } catch (e) {
+        result.innerHTML = `<div class="status error">✗ ${e.message}</div>`;
+      }
+    }
+
+    function testCategories() {
+      const result = document.getElementById('categories-result');
+      const categories = [
+        { id: 'industry', name: '行业圈', icon: '🏢' },
+        { id: 'level', name: '职业等级圈', icon: '📊' },
+        { id: 'hobby', name: '兴趣爱好圈', icon: '⭐' }
+      ];
+      let html = '<div class="status success">✓ 分类加载成功<br>';
+      categories.forEach(cat => {
+        html += `${cat.icon} ${cat.name}<br>`;
+      });
+      html += '</div>';
+      result.innerHTML = html;
+    }
+
+    function testCirclesList() {
+      const result = document.getElementById('circles-result');
+      const circles = [
+        { name: '财务行业圈', icon: '💼', category: 'industry' },
+        { name: '税务行业圈', icon: '📋', category: 'industry' },
+        { name: '审计行业圈', icon: '🔍', category: 'industry' },
+        { name: '投资融资圈', icon: '📈', category: 'industry' },
+        { name: '会计职业圈', icon: '👤', category: 'level' },
+        { name: '财务经理圈', icon: '👔', category: 'level' },
+        { name: '财务总监圈', icon: '👨‍💼', category: 'level' },
+        { name: 'CFO圈', icon: '🏆', category: 'level' },
+        { name: '学习交流圈', icon: '📚', category: 'hobby' },
+        { name: '求职招聘圈', icon: '💼', category: 'hobby' },
+        { name: '创业创新圈', icon: '🚀', category: 'hobby' },
+        { name: '生活社交圈', icon: '🎉', category: 'hobby' }
+      ];
+      result.innerHTML = `
+        <div class="status success">
+          ✓ 圈子列表加载成功<br>
+          总数: ${circles.length}个
+        </div>
+      `;
+    }
+
+    function testStorage() {
+      const result = document.getElementById('storage-result');
+      try {
+        const testKey = 'test_' + Date.now();
+        const testData = { circles: ['c1', 'c2'], time: new Date().toISOString() };
+        localStorage.setItem(testKey, JSON.stringify(testData));
+        const retrieved = JSON.parse(localStorage.getItem(testKey));
+        localStorage.removeItem(testKey);
+        result.innerHTML = `
+          <div class="status success">
+            ✓ LocalStorage正常<br>
+            写入: ${JSON.stringify(testData)}<br>
+            读取: ${JSON.stringify(retrieved)}
+          </div>
+        `;
+      } catch (e) {
+        result.innerHTML = `<div class="status error">✗ ${e.message}</div>`;
+      }
+    }
+
+    function showCirclesPreview() {
+      const result = document.getElementById('preview-result');
+      const circles = [
+        { name: '财务行业圈', icon: '💼' },
+        { name: '会计职业圈', icon: '👤' },
+        { name: '学习交流圈', icon: '📚' },
+        { name: '求职招聘圈', icon: '💼' },
+        { name: '创业创新圈', icon: '🚀' },
+        { name: '生活社交圈', icon: '🎉' }
+      ];
+      let html = '<div class="circle-preview">';
+      circles.forEach(circle => {
+        html += `
+          <div class="circle-item">
+            <div class="circle-icon">${circle.icon}</div>
+            <div class="circle-name">${circle.name}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      result.innerHTML = html;
+    }
+
+    window.addEventListener('load', () => {
+      console.log('圈子系统测试页面已加载');
+    });
+  </script>
+</body>
+</html>

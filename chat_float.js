@@ -1111,7 +1111,11 @@ function initializeCircles() {
 
 function renderCircleCategories() {
   const container = document.getElementById('circles-category-tabs');
-  if (!container || !circlesConfig) return;
+  if (!container) return;
+
+  if (!circlesConfig) {
+    circlesConfig = getDefaultCirclesConfig();
+  }
 
   container.innerHTML = '';
 
@@ -1147,7 +1151,11 @@ function filterCirclesByCategory(categoryId, tabElement) {
 
 function renderCirclesList(categoryId = null) {
   const container = document.getElementById('circles-list-container');
-  if (!container || !circlesConfig) return;
+  if (!container) return;
+
+  if (!circlesConfig) {
+    circlesConfig = getDefaultCirclesConfig();
+  }
 
   container.innerHTML = '';
 

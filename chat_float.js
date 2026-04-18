@@ -103,32 +103,38 @@ function initChatFloat() {
           
           <!-- 圈子 -->
           <div id="plaza-tab" class="chat-panel-tab-content" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px;">
-              <div>
-                <span style="font-weight: bold; color: #2c3e50;">💬 同城圈子</span>
-                <span id="plaza-user-count" style="font-size: 12px; color: #666; margin-left: 10px;">当前在线: 0/500人</span>
+            <div id="circles-category-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">
+              <!-- 分类标签将动态加载到这里 -->
+            </div>
+
+            <div id="circles-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto;">
+              <!-- 圈子列表将动态加载到这里 -->
+            </div>
+
+            <div id="circle-detail-view" style="display: none;">
+              <button onclick="backToCirclesList()" style="padding: 8px 12px; background-color: #f0f0f0; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-bottom: 15px;">← 返回圈子列表</button>
+
+              <div id="circle-detail-header" style="padding: 15px; background-color: #f8f9fa; border-radius: 6px; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                  <span id="circle-detail-icon" style="font-size: 32px;"></span>
+                  <div>
+                    <div id="circle-detail-name" style="font-weight: bold; font-size: 16px; color: #2c3e50;"></div>
+                    <div id="circle-detail-desc" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+                  </div>
+                </div>
+                <div id="circle-detail-stats" style="font-size: 12px; color: #999; margin-bottom: 10px;"></div>
+                <button id="circle-join-btn" onclick="toggleCircleJoin()" style="width: 100%; padding: 10px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">加入圈子</button>
               </div>
-              <div style="display: flex; gap: 10px;">
-                <button id="plaza-join-btn" onclick="togglePlazaJoin()" style="padding: 6px 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">进入圈子</button>
-                <button id="plaza-mute-btn" onclick="togglePlazaMute()" style="padding: 6px 12px; background-color: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">免打扰: 关</button>
+
+              <div id="circle-chat-area" style="height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; background-color: #f8f9fa; margin-bottom: 10px;">
+                <!-- 圈子消息将在这里显示 -->
               </div>
-            </div>
-            
-            <div id="plaza-not-joined" style="text-align: center; padding: 40px 20px; color: #666;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🏛️</div>
-              <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">欢迎进入同城圈子</div>
-              <div style="font-size: 14px; margin-bottom: 20px;">与500位财务同行实时交流</div>
-              <button onclick="joinPlaza()" style="padding: 10px 30px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">立即进入</button>
-            </div>
-            
-            <div id="plaza-chat-area" style="display: none; height: 280px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; background-color: #f8f9fa;">
-              <!-- 广场消息将在这里显示 -->
-            </div>
-            
-            <div id="plaza-input-area" style="display: none; margin-top: 10px;">
-              <div style="display: flex; gap: 10px;">
-                <input type="text" id="plaza-message-input" placeholder="输入消息..." style="flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; outline: none;" onkeypress="if(event.key==='Enter')sendPlazaMessage()">
-                <button onclick="sendPlazaMessage()" style="padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">发送</button>
+
+              <div id="circle-input-area" style="display: none;">
+                <div style="display: flex; gap: 10px;">
+                  <input type="text" id="circle-message-input" placeholder="输入消息..." style="flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; outline: none;" onkeypress="if(event.key==='Enter')sendCircleMessage()">
+                  <button onclick="sendCircleMessage()" style="padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">发送</button>
+                </div>
               </div>
             </div>
           </div>
@@ -294,6 +300,9 @@ function initChatFloat() {
         }
         if (tabId === 'ai') {
           setDragonflyUnread(false);
+        }
+        if (tabId === 'plaza' && !circlesConfig) {
+          loadCirclesConfig();
         }
       });
     });
@@ -899,24 +908,24 @@ function addPlazaSystemMessage(content) {
 function sendPlazaMessage() {
   const input = document.getElementById('plaza-message-input');
   if (!input) return;
-  
+
   const message = input.value.trim();
   if (!message) return;
-  
+
   if (!plazaState.isJoined) {
     alert('请先进入聊天广场');
     return;
   }
-  
+
   const now = new Date();
   const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-  
+
   // 添加自己的消息
   addPlazaMessage('我', message, time, true, true);
-  
+
   // 清空输入框
   input.value = '';
-  
+
   // 模拟其他用户回复（随机）
   if (Math.random() > 0.5) {
     setTimeout(() => {
@@ -932,5 +941,238 @@ function sendPlazaMessage() {
       const randomReply = replies[Math.floor(Math.random() * replies.length)];
       addPlazaMessage(randomUser.name, randomReply, time, false, true);
     }, 2000 + Math.random() * 3000);
+  }
+}
+
+// ==================== 圈子系统功能 ====================
+
+let circlesConfig = null;
+let currentCircleId = null;
+let joinedCircles = {};
+
+const CIRCLES_STORAGE_KEYS = {
+  joinedCircles: 'dragonfly_joined_circles_v1',
+  circleMessages: 'dragonfly_circle_messages_v1'
+};
+
+async function loadCirclesConfig() {
+  try {
+    const response = await fetch('/circles-config.json');
+    if (!response.ok) throw new Error('Failed to load circles config');
+    circlesConfig = await response.json();
+    initializeCircles();
+  } catch (error) {
+    console.error('Error loading circles config:', error);
+    circlesConfig = { circles: [], categories: [] };
+  }
+}
+
+function initializeCircles() {
+  joinedCircles = loadChatStorage(CIRCLES_STORAGE_KEYS.joinedCircles, {});
+  renderCircleCategories();
+  renderCirclesList();
+}
+
+function renderCircleCategories() {
+  const container = document.getElementById('circles-category-tabs');
+  if (!container || !circlesConfig) return;
+
+  container.innerHTML = '';
+
+  circlesConfig.categories.forEach(category => {
+    const tab = document.createElement('button');
+    tab.style.cssText = 'padding: 8px 16px; border: 1px solid #e0e0e0; border-radius: 20px; background: white; cursor: pointer; white-space: nowrap; font-size: 12px; transition: all 0.3s;';
+    tab.textContent = category.icon + ' ' + category.name;
+    tab.onclick = () => filterCirclesByCategory(category.id, tab);
+    container.appendChild(tab);
+  });
+
+  if (container.firstChild) {
+    container.firstChild.style.borderColor = '#3498db';
+    container.firstChild.style.backgroundColor = '#e8f4f8';
+    container.firstChild.style.color = '#3498db';
+  }
+}
+
+function filterCirclesByCategory(categoryId, tabElement) {
+  const tabs = document.querySelectorAll('#circles-category-tabs button');
+  tabs.forEach(tab => {
+    tab.style.borderColor = '#e0e0e0';
+    tab.style.backgroundColor = 'white';
+    tab.style.color = '';
+  });
+
+  tabElement.style.borderColor = '#3498db';
+  tabElement.style.backgroundColor = '#e8f4f8';
+  tabElement.style.color = '#3498db';
+
+  renderCirclesList(categoryId);
+}
+
+function renderCirclesList(categoryId = null) {
+  const container = document.getElementById('circles-list-container');
+  if (!container || !circlesConfig) return;
+
+  container.innerHTML = '';
+
+  let circles = circlesConfig.circles;
+  if (categoryId) {
+    circles = circles.filter(c => c.category === categoryId);
+  }
+
+  if (circles.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: #999;">暂无圈子</div>';
+    return;
+  }
+
+  circles.forEach(circle => {
+    const isJoined = joinedCircles[circle.id];
+    const card = document.createElement('div');
+    card.style.cssText = 'padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.3s; background: white;';
+    card.onmouseover = () => card.style.backgroundColor = '#f8f9fa';
+    card.onmouseout = () => card.style.backgroundColor = 'white';
+
+    card.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <span style="font-size: 24px;">${circle.icon}</span>
+        <div style="flex: 1;">
+          <div style="font-weight: bold; font-size: 14px; color: #2c3e50;">${circle.name}</div>
+          <div style="font-size: 12px; color: #666;">${circle.description}</div>
+        </div>
+        <button onclick="event.stopPropagation(); viewCircleDetail('${circle.id}')" style="padding: 6px 12px; background-color: ${isJoined ? '#95a5a6' : '#3498db'}; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${isJoined ? '已加入' : '进入'}</button>
+      </div>
+      <div style="font-size: 11px; color: #999; display: flex; gap: 8px; flex-wrap: wrap;">
+        ${circle.tags.map(tag => `<span style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">${tag}</span>`).join('')}
+      </div>
+    `;
+
+    card.onclick = () => viewCircleDetail(circle.id);
+    container.appendChild(card);
+  });
+}
+
+function viewCircleDetail(circleId) {
+  currentCircleId = circleId;
+  const circle = circlesConfig.circles.find(c => c.id === circleId);
+  if (!circle) return;
+
+  document.getElementById('circles-list-container').style.display = 'none';
+  document.getElementById('circles-category-tabs').style.display = 'none';
+  document.getElementById('circle-detail-view').style.display = 'block';
+
+  const isJoined = joinedCircles[circleId];
+  document.getElementById('circle-detail-icon').textContent = circle.icon;
+  document.getElementById('circle-detail-name').textContent = circle.name;
+  document.getElementById('circle-detail-desc').textContent = circle.description;
+  document.getElementById('circle-detail-stats').textContent = `最多容纳 ${circle.maxUsers} 人`;
+
+  const joinBtn = document.getElementById('circle-join-btn');
+  joinBtn.textContent = isJoined ? '退出圈子' : '加入圈子';
+  joinBtn.style.backgroundColor = isJoined ? '#e74c3c' : '#27ae60';
+
+  if (isJoined) {
+    document.getElementById('circle-chat-area').style.display = 'block';
+    document.getElementById('circle-input-area').style.display = 'block';
+    loadCircleMessages(circleId);
+  } else {
+    document.getElementById('circle-chat-area').style.display = 'none';
+    document.getElementById('circle-input-area').style.display = 'none';
+  }
+}
+
+function backToCirclesList() {
+  currentCircleId = null;
+  document.getElementById('circle-detail-view').style.display = 'none';
+  document.getElementById('circles-list-container').style.display = 'flex';
+  document.getElementById('circles-category-tabs').style.display = 'flex';
+}
+
+function toggleCircleJoin() {
+  if (!currentCircleId) return;
+
+  if (joinedCircles[currentCircleId]) {
+    leaveCircle(currentCircleId);
+  } else {
+    joinCircle(currentCircleId);
+  }
+}
+
+function joinCircle(circleId) {
+  joinedCircles[circleId] = true;
+  saveChatStorage(CIRCLES_STORAGE_KEYS.joinedCircles, joinedCircles);
+  viewCircleDetail(circleId);
+  showSystemNotification('蜻蜓chat', '已加入圈子');
+}
+
+function leaveCircle(circleId) {
+  delete joinedCircles[circleId];
+  saveChatStorage(CIRCLES_STORAGE_KEYS.joinedCircles, joinedCircles);
+  backToCirclesList();
+  showSystemNotification('蜻蜓chat', '已退出圈子');
+}
+
+function loadCircleMessages(circleId) {
+  const chatArea = document.getElementById('circle-chat-area');
+  if (!chatArea) return;
+
+  chatArea.innerHTML = '';
+  const messages = loadChatStorage(CIRCLES_STORAGE_KEYS.circleMessages, {})[circleId] || [];
+
+  messages.forEach(msg => {
+    addCircleMessage(msg.user, msg.content, msg.time, msg.isSelf, false);
+  });
+
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addCircleMessage(userName, content, time, isSelf = false, persist = true) {
+  const chatArea = document.getElementById('circle-chat-area');
+  if (!chatArea) return;
+
+  const messageDiv = document.createElement('div');
+  messageDiv.style.cssText = 'margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start;';
+
+  if (isSelf) {
+    messageDiv.style.flexDirection = 'row-reverse';
+  }
+
+  messageDiv.innerHTML = `
+    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">${userName[0]}</div>
+    <div style="max-width: 70%;">
+      <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${userName} ${time}</div>
+      <div style="background-color: ${isSelf ? '#3498db' : 'white'}; color: ${isSelf ? 'white' : '#333'}; padding: 8px 12px; border-radius: 12px; font-size: 13px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">${content}</div>
+    </div>
+  `;
+
+  chatArea.appendChild(messageDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  if (persist) {
+    const allMessages = loadChatStorage(CIRCLES_STORAGE_KEYS.circleMessages, {});
+    allMessages[currentCircleId] = allMessages[currentCircleId] || [];
+    allMessages[currentCircleId].push({ user: userName, content, time, isSelf });
+    saveChatStorage(CIRCLES_STORAGE_KEYS.circleMessages, allMessages);
+  }
+}
+
+function sendCircleMessage() {
+  const input = document.getElementById('circle-message-input');
+  if (!input || !currentCircleId) return;
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  const now = new Date();
+  const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+
+  addCircleMessage('我', message, time, true, true);
+  input.value = '';
+
+  if (Math.random() > 0.6) {
+    setTimeout(() => {
+      const users = ['张会计', '李财务', '王经理', '赵总监', '刘专员'];
+      const replies = ['说得对！', '同意', '谢谢分享', '学习了！', '有道理'];
+      addCircleMessage(users[Math.floor(Math.random() * users.length)], replies[Math.floor(Math.random() * replies.length)], time, false, true);
+    }, 1500 + Math.random() * 2000);
   }
 }

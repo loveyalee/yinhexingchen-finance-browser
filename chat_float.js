@@ -957,14 +957,150 @@ const CIRCLES_STORAGE_KEYS = {
 
 async function loadCirclesConfig() {
   try {
-    const response = await fetch('/circles-config.json');
+    let response = await fetch('/circles-config.json');
+    if (!response.ok) {
+      response = await fetch('./circles-config.json');
+    }
     if (!response.ok) throw new Error('Failed to load circles config');
     circlesConfig = await response.json();
     initializeCircles();
   } catch (error) {
     console.error('Error loading circles config:', error);
-    circlesConfig = { circles: [], categories: [] };
+    circlesConfig = getDefaultCirclesConfig();
+    initializeCircles();
   }
+}
+
+function getDefaultCirclesConfig() {
+  return {
+    "circles": [
+      {
+        "id": "industry-finance",
+        "name": "财务行业圈",
+        "icon": "💼",
+        "description": "财务人员专业交流",
+        "category": "industry",
+        "maxUsers": 500,
+        "tags": ["财务管理", "报表分析", "成本控制"]
+      },
+      {
+        "id": "industry-tax",
+        "name": "税务行业圈",
+        "icon": "📋",
+        "description": "税务专业人士交流",
+        "category": "industry",
+        "maxUsers": 300,
+        "tags": ["税务筹划", "政策解读", "申报指南"]
+      },
+      {
+        "id": "industry-audit",
+        "name": "审计行业圈",
+        "icon": "🔍",
+        "description": "审计人员专业交流",
+        "category": "industry",
+        "maxUsers": 200,
+        "tags": ["内部审计", "风险管理", "合规性"]
+      },
+      {
+        "id": "industry-investment",
+        "name": "投资融资圈",
+        "icon": "📈",
+        "description": "投融资专业人士交流",
+        "category": "industry",
+        "maxUsers": 250,
+        "tags": ["融资渠道", "投资策略", "风险评估"]
+      },
+      {
+        "id": "level-accountant",
+        "name": "会计职业圈",
+        "icon": "👤",
+        "description": "会计人员交流与成长",
+        "category": "level",
+        "maxUsers": 800,
+        "tags": ["记账技巧", "职业发展", "经验分享"]
+      },
+      {
+        "id": "level-manager",
+        "name": "财务经理圈",
+        "icon": "👔",
+        "description": "财务经理管理经验交流",
+        "category": "level",
+        "maxUsers": 400,
+        "tags": ["团队管理", "战略规划", "绩效管理"]
+      },
+      {
+        "id": "level-director",
+        "name": "财务总监圈",
+        "icon": "👨‍💼",
+        "description": "财务总监高管交流",
+        "category": "level",
+        "maxUsers": 150,
+        "tags": ["战略决策", "企业治理", "融资规划"]
+      },
+      {
+        "id": "level-cfo",
+        "name": "CFO圈",
+        "icon": "🏆",
+        "description": "首席财务官高端交流",
+        "category": "level",
+        "maxUsers": 100,
+        "tags": ["企业战略", "资本运作", "并购重组"]
+      },
+      {
+        "id": "hobby-learning",
+        "name": "学习交流圈",
+        "icon": "📚",
+        "description": "财务知识学习与分享",
+        "category": "hobby",
+        "maxUsers": 600,
+        "tags": ["新准则学习", "技能提升", "案例分析"]
+      },
+      {
+        "id": "hobby-job",
+        "name": "求职招聘圈",
+        "icon": "💼",
+        "description": "财务人才求职招聘",
+        "category": "hobby",
+        "maxUsers": 500,
+        "tags": ["职位发布", "简历投递", "面试经验"]
+      },
+      {
+        "id": "hobby-startup",
+        "name": "创业创新圈",
+        "icon": "🚀",
+        "description": "财务创业者交流",
+        "category": "hobby",
+        "maxUsers": 300,
+        "tags": ["创业融资", "商业模式", "风险管理"]
+      },
+      {
+        "id": "hobby-social",
+        "name": "生活社交圈",
+        "icon": "🎉",
+        "description": "财务人员生活交流",
+        "category": "hobby",
+        "maxUsers": 1000,
+        "tags": ["生活分享", "旅游美食", "兴趣爱好"]
+      }
+    ],
+    "categories": [
+      {
+        "id": "industry",
+        "name": "行业圈",
+        "icon": "🏢"
+      },
+      {
+        "id": "level",
+        "name": "职业等级圈",
+        "icon": "📊"
+      },
+      {
+        "id": "hobby",
+        "name": "兴趣爱好圈",
+        "icon": "⭐"
+      }
+    ]
+  };
 }
 
 function initializeCircles() {

@@ -11,10 +11,10 @@ function initXiaoyaService() {
   // 创建小雅客服HTML
   const xiaoyaHTML = `
     <!-- 悬浮客服助手 -->
-    <div class="customer-service" id="xiaoya-service" style="position: fixed; bottom: 120px; right: 30px; z-index: 9998;">
-      <div class="service-icon" id="service-icon" style="width: 60px; height: 60px; background-color: #3498db; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); transition: all 0.3s;">
-        <div class="icon" style="font-size: 24px; color: white;">💬</div>
-        <div class="name" style="font-size: 12px; color: white; margin-top: 2px;">小雅客服</div>
+    <div class="customer-service" id="xiaoya-service" style="position: fixed; bottom: auto; top: 80px; right: 12px; z-index: 9998;">
+      <div class="service-icon" id="service-icon" style="width: 50px; height: 50px; background-color: #3498db; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); transition: all 0.3s;">
+        <div class="icon" style="font-size: 20px; color: white;">💬</div>
+        <div class="name" style="font-size: 10px; color: white; margin-top: 1px;">客服</div>
       </div>
       <div class="service-panel" id="service-panel" style="position: absolute; bottom: 70px; right: 0; width: 300px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); display: none; flex-direction: column; overflow: hidden;">
         <div class="service-header" style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">

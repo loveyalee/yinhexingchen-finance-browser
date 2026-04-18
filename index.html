@@ -141,7 +141,7 @@
     
     .browser-bar input {
       flex: 1;
-      height: 40px;
+      height: 50px;
       padding: 0 15px;
       border: 1px solid rgba(26, 95, 168, 0.10);
       border-radius: 20px;
@@ -304,7 +304,507 @@
       font-weight: 600;
       color: #1a2d42;
     }
-  
+
+    /* 响应式设计 - 手机端优化 */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 16px 12px;
+        max-height: none;
+        background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
+      }
+
+      .logo {
+        font-size: 20px;
+        margin-bottom: 18px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .nav-menu {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        list-style: none;
+      }
+
+      .nav-item {
+        margin-bottom: 0;
+      }
+
+      .nav-item a {
+        padding: 12px 6px;
+        font-size: 12px;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: normal;
+        word-break: break-word;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .nav-item a:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .nav-item.has-submenu > a::after {
+        content: '▼';
+        font-size: 8px;
+        margin-left: 2px;
+      }
+
+      .submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 150px;
+        margin-left: 0;
+        margin-top: 5px;
+        display: none;
+        z-index: 1000;
+      }
+
+      .nav-item.has-submenu.active > .submenu {
+        display: block;
+      }
+
+      .header {
+        flex-direction: column;
+        height: auto;
+        gap: 12px;
+        padding: 14px 12px;
+        background: white;
+      }
+
+      .header h1 {
+        font-size: 18px;
+      }
+
+      .browser-bar {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .browser-bar input {
+        flex: 1;
+        font-size: 13px;
+        height: 48px;
+        padding: 0 12px;
+      }
+
+      .browser-controls {
+        gap: 6px;
+        margin-right: 0;
+        display: none;
+      }
+
+      .btn {
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+
+      .content-area {
+        padding: 16px 12px;
+        background: #f8f9fa;
+      }
+
+      .content-area h2 {
+        font-size: 20px !important;
+        margin-bottom: 8px !important;
+        color: #1a2d42;
+        font-weight: 700;
+      }
+
+      .content-area > p {
+        font-size: 13px !important;
+        color: #666;
+        margin-bottom: 20px !important;
+      }
+
+      .quick-features {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 16px;
+        margin-bottom: 16px;
+      }
+
+      .quick-feature-item {
+        padding: 18px 12px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+
+      .quick-feature-item:hover {
+        box-shadow: 0 4px 16px rgba(26, 95, 168, 0.12);
+        transform: translateY(-4px);
+      }
+
+      .quick-feature-item .feature-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+
+      .quick-feature-item .feature-name {
+        font-size: 13px;
+        color: #1a2d42;
+      }
+
+      #moreFeaturesBtn {
+        width: 100%;
+        margin: 16px 0;
+        padding: 12px !important;
+        font-size: 13px !important;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .card {
+        padding: 16px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+
+      .card h3 {
+        font-size: 15px;
+        margin-bottom: 12px;
+        color: #1a2d42;
+        font-weight: 700;
+      }
+
+      .feature-item {
+        padding: 12px;
+        border-left: 3px solid #1a65b8;
+        background: #f8fbff;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 10px;
+      }
+
+      .feature-item h4 {
+        font-size: 13px;
+        margin-bottom: 4px;
+        color: #1a2d42;
+      }
+
+      .feature-item p {
+        font-size: 12px !important;
+        color: #666;
+        line-height: 1.3;
+      }
+    }
+
+    @media (max-width: 480px) {
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-size: 14px;
+      }
+
+      .container {
+        height: auto;
+      }
+
+      .sidebar {
+        padding: 14px 12px;
+      }
+
+      .logo {
+        font-size: 18px;
+        margin-bottom: 16px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .nav-menu {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        list-style: none;
+      }
+
+      .nav-item {
+        margin-bottom: 0;
+      }
+
+      .nav-item a {
+        padding: 11px 6px;
+        font-size: 11px;
+        text-align: center;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: normal;
+        word-break: break-word;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        transition: all 0.3s ease;
+        font-weight: 500;
+        min-height: 42px;
+      }
+
+      .nav-item a:active {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(0.98);
+      }
+
+      .nav-item.has-submenu > a::after {
+        font-size: 8px;
+        margin-left: 2px;
+      }
+
+      .main-content {
+        min-height: auto;
+      }
+
+      .header {
+        gap: 10px;
+        padding: 12px;
+        border-bottom: none;
+      }
+
+      .header h1 {
+        font-size: 16px;
+        display: none;
+      }
+
+      .browser-bar {
+        width: 100%;
+        gap: 6px;
+        flex-direction: column;
+      }
+
+      .browser-controls {
+        gap: 6px;
+        display: none;
+      }
+
+      .browser-bar input {
+        width: 100%;
+        height: 46px;
+        padding: 0 12px;
+        font-size: 13px;
+        border: 1px solid #e0e0e0;
+      }
+
+      .btn {
+        padding: 9px 12px;
+        font-size: 12px;
+        width: 100%;
+      }
+
+      .content-area {
+        padding: 12px;
+        overflow-y: auto;
+        background: #f8f9fa;
+      }
+
+      .content-area h2 {
+        font-size: 18px !important;
+        margin-bottom: 6px !important;
+        color: #1a2d42;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .content-area > p {
+        font-size: 12px !important;
+        color: #999;
+        margin-bottom: 18px !important;
+        text-align: center;
+      }
+
+      .quick-features {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 0;
+        margin-bottom: 14px;
+      }
+
+      .quick-feature-item {
+        padding: 16px 10px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .quick-feature-item:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 8px rgba(26, 95, 168, 0.1);
+      }
+
+      .quick-feature-item .feature-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+
+      .quick-feature-item .feature-name {
+        font-size: 12px;
+        color: #1a2d42;
+        font-weight: 500;
+      }
+
+      #moreFeaturesBtn {
+        width: 100%;
+        margin: 12px 0 !important;
+        padding: 11px !important;
+        font-size: 12px !important;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 14px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .card h3 {
+        font-size: 14px;
+        margin-bottom: 11px;
+        color: #1a2d42;
+        font-weight: 700;
+      }
+
+      .feature-item {
+        padding: 10px;
+        border-left: 3px solid #1a65b8;
+        background: #f8fbff;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 8px;
+      }
+
+      .feature-item h4 {
+        font-size: 12px;
+        margin-bottom: 3px;
+        color: #1a2d42;
+        font-weight: 600;
+      }
+
+      .feature-item p {
+        font-size: 11px !important;
+        color: #666;
+        line-height: 1.3;
+      }
+
+      .news-item {
+        padding: 10px;
+      }
+
+      .news-title {
+        font-size: 12px;
+      }
+
+      .news-source {
+        font-size: 11px;
+      }
+
+      .news-time {
+        font-size: 10px;
+      }
+
+      #login-button {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+      }
+
+      #register-button {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+      }
+
+      /* 手机端浮窗优化 */
+      .chat-float {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 12px !important;
+        z-index: 9999 !important;
+      }
+
+      .chat-toggle {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 28px !important;
+        padding: 0 !important;
+      }
+
+      #xiaoya-service {
+        position: fixed !important;
+        top: 75px !important;
+        right: 12px !important;
+        bottom: auto !important;
+        z-index: 9998 !important;
+      }
+
+      .service-icon {
+        width: 48px !important;
+        height: 48px !important;
+      }
+
+      .service-icon .icon {
+        font-size: 18px !important;
+      }
+
+      .service-icon .name {
+        font-size: 9px !important;
+        margin-top: 1px !important;
+      }
+
+      /* 模态框优化 */
+      .modal {
+        z-index: 10000 !important;
+      }
+
+      .modal-content {
+        max-width: 85% !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+      }
+
+      .modal-content input,
+      .modal-content textarea {
+        width: 100% !important;
+        padding: 10px !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 4px !important;
+        font-size: 14px !important;
+        margin-bottom: 15px !important;
+      }
+    }
+
     /* ── 商务风格全局增强 ── */
     body { font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif; }
     .sidebar {
@@ -470,8 +970,9 @@
           <input type="text" placeholder="输入网址或搜索财务相关内容...">
           <button class="btn btn-primary">搜索</button>
         </div>
-        <div>
+        <div style="display: flex; gap: 10px;">
           <a href="login.html" class="btn btn-primary" id="login-button" style="display: inline-block; text-decoration: none; color: white; text-align: center; line-height: 1.5;">登录</a>
+          <a href="register.html" class="btn btn-primary" id="register-button" style="display: inline-block; text-decoration: none; color: white; text-align: center; line-height: 1.5; background-color: #27ae60;">注册</a>
         </div>
       </div>
       
@@ -1090,7 +1591,9 @@
     });
   </script>
 <!-- 引用蜻蜓聊天器 -->
+  <script>console.log('准备加载 chat_float.js');</script>
   <script src="chat_float.js"></script>
+  <script>console.log('chat_float.js 加载完成');</script>
   <!-- 引用小雅客服 -->
   <script src="xiaoya_service.js"></script>
   </body>

@@ -3986,11 +3986,11 @@ if (!data.id) {
 // 初始化数据库
 initMainDb();
 
-const PORT = process.env.PORT || 3003;
-server.listen(PORT, () => {
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n========================================`);
   console.log(`支付服务器已启动`);
-  console.log(`服务地址: http://localhost:${PORT}`);
+  console.log(`服务地址: http://0.0.0.0:${PORT}`);
   console.log(`========================================`);
   console.log(`API端点:`);
   console.log(`  POST /api/create_payment      - 创建支付订单`);

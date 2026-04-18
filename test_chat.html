@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>测试蜻蜓Chat</title>
+</head>
+<body>
+  <h1>测试蜻蜓Chat加载</h1>
+  <p>打开浏览器控制台查看日志</p>
+
+  <script>
+    console.log('=== 测试开始 ===');
+    console.log('当前时间:', new Date().toLocaleString());
+  </script>
+
+  <script src="chat_float.js"></script>
+
+  <script>
+    console.log('=== 测试结束 ===');
+    console.log('initChatFloat 函数是否存在:', typeof initChatFloat);
+    console.log('acAgents 对象是否存在:', typeof acAgents);
+  </script>
+</body>
+</html>

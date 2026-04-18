@@ -32,7 +32,7 @@ function initChatFloat() {
   const chatFloatHTML = `
     <!-- 悬浮聊天器 -->
     <div class="chat-float" style="display: block; position: fixed; bottom: 30px; right: 30px; z-index: 9999;">
-      <button class="chat-toggle" onclick="toggleChatPanel()" style="display: flex; width: 90px; height: 90px; background: none; border: none; font-size: 50px; cursor: pointer; transition: all 0.3s; align-items: flex-start; justify-content: center; padding-top: 5px;">
+      <button class="chat-toggle" onclick="toggleChatPanel()" style="display: block; width: 90px; height: 90px; background: none; border: none; font-size: 50px; cursor: pointer; transition: all 0.3s; display: flex; align-items: flex-start; justify-content: center; padding-top: 5px;">
         <style>
           @keyframes flap {
             0%, 100% {

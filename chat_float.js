@@ -69,33 +69,13 @@ function initChatFloat() {
             <button class="add-friend-btn" onclick="openAddFriendModal()" style="width: 100%; padding: 10px; background-color: #f0f0f0; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
               <span>➕</span> 添加好友
             </button>
-            <div class="chat-list" style="display: flex; flex-direction: column; gap: 10px;">
-              <div class="chat-item" onclick="openChat('李会计')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.3s;">
-                <div class="chat-item-avatar" style="width: 40px; height: 40px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">李</div>
-                <div class="chat-item-info" style="flex: 1;">
-                  <div class="chat-item-name" style="font-weight: bold; font-size: 14px; color: #2c3e50;">李会计</div>
-                  <div class="chat-item-preview" style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">增值税申报表已经提交</div>
-                </div>
-                <div class="chat-item-time" style="font-size: 12px; color: #999;">09:15</div>
-                <div class="chat-item-badge" style="background-color: #e74c3c; color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; min-width: 20px; text-align: center;">2</div>
-              </div>
-              <div class="chat-item" onclick="openChat('王总监')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.3s;">
-                <div class="chat-item-avatar" style="width: 40px; height: 40px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">王</div>
-                <div class="chat-item-info" style="flex: 1;">
-                  <div class="chat-item-name" style="font-weight: bold; font-size: 14px; color: #2c3e50;">王总监</div>
-                  <div class="chat-item-preview" style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">请尽快提供第一季度财务报表</div>
-                </div>
-                <div class="chat-item-time" style="font-size: 12px; color: #999;">昨天</div>
-              </div>
-              <div class="chat-item" onclick="openChat('张老师')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.3s;">
-                <div class="chat-item-avatar" style="width: 40px; height: 40px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">张</div>
-                <div class="chat-item-info" style="flex: 1;">
-                  <div class="chat-item-name" style="font-weight: bold; font-size: 14px; color: #2c3e50;">税务专家-张老师</div>
-                  <div class="chat-item-preview" style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">关于 tax planning 的方案已发送</div>
-                </div>
-                <div class="chat-item-time" style="font-size: 12px; color: #999;">昨天</div>
-                <div class="chat-item-badge" style="background-color: #e74c3c; color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; min-width: 20px; text-align: center;">1</div>
-              </div>
+            <div id="friends-list-container" class="chat-list" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- 好友将动态加载到这里 -->
+            </div>
+            <div id="friends-empty-tip" style="text-align: center; padding: 40px 20px; color: #999; display: none;">
+              <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+              <div style="font-size: 14px; margin-bottom: 10px;">还没有好友</div>
+              <div style="font-size: 12px;">登录后可以添加好友</div>
             </div>
           </div>
           <!-- 群组列表 -->
@@ -259,8 +239,28 @@ function initChatFloat() {
   
   // 绑定标签切换事件
   const bindChatFloatEvents = function() {
+    // 检查登录状态，控制好友列表显示
+    const checkLoginStatus = function() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+      const isLoggedIn = userInfo && (userInfo.isLoggedIn || userInfo.id);
+
+      const friendsListContainer = document.getElementById('friends-list-container');
+      const friendsEmptyTip = document.getElementById('friends-empty-tip');
+
+      if (isLoggedIn) {
+        // 已登录：显示好友列表
+        friendsListContainer.style.display = 'flex';
+        friendsEmptyTip.style.display = 'none';
+        hydrateAddedFriends();
+      } else {
+        // 未登录：显示空提示
+        friendsListContainer.style.display = 'none';
+        friendsEmptyTip.style.display = 'block';
+      }
+    };
+
+    checkLoginStatus();
     hydrateAiMessages();
-    hydrateAddedFriends();
     if (plazaState.isJoined) {
       setTimeout(() => {
         const plazaTab = document.getElementById('plaza-tab');

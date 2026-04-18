@@ -1,0 +1,32 @@
+{
+  "name": "Git Auto-Sync Daemon",
+  "description": "自动监视文件变更，实时同步到GitHub",
+  "version": "1.0.0",
+  "watch": {
+    "interval": 5000,
+    "patterns": ["**/*.html", "**/*.js", "**/*.json", "**/*.md", "**/*.css"],
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      ".vscode/**",
+      ".idea/**",
+      "build/**",
+      "dist/**",
+      "*.log",
+      ".env",
+      ".sync-watch.pid"
+    ]
+  },
+  "git": {
+    "branch": "master",
+    "remote": "origin",
+    "pushInterval": 30000,
+    "maxRetries": 3,
+    "pullInterval": 600000
+  },
+  "notifications": {
+    "enabled": true,
+    "console": true,
+    "interval": 120000
+  }
+}

@@ -52,7 +52,7 @@ function initChatFloat() {
         <span id="dqImg" style="filter: hue-rotate(90deg) brightness(1.5) saturate(0.8) contrast(0.7);">🦋</span>
         <div id="redDot" style="display:none;position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#f5222d;border-radius:50%"></div>
       </button>
-      <div class="chat-panel" id="chatPanel" style="display: none; position: absolute; bottom: 70px; right: 0; width: 350px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); flex-direction: column; overflow: hidden;">
+      <div class="chat-panel" id="chatPanel" style="display: none; position: absolute; bottom: 70px; right: 0; width: 350px; height: 500px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); flex-direction: column; overflow: hidden; display: flex;">
         <div class="chat-panel-header" style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
           <div class="chat-panel-title" style="font-weight: bold; font-size: 16px;">蜻蜓chat</div>
           <div class="chat-panel-close" onclick="closeChatPanel()" style="cursor: pointer; font-size: 18px;">&times;</div>
@@ -184,7 +184,7 @@ function initChatFloat() {
     </div>
     
     <!-- 聊天对话窗口 -->
-    <div class="chat-panel" id="chatConversation" style="display: none; position: fixed; bottom: 70px; right: 380px; width: 350px; height: 400px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); flex-direction: column; overflow: hidden; z-index: 9998;">
+    <div class="chat-panel" id="chatConversation" style="display: none; position: fixed; bottom: 70px; right: 380px; width: 350px; height: 450px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); flex-direction: column; overflow: hidden; z-index: 9998;">
       <div class="chat-panel-header" style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
         <div class="chat-panel-title" id="chatTitle" style="font-weight: bold; font-size: 16px;">李会计</div>
         <div class="chat-panel-close" onclick="closeChatConversation()" style="cursor: pointer; font-size: 18px;">&times;</div>

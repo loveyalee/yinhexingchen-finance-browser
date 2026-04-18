@@ -342,6 +342,9 @@ function initChatFloat() {
   } else {
     bindChatFloatEvents();
   }
+
+  // 预加载圈子配置
+  loadCirclesConfig();
 }
 
 // 切换聊天面板

@@ -80,6 +80,9 @@ function initChatFloat() {
           </div>
           <!-- 群组列表 -->
           <div id="groups-tab" class="chat-panel-tab-content" style="display: none;">
+            <button class="add-group-btn" onclick="openCreateGroupModal()" style="width: 100%; padding: 10px; background-color: #f0f0f0; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>➕</span> 创建或加入群组
+            </button>
             <div class="chat-list" style="display: flex; flex-direction: column; gap: 10px;">
               <div class="chat-item" onclick="openChat('财务团队群')" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.3s;">
                 <div class="chat-item-avatar" style="width: 40px; height: 40px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">群</div>
@@ -235,6 +238,58 @@ function initChatFloat() {
         <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
           <button class="btn btn-secondary" onclick="closeModal('addFriendModal')" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #95a5a6; color: white;">取消</button>
           <button class="btn btn-primary" onclick="submitAddFriendRequest()" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #3498db; color: white;">发送请求</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建群组模态框 -->
+    <div class="modal" id="createGroupModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+      <div class="modal-content" style="background-color: white; border-radius: 8px; padding: 20px; width: 400px; max-width: 90%;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div class="modal-title" style="font-size: 18px; font-weight: bold; color: #2c3e50;">创建群组</div>
+          <div class="modal-close" onclick="closeModal('createGroupModal')" style="cursor: pointer; font-size: 20px; color: #999;">&times;</div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">群组名称</label>
+          <input type="text" id="groupName" placeholder="输入群组名称" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">群组描述</label>
+          <textarea id="groupDesc" placeholder="输入群组描述（可选）" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; min-height: 60px;"></textarea>
+        </div>
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="closeModal('createGroupModal')" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #95a5a6; color: white;">取消</button>
+          <button class="btn btn-primary" onclick="submitCreateGroup()" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #3498db; color: white;">创建</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建圈子模态框 -->
+    <div class="modal" id="createCircleModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+      <div class="modal-content" style="background-color: white; border-radius: 8px; padding: 20px; width: 400px; max-width: 90%;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div class="modal-title" style="font-size: 18px; font-weight: bold; color: #2c3e50;">创建圈子</div>
+          <div class="modal-close" onclick="closeModal('createCircleModal')" style="cursor: pointer; font-size: 20px; color: #999;">&times;</div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">圈子名称</label>
+          <input type="text" id="circleName" placeholder="输入圈子名称" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">分类</label>
+          <select id="circleCategory" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px;">
+            <option value="industry">行业圈</option>
+            <option value="level">职业等级圈</option>
+            <option value="hobby">兴趣爱好圈</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">圈子描述</label>
+          <textarea id="circleDesc" placeholder="输入圈子描述（可选）" style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; min-height: 60px;"></textarea>
+        </div>
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="closeModal('createCircleModal')" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #95a5a6; color: white;">取消</button>
+          <button class="btn btn-primary" onclick="submitCreateCircle()" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; background-color: #3498db; color: white;">创建</button>
         </div>
       </div>
     </div>
@@ -1322,4 +1377,137 @@ function sendCircleMessage() {
       addCircleMessage(users[Math.floor(Math.random() * users.length)], replies[Math.floor(Math.random() * replies.length)], time, false, true);
     }, 1500 + Math.random() * 2000);
   }
+}
+
+// ==================== 创建群组和圈子功能 ====================
+
+function openCreateGroupModal() {
+  openModal('createGroupModal');
+}
+
+function submitCreateGroup() {
+  const nameInput = document.getElementById('groupName');
+  const descInput = document.getElementById('groupDesc');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const description = descInput ? descInput.value.trim() : '';
+
+  if (!name) {
+    alert('请输入群组名称');
+    return;
+  }
+
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userId = userInfo.id || 'user_' + Date.now();
+
+  const groupData = {
+    name,
+    description,
+    creator_id: userId,
+    creator_name: userInfo.name || '创建者',
+    icon: '👥'
+  };
+
+  fetch('/api/dragonfly/groups', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(groupData)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showSystemNotification('蜻蜓chat', '群组创建成功！');
+      closeModal('createGroupModal');
+      if (nameInput) nameInput.value = '';
+      if (descInput) descInput.value = '';
+      loadGroupsList();
+    } else {
+      alert('创建失败: ' + data.message);
+    }
+  })
+  .catch(err => {
+    console.error('创建群组失败:', err);
+    alert('创建群组失败，请稍后重试');
+  });
+}
+
+function openCreateCircleModal() {
+  openModal('createCircleModal');
+}
+
+function submitCreateCircle() {
+  const nameInput = document.getElementById('circleName');
+  const categorySelect = document.getElementById('circleCategory');
+  const descInput = document.getElementById('circleDesc');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const category = categorySelect ? categorySelect.value : 'hobby';
+  const description = descInput ? descInput.value.trim() : '';
+
+  if (!name) {
+    alert('请输入圈子名称');
+    return;
+  }
+
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userId = userInfo.id || 'user_' + Date.now();
+
+  const circleData = {
+    name,
+    category,
+    description,
+    creator_id: userId,
+    creator_name: userInfo.name || '创建者',
+    icon: '⭐',
+    tags: [category]
+  };
+
+  fetch('/api/dragonfly/circles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(circleData)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showSystemNotification('蜻蜓chat', '圈子创建成功！');
+      closeModal('createCircleModal');
+      if (nameInput) nameInput.value = '';
+      if (descInput) descInput.value = '';
+      loadCirclesConfig();
+    } else {
+      alert('创建失败: ' + data.message);
+    }
+  })
+  .catch(err => {
+    console.error('创建圈子失败:', err);
+    alert('创建圈子失败，请稍后重试');
+  });
+}
+
+function loadGroupsList() {
+  fetch('/api/dragonfly/groups')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.data) {
+        const groupsList = document.querySelector('#groups-tab .chat-list');
+        if (groupsList) {
+          groupsList.innerHTML = '';
+          data.data.forEach(group => {
+            const item = document.createElement('div');
+            item.className = 'chat-item';
+            item.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px;border-radius:6px;cursor:pointer;transition:background-color 0.3s;';
+            item.innerHTML = `
+              <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">群</div>
+              <div style="flex: 1;">
+                <div style="font-weight: bold; font-size: 14px; color: #2c3e50;">${escapeHtml(group.name)}</div>
+                <div style="font-size: 12px; color: #666;">${escapeHtml(group.description || '暂无描述')}</div>
+              </div>
+              <div style="font-size: 12px; color: #999;">${group.member_count}人</div>
+            `;
+            item.onclick = () => openChat(group.name);
+            groupsList.appendChild(item);
+          });
+        }
+      }
+    })
+    .catch(err => console.error('加载群组列表失败:', err));
 }

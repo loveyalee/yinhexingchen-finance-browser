@@ -1065,14 +1065,16 @@
           <div class="section-header">
             <h3>送货单管理</h3>
             <div style="display:flex;gap:10px;">
+              <button type="button" class="btn btn-sm btn-secondary" onclick="toggleSelectAllDeliveryNotes()">全选/取消全选</button>
+              <button type="button" class="btn btn-sm btn-danger" onclick="batchDeleteDeliveryNotes()">批量删除</button>
               <button type="button" class="btn btn-primary" onclick="openDeliveryNoteModal()">新增送货单</button>
-              <button type="button" class="btn btn-success" onclick="exportDeliveryNotesToWord()">导出Word</button>
             </div>
           </div>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
+                  <th><input type="checkbox" id="select-all-delivery-notes" onclick="toggleSelectAllDeliveryNotes()"></th>
                   <th>送货单号</th>
                   <th>客户名称</th>
                   <th>商品明细</th>
@@ -1085,24 +1087,7 @@
               </thead>
               <tbody id="delivery-note-tbody">
                 <tr>
-                  <td class="delivery-note-no" onclick="editDeliveryNote(0)">SHD20260414001</td>
-                  <td>湖南博润科技有限公司</td>
-                  <td>财务软件专业版 ×3, 财务模板包 ×5</td>
-                  <td>2026-04-14</td>
-                  <td>周经理</td>
-                  <td><span class="status-badge status-delivered">已送达</span></td>
-                  <td>¥9,992</td>
-                  <td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(0)">删除</button></td>
-                </tr>
-                <tr>
-                  <td class="delivery-note-no" onclick="editDeliveryNote(1)">SHD20260413002</td>
-                  <td>长沙天衡咨询服务有限公司</td>
-                  <td>代理记账服务 ×12</td>
-                  <td>2026-04-13</td>
-                  <td>刘会计</td>
-                  <td><span class="status-badge status-pending">待送达</span></td>
-                  <td>¥6,000</td>
-                  <td><button class="btn btn-danger btn-sm" onclick="deleteDeliveryNote(1)">删除</button></td>
+                  <td colspan="9" class="empty-text">加载中...</td>
                 </tr>
               </tbody>
             </table>
@@ -1918,6 +1903,7 @@
           var total = calcNoteTotal(note.items);
           console.log('Rendering delivery note:', note);
           return '<tr>' +
+            '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + index + '" data-id="' + (note.id || '') + '"></td>' +
             '<td class="delivery-note-no" onclick="editDeliveryNote(' + index + ')">' + note.no + '</td>' +
             '<td>' + note.customer + '</td>' +
             '<td>' + renderProductTags(note.items) + '</td>' +
@@ -1927,6 +1913,7 @@
             '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
             '<td>' +
               '<div class="action-buttons">' +
+                '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button>' +
                 '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + index + ')">复制</button>' +
                 '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNote(' + index + ')">删除</button>' +
               '</div>' +
@@ -1939,7 +1926,7 @@
         console.log('delivery-note-tbody innerHTML:', tbody.innerHTML);
       } else {
         console.log('No delivery notes found, showing empty state');
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-text">暂无送货单数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-text">暂无送货单数据</td></tr>';
       }
     }
 
@@ -1951,6 +1938,237 @@
       var suffix = String(Date.now()).slice(-3);
       return 'SHD' + y + m + d + suffix;
     }
+
+    // 全选/取消全选送货单
+    window.toggleSelectAllDeliveryNotes = function() {
+      var selectAllCheckbox = document.getElementById('select-all-delivery-notes');
+      var checkboxes = document.querySelectorAll('.delivery-note-checkbox');
+      var allChecked = true;
+      checkboxes.forEach(function(checkbox) {
+        if (!checkbox.checked) {
+          allChecked = false;
+        }
+      });
+      var newChecked = !allChecked;
+      selectAllCheckbox.checked = newChecked;
+      checkboxes.forEach(function(checkbox) {
+        checkbox.checked = newChecked;
+      });
+    };
+
+    // 批量删除送货单
+    window.batchDeleteDeliveryNotes = async function() {
+      var checkboxes = document.querySelectorAll('.delivery-note-checkbox:checked');
+      if (checkboxes.length === 0) {
+        alert('请先选择要删除的送货单');
+        return;
+      }
+
+      if (!confirm('确定要删除选中的 ' + checkboxes.length + ' 条送货单吗？')) return;
+
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+      if (isLoggedIn) {
+        var deletePromises = [];
+        checkboxes.forEach(function(checkbox) {
+          var noteId = checkbox.getAttribute('data-id');
+          if (noteId) {
+            deletePromises.push(apiDeleteDeliveryNote(noteId));
+          }
+        });
+
+        if (deletePromises.length === 0) {
+          alert('没有找到有效的送货单ID，请刷新页面重试');
+          return;
+        }
+
+        try {
+          var results = await Promise.all(deletePromises);
+          deliveryNotesLoaded = false;
+          await getDeliveryNotesAsync();
+          renderDeliveryNotes();
+          alert('已删除 ' + deletePromises.length + ' 条送货单');
+        } catch (e) {
+          console.error('批量删除失败:', e);
+          alert('删除失败，请重试');
+        }
+      } else {
+        var notes = getDeliveryNotes();
+        var indicesToDelete = [];
+        checkboxes.forEach(function(checkbox) {
+          indicesToDelete.push(parseInt(checkbox.getAttribute('data-index')));
+        });
+        indicesToDelete.sort(function(a, b) { return b - a; });
+
+        indicesToDelete.forEach(function(index) {
+          notes.splice(index, 1);
+        });
+
+        saveDeliveryNotes(notes);
+        renderDeliveryNotes();
+        alert('已删除 ' + checkboxes.length + ' 条送货单');
+      }
+    };
+
+    // 导出单个送货单为Word
+    window.exportSingleDeliveryNote = function(index) {
+      var notes = getDeliveryNotes();
+      var note = notes[index];
+      if (!note) {
+        alert('送货单不存在');
+        return;
+      }
+
+      var totalAmount = note.items.reduce(function(sum, item) {
+        return sum + (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+      }, 0);
+
+      var docContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>送货单 - ${note.no}</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #333;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #333;
+    }
+    .info-section {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .info-section .info {
+      font-size: 14px;
+    }
+    .info-section .info p {
+      margin: 5px 0;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .items-table th,
+    .items-table td {
+      border: 1px solid #333;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    .items-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    .items-table .product-name {
+      text-align: left;
+    }
+    .total-section {
+      text-align: right;
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .total-section .amount {
+      color: #e74c3c;
+    }
+    .footer {
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .signature-box {
+      width: 150px;
+      text-align: center;
+    }
+    .signature-box .line {
+      border-top: 1px solid #333;
+      margin-top: 40px;
+      padding-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>送 货 单</h1>
+  </div>
+
+  <div class="info-section">
+    <div class="info">
+      <p><strong>送货单号：</strong>${note.no}</p>
+      <p><strong>客户名称：</strong>${note.customer}</p>
+      <p><strong>联系人：</strong>${note.contact || '-'}</p>
+      ${note.contactPhone ? `<p><strong>联系电话：</strong>${note.contactPhone}</p>` : ''}
+    </div>
+    <div class="info">
+      <p><strong>送货日期：</strong>${note.date}</p>
+      <p><strong>送货地址：</strong>${note.address || '-'}</p>
+      <p><strong>状态：</strong>${note.status}</p>
+    </div>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th style="width: 40px;">序号</th>
+        <th>商品名称</th>
+        <th style="width: 60px;">数量</th>
+        <th style="width: 80px;">单价</th>
+        <th style="width: 80px;">小计</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${note.items.map(function(item, itemIndex) {
+        var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+        return '<tr>' +
+          '<td>' + (itemIndex + 1) + '</td>' +
+          '<td class="product-name">' + (item.product || item.name || '') + '</td>' +
+          '<td>' + (item.quantity || 0) + '</td>' +
+          '<td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td>' +
+          '<td>¥' + subtotal.toFixed(2) + '</td>' +
+        '</tr>';
+      }).join('')}
+    </tbody>
+  </table>
+
+  <div class="total-section">
+    合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span>
+  </div>
+
+  ${note.remark ? '<div style="margin-top: 15px;"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+
+  <div class="footer">
+    <div class="signature-box">
+      <div class="line">收货人签字</div>
+    </div>
+    <div class="signature-box">
+      <div class="line">送货人签字</div>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+
+      var blob = new Blob([docContent], { type: 'application/msword' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = '送货单_' + note.no + '.doc';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
     // ==================== 送货单多行商品管理 ====================
 

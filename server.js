@@ -4309,7 +4309,7 @@ if (!data.id) {
 // 初始化数据库
 initMainDb();
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5098;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n========================================`);
   console.log(`支付服务器已启动`);

@@ -2063,10 +2063,16 @@
     <thead>
       <tr>
         <th style="width: 40px;">序号</th>
-        <th>商品名称</th>
-        <th style="width: 60px;">数量</th>
-        <th style="width: 80px;">单价</th>
-        <th style="width: 80px;">小计</th>
+        <th style="width: 90px;">商品名称</th>
+        <th style="width: 50px;">型号</th>
+        <th style="width: 40px;">长度</th>
+        <th style="width: 40px;">瓦数</th>
+        <th style="width: 60px;">单/双亮</th>
+        <th style="width: 60px;">感应</th>
+        <th style="width: 40px;">数量</th>
+        <th style="width: 40px;">单位</th>
+        <th style="width: 70px;">单价</th>
+        <th style="width: 70px;">小计</th>
       </tr>
     </thead>
     <tbody>
@@ -2075,7 +2081,13 @@
         return '<tr>' +
           '<td>' + (itemIndex + 1) + '</td>' +
           '<td class="product-name">' + (item.product || item.name || '') + '</td>' +
+          '<td>' + (item.model || '-') + '</td>' +
+          '<td>' + (item.length || '-') + '</td>' +
+          '<td>' + (item.wattage || '-') + '</td>' +
+          '<td>' + (item.brightness || '-') + '</td>' +
+          '<td>' + (item.sensor || '-') + '</td>' +
           '<td>' + (item.quantity || 0) + '</td>' +
+          '<td>' + (item.unit || '-') + '</td>' +
           '<td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td>' +
           '<td>¥' + subtotal.toFixed(2) + '</td>' +
         '</tr>';

@@ -695,20 +695,33 @@ window.exportSingleDeliveryNote = function(index) {
   <meta charset="UTF-8">
   <title>送货单 - ${note.no || ''}</title>
   <style>
-    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 20px; line-height: 1.6; }
-    .header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #333; }
-    .header h1 { font-size: 24px; color: #333; }
-    .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
-    .info-section .info { font-size: 14px; }
-    .info-section .info p { margin: 5px 0; }
-    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 6px 8px; text-align: center; font-size: 12px; }
+    @page { size: A4; margin: 15mm; }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; line-height: 1.5; font-size: 12px; }
+    .header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+    .header h1 { font-size: 20px; color: #333; margin: 0; }
+    .info-section { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .info-section .info { font-size: 12px; }
+    .info-section .info p { margin: 3px 0; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 15px 0; table-layout: fixed; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 4px 3px; text-align: center; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .total-section { text-align: right; margin-top: 15px; font-size: 16px; font-weight: 600; }
+    .items-table .col-no { width: 25px; }
+    .items-table .col-name { width: 80px; }
+    .items-table .col-model { width: 45px; }
+    .items-table .col-length { width: 35px; }
+    .items-table .col-wattage { width: 35px; }
+    .items-table .col-brightness { width: 45px; }
+    .items-table .col-sensor { width: 55px; }
+    .items-table .col-qty { width: 30px; }
+    .items-table .col-unit { width: 30px; }
+    .items-table .col-price { width: 50px; }
+    .items-table .col-subtotal { width: 55px; }
+    .total-section { text-align: right; margin-top: 10px; font-size: 14px; font-weight: 600; }
     .total-section .amount { color: #e74c3c; }
-    .footer { margin-top: 40px; display: flex; justify-content: space-between; }
-    .signature-box { width: 150px; text-align: center; }
-    .signature-box .line { border-top: 1px solid #333; margin-top: 40px; padding-top: 5px; }
+    .remark-section { margin-top: 10px; font-size: 11px; }
+    .footer { margin-top: 30px; display: flex; justify-content: space-between; }
+    .signature-box { width: 120px; text-align: center; font-size: 11px; }
+    .signature-box .line { border-top: 1px solid #333; margin-top: 30px; padding-top: 3px; }
   </style>
 </head>
 <body>
@@ -729,17 +742,17 @@ window.exportSingleDeliveryNote = function(index) {
   <table class="items-table">
     <thead>
       <tr>
-        <th style="width: 30px;">序号</th>
-        <th>商品名称</th>
-        <th style="width: 50px;">型号</th>
-        <th style="width: 40px;">长度</th>
-        <th style="width: 40px;">瓦数</th>
-        <th style="width: 50px;">单/双亮</th>
-        <th style="width: 60px;">感应模式</th>
-        <th style="width: 40px;">数量</th>
-        <th style="width: 40px;">单位</th>
-        <th style="width: 60px;">单价</th>
-        <th style="width: 60px;">小计</th>
+        <th class="col-no">序号</th>
+        <th class="col-name">商品名称</th>
+        <th class="col-model">型号</th>
+        <th class="col-length">长度</th>
+        <th class="col-wattage">瓦数</th>
+        <th class="col-brightness">单/双亮</th>
+        <th class="col-sensor">感应模式</th>
+        <th class="col-qty">数量</th>
+        <th class="col-unit">单位</th>
+        <th class="col-price">单价</th>
+        <th class="col-subtotal">小计</th>
       </tr>
     </thead>
     <tbody>
@@ -750,7 +763,7 @@ window.exportSingleDeliveryNote = function(index) {
     </tbody>
   </table>
   <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
-  ${note.remark ? '<div style="margin-top: 15px;"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+  ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
   <div class="footer">
     <div class="signature-box"><div class="line">收货人签字</div></div>
     <div class="signature-box"><div class="line">送货人签字</div></div>
@@ -787,23 +800,36 @@ window.printDeliveryNote = function(index) {
   <title>送货单 - ${note.no || ''}</title>
   <style>
     @media print {
+      @page { size: A4; margin: 15mm; }
       body { margin: 0; }
       .no-print { display: none; }
     }
-    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 20px; line-height: 1.6; }
-    .header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #333; }
-    .header h1 { font-size: 24px; color: #333; margin: 0; }
-    .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
-    .info-section .info { font-size: 14px; }
-    .info-section .info p { margin: 5px 0; }
-    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 6px 8px; text-align: center; font-size: 12px; }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 10px; line-height: 1.5; font-size: 12px; }
+    .header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+    .header h1 { font-size: 20px; color: #333; margin: 0; }
+    .info-section { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .info-section .info { font-size: 12px; }
+    .info-section .info p { margin: 3px 0; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 15px 0; table-layout: fixed; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 4px 3px; text-align: center; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .total-section { text-align: right; margin-top: 15px; font-size: 16px; font-weight: 600; }
+    .items-table .col-no { width: 25px; }
+    .items-table .col-name { width: 80px; }
+    .items-table .col-model { width: 45px; }
+    .items-table .col-length { width: 35px; }
+    .items-table .col-wattage { width: 35px; }
+    .items-table .col-brightness { width: 45px; }
+    .items-table .col-sensor { width: 55px; }
+    .items-table .col-qty { width: 30px; }
+    .items-table .col-unit { width: 30px; }
+    .items-table .col-price { width: 50px; }
+    .items-table .col-subtotal { width: 55px; }
+    .total-section { text-align: right; margin-top: 10px; font-size: 14px; font-weight: 600; }
     .total-section .amount { color: #e74c3c; }
-    .footer { margin-top: 40px; display: flex; justify-content: space-between; }
-    .signature-box { width: 150px; text-align: center; }
-    .signature-box .line { border-top: 1px solid #333; margin-top: 40px; padding-top: 5px; }
+    .remark-section { margin-top: 10px; font-size: 11px; }
+    .footer { margin-top: 30px; display: flex; justify-content: space-between; }
+    .signature-box { width: 120px; text-align: center; font-size: 11px; }
+    .signature-box .line { border-top: 1px solid #333; margin-top: 30px; padding-top: 3px; }
     .print-btn { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #1a65b8; color: white; border: none; border-radius: 4px; cursor: pointer; }
   </style>
 </head>
@@ -826,17 +852,17 @@ window.printDeliveryNote = function(index) {
   <table class="items-table">
     <thead>
       <tr>
-        <th style="width: 30px;">序号</th>
-        <th>商品名称</th>
-        <th style="width: 50px;">型号</th>
-        <th style="width: 40px;">长度</th>
-        <th style="width: 40px;">瓦数</th>
-        <th style="width: 50px;">单/双亮</th>
-        <th style="width: 60px;">感应模式</th>
-        <th style="width: 40px;">数量</th>
-        <th style="width: 40px;">单位</th>
-        <th style="width: 60px;">单价</th>
-        <th style="width: 60px;">小计</th>
+        <th class="col-no">序号</th>
+        <th class="col-name">商品名称</th>
+        <th class="col-model">型号</th>
+        <th class="col-length">长度</th>
+        <th class="col-wattage">瓦数</th>
+        <th class="col-brightness">单/双亮</th>
+        <th class="col-sensor">感应模式</th>
+        <th class="col-qty">数量</th>
+        <th class="col-unit">单位</th>
+        <th class="col-price">单价</th>
+        <th class="col-subtotal">小计</th>
       </tr>
     </thead>
     <tbody>
@@ -847,11 +873,14 @@ window.printDeliveryNote = function(index) {
     </tbody>
   </table>
   <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
-  ${note.remark ? '<div style="margin-top: 15px;"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+  ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
   <div class="footer">
     <div class="signature-box"><div class="line">收货人签字</div></div>
     <div class="signature-box"><div class="line">送货人签字</div></div>
   </div>
+</body>
+</html>
+  `;
 </body>
 </html>
   `;

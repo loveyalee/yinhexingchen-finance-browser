@@ -71,12 +71,12 @@ async function initMySQL() {
     return false;
   }
 
-  const mysqlConfig = {
-    host: process.env.MYSQL_HOST,
-    port: parseInt(process.env.MYSQL_PORT || '3306'),
-    database: process.env.MYSQL_DATABASE,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
+    const mysqlConfig = {
+    host: 'rm-bp1t731ujc98jo9c10o.mysql.rds.aliyuncs.com',
+    port: 3306,
+    database: 'rds_dingding',
+    user: 'ram_dingding',
+    password: 'h5J5BVEXtrjKVDSxmS4w',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -3700,6 +3700,54 @@ if (!data.id) {
   // 获取送货单列表：GET /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'GET') {
     const userId = parsedUrl.query.userId;
+
+    // 优先从MySQL获取
+    if (mysqlPool) {
+      try {
+        const [orders] = await mysqlPool.execute(
+          'SELECT * FROM delivery_orders WHERE user_id = ? ORDER BY create_time DESC',
+          [userId || '']
+        );
+
+        const data = [];
+        for (const order of orders) {
+          // 获取该送货单的商品明细
+          const [items] = await mysqlPool.execute(
+            'SELECT product_name, quantity, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
+            [order.id]
+          );
+
+          data.push({
+            id: order.id,
+            no: order.order_no,
+            customer: order.customer_name,
+            contact: order.contact_name || '',
+            contact_phone: order.customer_phone || '',
+            date: order.delivery_date.toISOString().split('T')[0],
+            status: order.status === 'pending' ? '待送达' : '已送达',
+            address: order.customer_address || '',
+            remark: order.remark || '',
+            items: items.map(item => ({
+              product: item.product_name,
+              quantity: item.quantity,
+              price: item.unit_price
+            })),
+            user_id: order.user_id,
+            create_time: order.create_time,
+            update_time: order.update_time
+          });
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: data }));
+        return;
+      } catch (e) {
+        console.error('MySQL获取送货单失败:', e.message);
+      }
+    }
+
+    // 回退到SQLite
     if (!usersDb) {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3719,8 +3767,7 @@ if (!data.id) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, message: '获取送货单列表失败: ' + e.message }));
-    }
-  // 添加送货单：POST /api/delivery-notes
+    }  // 添加送货单：POST /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });

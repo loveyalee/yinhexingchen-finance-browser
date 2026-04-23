@@ -13,7 +13,8 @@
       // 更新"我的会员"菜单标题
       const memberMenuLinks = document.querySelectorAll('.nav-item.has-submenu > a');
       memberMenuLinks.forEach(function(link) {
-        if (link.textContent.includes('我的会员') || link.textContent.includes('企业会员') || link.textContent.includes('机构会员') || link.textContent.includes('管理中心') || link.textContent.includes('管理')) {
+        // 只针对"我的会员"相关的菜单，不影响"企业管理"等其他菜单
+        if (link.textContent.includes('我的会员') || link.textContent.includes('企业会员') || link.textContent.includes('机构会员')) {
           if (userType === 'enterprise') {
             link.textContent = '管理中心';
           } else if (userType === 'institution') {

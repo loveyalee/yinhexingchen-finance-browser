@@ -214,7 +214,7 @@ window.openEditDeliveryNoteModal = function(index) {
 
   if (note.items && note.items.length > 0) {
     note.items.forEach(function(item) {
-      addDeliveryItemRow(item.product || item.name, item.quantity, item.price);
+      addDeliveryItemRow(item);
     });
   } else {
     addDeliveryItemRow();
@@ -230,7 +230,7 @@ window.closeDeliveryNoteModal = function() {
 };
 
 // 添加商品行
-window.addDeliveryItemRow = function(name, quantity, price) {
+window.addDeliveryItemRow = function(item) {
   var tbody = document.getElementById('delivery-items-tbody');
   if (!tbody) return;
 
@@ -251,9 +251,57 @@ window.addDeliveryItemRow = function(name, quantity, price) {
   nameInput.type = 'text';
   nameInput.className = 'item-name';
   nameInput.placeholder = '商品名称';
-  nameInput.value = name || '';
+  nameInput.value = item ? (item.product || item.name || '') : '';
   nameTd.appendChild(nameInput);
   tr.appendChild(nameTd);
+
+  // 型号
+  var modelTd = document.createElement('td');
+  var modelInput = document.createElement('input');
+  modelInput.type = 'text';
+  modelInput.className = 'item-model';
+  modelInput.placeholder = '型号';
+  modelInput.value = item ? (item.model || '') : '';
+  modelTd.appendChild(modelInput);
+  tr.appendChild(modelTd);
+
+  // 长度
+  var lengthTd = document.createElement('td');
+  var lengthInput = document.createElement('input');
+  lengthInput.type = 'text';
+  lengthInput.className = 'item-length';
+  lengthInput.placeholder = '长度';
+  lengthInput.value = item ? (item.length || '') : '';
+  lengthTd.appendChild(lengthInput);
+  tr.appendChild(lengthTd);
+
+  // 瓦数
+  var wattageTd = document.createElement('td');
+  var wattageInput = document.createElement('input');
+  wattageInput.type = 'text';
+  wattageInput.className = 'item-wattage';
+  wattageInput.placeholder = '瓦数';
+  wattageInput.value = item ? (item.wattage || '') : '';
+  wattageTd.appendChild(wattageInput);
+  tr.appendChild(wattageTd);
+
+  // 单/双亮
+  var brightnessTd = document.createElement('td');
+  var brightnessSelect = document.createElement('select');
+  brightnessSelect.className = 'item-brightness';
+  brightnessSelect.innerHTML = '<option value="">选择</option><option value="单亮">单亮</option><option value="双亮">双亮</option>';
+  brightnessSelect.value = item ? (item.brightness || '') : '';
+  brightnessTd.appendChild(brightnessSelect);
+  tr.appendChild(brightnessTd);
+
+  // 感应模式
+  var sensorTd = document.createElement('td');
+  var sensorSelect = document.createElement('select');
+  sensorSelect.className = 'item-sensor';
+  sensorSelect.innerHTML = '<option value="">选择</option><option value="微波感应">微波感应</option><option value="红外感应">红外感应</option><option value="雷达感应">雷达感应</option><option value="无感应">无感应</option>';
+  sensorSelect.value = item ? (item.sensorMode || item.sensor || '') : '';
+  sensorTd.appendChild(sensorSelect);
+  tr.appendChild(sensorTd);
 
   // 数量
   var qtyTd = document.createElement('td');
@@ -262,13 +310,22 @@ window.addDeliveryItemRow = function(name, quantity, price) {
   qtyInput.className = 'item-quantity';
   qtyInput.placeholder = '数量';
   qtyInput.min = '1';
-  qtyInput.value = quantity || 1;
+  qtyInput.value = item ? (item.quantity || 1) : 1;
   qtyInput.addEventListener('input', function() {
     updateRowSubtotal(tr);
     updateDeliveryTotal();
   });
   qtyTd.appendChild(qtyInput);
   tr.appendChild(qtyTd);
+
+  // 单位
+  var unitTd = document.createElement('td');
+  var unitSelect = document.createElement('select');
+  unitSelect.className = 'item-unit';
+  unitSelect.innerHTML = '<option value="个">个</option><option value="件">件</option><option value="套">套</option><option value="米">米</option><option value="根">根</option><option value="台">台</option><option value="箱">箱</option>';
+  unitSelect.value = item ? (item.unit || '个') : '个';
+  unitTd.appendChild(unitSelect);
+  tr.appendChild(unitTd);
 
   // 单价
   var priceTd = document.createElement('td');
@@ -278,7 +335,7 @@ window.addDeliveryItemRow = function(name, quantity, price) {
   priceInput.placeholder = '单价';
   priceInput.step = '0.01';
   priceInput.min = '0';
-  priceInput.value = price || '';
+  priceInput.value = item ? (item.price || '') : '';
   priceInput.addEventListener('input', function() {
     updateRowSubtotal(tr);
     updateDeliveryTotal();
@@ -366,10 +423,27 @@ window.saveDeliveryNote = async function() {
   var items = [];
   rows.forEach(function(row) {
     var name = row.querySelector('.item-name').value.trim();
+    var model = row.querySelector('.item-model').value.trim();
+    var length = row.querySelector('.item-length').value.trim();
+    var wattage = row.querySelector('.item-wattage').value.trim();
+    var brightness = row.querySelector('.item-brightness').value;
+    var sensorMode = row.querySelector('.item-sensor').value;
     var qty = parseFloat(row.querySelector('.item-quantity').value) || 0;
+    var unit = row.querySelector('.item-unit').value;
     var price = parseFloat(row.querySelector('.item-price').value) || 0;
     if (name && qty > 0) {
-      items.push({ product: name, name: name, quantity: qty, price: price });
+      items.push({
+        product: name,
+        name: name,
+        model: model,
+        length: length,
+        wattage: wattage,
+        brightness: brightness,
+        sensorMode: sensorMode,
+        quantity: qty,
+        unit: unit,
+        price: price
+      });
     }
   });
 
@@ -628,7 +702,7 @@ window.exportSingleDeliveryNote = function(index) {
     .info-section .info { font-size: 14px; }
     .info-section .info p { margin: 5px 0; }
     .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 8px 12px; text-align: center; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 6px 8px; text-align: center; font-size: 12px; }
     .items-table th { background-color: #f5f5f5; font-weight: 600; }
     .total-section { text-align: right; margin-top: 15px; font-size: 16px; font-weight: 600; }
     .total-section .amount { color: #e74c3c; }
@@ -655,17 +729,23 @@ window.exportSingleDeliveryNote = function(index) {
   <table class="items-table">
     <thead>
       <tr>
-        <th style="width: 40px;">序号</th>
+        <th style="width: 30px;">序号</th>
         <th>商品名称</th>
-        <th style="width: 60px;">数量</th>
-        <th style="width: 80px;">单价</th>
-        <th style="width: 80px;">小计</th>
+        <th style="width: 50px;">型号</th>
+        <th style="width: 40px;">长度</th>
+        <th style="width: 40px;">瓦数</th>
+        <th style="width: 50px;">单/双亮</th>
+        <th style="width: 60px;">感应模式</th>
+        <th style="width: 40px;">数量</th>
+        <th style="width: 40px;">单位</th>
+        <th style="width: 60px;">单价</th>
+        <th style="width: 60px;">小计</th>
       </tr>
     </thead>
     <tbody>
       ${(note.items || []).map(function(item, i) {
         var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.quantity || 0) + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
       }).join('')}
     </tbody>
   </table>
@@ -717,7 +797,7 @@ window.printDeliveryNote = function(index) {
     .info-section .info { font-size: 14px; }
     .info-section .info p { margin: 5px 0; }
     .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 8px 12px; text-align: center; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 6px 8px; text-align: center; font-size: 12px; }
     .items-table th { background-color: #f5f5f5; font-weight: 600; }
     .total-section { text-align: right; margin-top: 15px; font-size: 16px; font-weight: 600; }
     .total-section .amount { color: #e74c3c; }
@@ -746,17 +826,23 @@ window.printDeliveryNote = function(index) {
   <table class="items-table">
     <thead>
       <tr>
-        <th style="width: 40px;">序号</th>
+        <th style="width: 30px;">序号</th>
         <th>商品名称</th>
-        <th style="width: 60px;">数量</th>
-        <th style="width: 80px;">单价</th>
-        <th style="width: 80px;">小计</th>
+        <th style="width: 50px;">型号</th>
+        <th style="width: 40px;">长度</th>
+        <th style="width: 40px;">瓦数</th>
+        <th style="width: 50px;">单/双亮</th>
+        <th style="width: 60px;">感应模式</th>
+        <th style="width: 40px;">数量</th>
+        <th style="width: 40px;">单位</th>
+        <th style="width: 60px;">单价</th>
+        <th style="width: 60px;">小计</th>
       </tr>
     </thead>
     <tbody>
       ${(note.items || []).map(function(item, i) {
         var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.quantity || 0) + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
       }).join('')}
     </tbody>
   </table>

@@ -231,13 +231,26 @@ async function createMySQLTables() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         delivery_id INT NOT NULL,
         product_name VARCHAR(200) NOT NULL,
+        model VARCHAR(100),
+        length VARCHAR(50),
+        wattage VARCHAR(50),
+        brightness VARCHAR(50),
+        sensor_mode VARCHAR(50),
         quantity DECIMAL(10,2) DEFAULT 1,
+        unit VARCHAR(20),
         unit_price DECIMAL(10,2) DEFAULT 0,
         amount DECIMAL(10,2) DEFAULT 0,
         remark TEXT,
         INDEX idx_delivery_id (delivery_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    // 兼容旧表：添加新字段
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN model VARCHAR(100)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN length VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN wattage VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN brightness VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN sensor_mode VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN unit VARCHAR(20)`); } catch(e) {}
 
     // 客户表
     await conn.execute(`
@@ -3781,7 +3794,7 @@ if (!data.id) {
         for (const order of orders) {
           // 获取该送货单的商品明细
           const [items] = await mysqlPool.execute(
-            'SELECT product_name, quantity, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
+            'SELECT product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
             [order.id]
           );
 
@@ -3797,7 +3810,14 @@ if (!data.id) {
             remark: order.remark || '',
             items: items.map(item => ({
               product: item.product_name,
+              name: item.product_name,
+              model: item.model || '',
+              length: item.length || '',
+              wattage: item.wattage || '',
+              brightness: item.brightness || '',
+              sensorMode: item.sensor_mode || '',
               quantity: item.quantity,
+              unit: item.unit || '',
               price: item.unit_price
             })),
             user_id: order.user_id,
@@ -3894,9 +3914,21 @@ if (!data.id) {
                   totalAmount += amount;
 
                   await conn.execute(
-                    `INSERT INTO delivery_items (delivery_id, product_name, quantity, unit_price, amount)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [deliveryId, item.product || item.name || '', qty, price, amount]
+                    `INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                      deliveryId,
+                      item.product || item.name || '',
+                      item.model || '',
+                      item.length || '',
+                      item.wattage || '',
+                      item.brightness || '',
+                      item.sensor || item.sensorMode || '',
+                      qty,
+                      item.unit || '',
+                      price,
+                      amount
+                    ]
                   );
                 }
 
@@ -4009,9 +4041,21 @@ if (!data.id) {
                   totalAmount += amount;
 
                   await conn.execute(
-                    `INSERT INTO delivery_items (delivery_id, product_name, quantity, unit_price, amount)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [data.id, item.product || item.name || '', qty, price, amount]
+                    `INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                      data.id,
+                      item.product || item.name || '',
+                      item.model || '',
+                      item.length || '',
+                      item.wattage || '',
+                      item.brightness || '',
+                      item.sensor || item.sensorMode || '',
+                      qty,
+                      item.unit || '',
+                      price,
+                      amount
+                    ]
                   );
                 }
 

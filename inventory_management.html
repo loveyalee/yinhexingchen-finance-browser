@@ -4389,14 +4389,6 @@
       // 渲染商品表格
       renderProductsTable();
 
-      // 绑定保存按钮点击事件
-      var saveBtn = document.getElementById('product-save-btn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-          window.saveProductFromForm();
-        });
-      }
-
       document.querySelectorAll('.submenu-item a').forEach(link => {
         link.addEventListener('click', function(e) {
           e.stopPropagation();

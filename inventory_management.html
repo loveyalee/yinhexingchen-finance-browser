@@ -1202,17 +1202,17 @@
             <table class="delivery-items-table">
               <thead>
                 <tr>
-                  <th style="width:36px;">#</th>
-                  <th style="min-width:180px;">商品名称</th>
-                  <th style="width:40px;">型号</th>
-                  <th style="width:30px;">长度</th>
-                  <th style="width:30px;">瓦数</th>
-                  <th style="width:90px;">单/双亮</th>
-                  <th style="width:90px;">感应模式</th>
-                  <th style="width:90px;">数量</th>
-                  <th style="width:50px;">单位</th>
-                  <th style="width:100px;">单价</th>
-                  <th style="width:100px;">小计</th>
+                  <th style="width:30px;">#</th>
+                  <th style="width:90px;">商品名称</th>
+                  <th style="width:50px;">型号</th>
+                  <th style="width:40px;">长度</th>
+                  <th style="width:40px;">瓦数</th>
+                  <th style="width:60px;">单/双亮</th>
+                  <th style="width:60px;">感应</th>
+                  <th style="width:40px;">数量</th>
+                  <th style="width:40px;">单位</th>
+                  <th style="width:70px;">单价</th>
+                  <th style="width:70px;">小计</th>
                   <th style="width:60px;">操作</th>
                 </tr>
               </thead>
@@ -2198,12 +2198,12 @@
       brightnessTd.appendChild(brightnessInput);
       tr.appendChild(brightnessTd);
 
-      // 创建感应模式单元格
+      // 创建感应单元格
       var sensorTd = document.createElement('td');
       var sensorInput = document.createElement('input');
       sensorInput.type = 'text';
       sensorInput.className = 'item-sensor';
-      sensorInput.placeholder = '感应模式';
+      sensorInput.placeholder = '感应';
       sensorTd.appendChild(sensorInput);
       tr.appendChild(sensorTd);
 
@@ -2536,12 +2536,12 @@
               brightnessTd.appendChild(brightnessInput);
               tr.appendChild(brightnessTd);
 
-              // 创建感应模式单元格
+              // 创建感应单元格
               var sensorTd = document.createElement('td');
               var sensorInput = document.createElement('input');
               sensorInput.type = 'text';
               sensorInput.className = 'item-sensor';
-              sensorInput.placeholder = '感应模式';
+              sensorInput.placeholder = '感应';
               sensorTd.appendChild(sensorInput);
               tr.appendChild(sensorTd);
 
@@ -2729,12 +2729,12 @@
                 brightnessTd.appendChild(brightnessInput);
                 tr.appendChild(brightnessTd);
 
-                // 创建感应模式单元格
+                // 创建感应单元格
                 var sensorTd = document.createElement('td');
                 var sensorInput = document.createElement('input');
                 sensorInput.type = 'text';
                 sensorInput.className = 'item-sensor';
-                sensorInput.placeholder = '感应模式';
+                sensorInput.placeholder = '感应';
                 sensorInput.value = item.sensor || '';
                 sensorTd.appendChild(sensorInput);
                 tr.appendChild(sensorTd);
@@ -2872,12 +2872,12 @@
                 brightnessTd.appendChild(brightnessInput);
                 tr.appendChild(brightnessTd);
 
-                // 创建感应模式单元格
+                // 创建感应单元格
                 var sensorTd = document.createElement('td');
                 var sensorInput = document.createElement('input');
                 sensorInput.type = 'text';
                 sensorInput.className = 'item-sensor';
-                sensorInput.placeholder = '感应模式';
+                sensorInput.placeholder = '感应';
                 sensorTd.appendChild(sensorInput);
                 tr.appendChild(sensorTd);
 

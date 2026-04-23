@@ -2664,17 +2664,23 @@ if (!data.id) {
     });
 
   } else if (pathname === '/api/products' && req.method === 'DELETE') {
-    // 删除商品
+    // 删除商品（支持单个id或ids数组）
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
     req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
-        
-        if (!data.ids || !Array.isArray(data.ids)) {
+
+        // 支持单个id或ids数组
+        let idsToDelete = [];
+        if (data.id) {
+          idsToDelete = [data.id];
+        } else if (data.ids && Array.isArray(data.ids)) {
+          idsToDelete = data.ids;
+        } else {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '商品ID列表不能为空' }));
+          res.end(JSON.stringify({ success: false, message: '商品ID为必填项' }));
           return;
         }
 
@@ -2687,7 +2693,7 @@ if (!data.id) {
 
         const deleteStmt = usersDb.prepare('DELETE FROM products WHERE id = ?');
         let deletedCount = 0;
-        data.ids.forEach(function(id) {
+        idsToDelete.forEach(function(id) {
           const result = deleteStmt.run(id);
           if (result.changes > 0) {
             deletedCount++;
@@ -3557,35 +3563,6 @@ if (!data.id) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '更新商品失败: ' + e.message }));
-      }
-    });
-  // 删除商品：DELETE /api/products
-  } else if (pathname === '/api/products' && req.method === 'DELETE') {
-    let body = '';
-    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
-      try {
-        const data = JSON.parse(body || '{}');
-        if (!data.id) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '商品ID为必填项' }));
-          return;
-        }
-        if (!usersDb) {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
-          return;
-        }
-        usersDb.prepare('DELETE FROM products WHERE id = ?').run(data.id);
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, message: '商品删除成功' }));
-      } catch (e) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: '删除商品失败: ' + e.message }));
       }
     });
 

@@ -119,6 +119,17 @@
       color: white;
     }
 
+    .btn-home {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-home:hover {
+      background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    }
+
     .form-group {
       margin-bottom: 15px;
     }
@@ -191,7 +202,7 @@
 <body>
   <div class="header">
     <div style="display:flex;align-items:center;gap:15px;">
-      <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">返回主页</button>
+      <button type="button" class="btn btn-home" onclick="window.location.href='index.html'">返回主页</button>
       <h1>客户管理</h1>
     </div>
     <div>

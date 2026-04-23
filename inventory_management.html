@@ -1912,7 +1912,6 @@
 
       var notes = getDeliveryNotes();
       console.log('Got delivery notes:', notes);
-      // 只有当有新的数据时才更新表格
       if (notes.length > 0) {
         console.log('Rendering delivery notes:', notes);
         var html = notes.map(function(note, index) {
@@ -1939,7 +1938,8 @@
         console.log('Updated delivery-note-tbody innerHTML');
         console.log('delivery-note-tbody innerHTML:', tbody.innerHTML);
       } else {
-        console.log('No delivery notes found, keeping static data');
+        console.log('No delivery notes found, showing empty state');
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-text">暂无送货单数据</td></tr>';
       }
     }
 

@@ -208,6 +208,8 @@ async function createMySQLTables() {
         customer_name VARCHAR(100) NOT NULL,
         customer_phone VARCHAR(20),
         customer_address VARCHAR(255),
+        contact_name VARCHAR(50),
+        remark TEXT,
         delivery_date DATE NOT NULL,
         total_amount DECIMAL(10,2) DEFAULT 0,
         status VARCHAR(20) DEFAULT 'pending',
@@ -219,6 +221,9 @@ async function createMySQLTables() {
         INDEX idx_status (status)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    // 兼容旧表：添加新字段
+    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN contact_name VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN remark TEXT`); } catch(e) {}
 
     // 送货单明细表
     await conn.execute(`
@@ -3859,13 +3864,15 @@ if (!data.id) {
 
               // 插入送货单主表
               const [orderResult] = await conn.execute(
-                `INSERT INTO delivery_orders (order_no, customer_name, customer_phone, customer_address, delivery_date, total_amount, status, user_id, create_time, update_time)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO delivery_orders (order_no, customer_name, customer_phone, customer_address, contact_name, remark, delivery_date, total_amount, status, user_id, create_time, update_time)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                   orderNo,
                   data.customer,
                   data.contactPhone || '',
                   data.address || '',
+                  data.contact || '',
+                  data.remark || '',
                   data.date,
                   0,
                   data.status === '已送达' ? 'delivered' : 'pending',
@@ -3953,7 +3960,7 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'PUT') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -3962,6 +3969,73 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
+
+        const now = new Date();
+
+        // 优先更新MySQL
+        if (mysqlPool) {
+          try {
+            const conn = await mysqlPool.getConnection();
+            try {
+              await conn.beginTransaction();
+
+              // 更新送货单主表
+              const updateFields = [];
+              const updateValues = [];
+              if (data.customer !== undefined) { updateFields.push('customer_name = ?'); updateValues.push(data.customer); }
+              if (data.contactPhone !== undefined) { updateFields.push('customer_phone = ?'); updateValues.push(data.contactPhone); }
+              if (data.address !== undefined) { updateFields.push('customer_address = ?'); updateValues.push(data.address); }
+              if (data.contact !== undefined) { updateFields.push('contact_name = ?'); updateValues.push(data.contact); }
+              if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
+              if (data.date !== undefined) { updateFields.push('delivery_date = ?'); updateValues.push(data.date); }
+              if (data.status !== undefined) { updateFields.push('status = ?'); updateValues.push(data.status === '已送达' ? 'delivered' : 'pending'); }
+              updateFields.push('update_time = ?');
+              updateValues.push(now);
+              updateValues.push(data.id);
+
+              if (updateFields.length > 1) {
+                await conn.execute(`UPDATE delivery_orders SET ${updateFields.join(', ')} WHERE id = ?`, updateValues);
+              }
+
+              // 更新商品明细：先删除旧的，再插入新的
+              if (data.items !== undefined) {
+                await conn.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
+
+                let totalAmount = 0;
+                for (const item of data.items) {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.price) || 0;
+                  const amount = qty * price;
+                  totalAmount += amount;
+
+                  await conn.execute(
+                    `INSERT INTO delivery_items (delivery_id, product_name, quantity, unit_price, amount)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [data.id, item.product || item.name || '', qty, price, amount]
+                  );
+                }
+
+                // 更新总金额
+                await conn.execute('UPDATE delivery_orders SET total_amount = ? WHERE id = ?', [totalAmount, data.id]);
+              }
+
+              await conn.commit();
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(JSON.stringify({ success: true, message: '送货单更新成功' }));
+              return;
+            } catch (e) {
+              await conn.rollback();
+              throw e;
+            } finally {
+              conn.release();
+            }
+          } catch (e) {
+            console.error('MySQL更新送货单失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3980,7 +4054,7 @@ if (!data.id) {
         if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
         if (data.items !== undefined) { updateFields.push('items = ?'); updateValues.push(JSON.stringify(data.items)); }
         updateFields.push('update_time = ?');
-        updateValues.push(new Date().toISOString());
+        updateValues.push(now.toISOString());
         updateValues.push(data.id);
         const stmt = usersDb.prepare(`UPDATE delivery_notes SET ${updateFields.join(', ')} WHERE id = ?`);
         stmt.run(...updateValues);
@@ -3997,7 +4071,7 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'DELETE') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -4006,6 +4080,34 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
+
+        // 优先从MySQL删除
+        if (mysqlPool) {
+          try {
+            const conn = await mysqlPool.getConnection();
+            try {
+              await conn.beginTransaction();
+              // 先删除商品明细
+              await conn.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
+              // 再删除送货单
+              await conn.execute('DELETE FROM delivery_orders WHERE id = ?', [data.id]);
+              await conn.commit();
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(JSON.stringify({ success: true, message: '送货单删除成功' }));
+              return;
+            } catch (e) {
+              await conn.rollback();
+              throw e;
+            } finally {
+              conn.release();
+            }
+          } catch (e) {
+            console.error('MySQL删除送货单失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');

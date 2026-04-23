@@ -70,3 +70,7 @@ _*.html
 id_rsa*
 *.pem
 *.ppk
+
+# Release build files (large files)
+release/
+*.exe

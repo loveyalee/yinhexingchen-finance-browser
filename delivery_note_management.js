@@ -147,6 +147,7 @@ function renderDeliveryNotesTable() {
       '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + index + ')">' + (note.status || '待送达') + '</span></td>' +
       '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
       '<td>' +
+        '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
         '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button> ' +
         '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + index + ')">删除</button>' +
       '</td>' +
@@ -484,6 +485,51 @@ window.toggleDeliveryStatus = async function(index) {
   } else {
     saveDeliveryNotes(notes);
     renderDeliveryNotesTable();
+  }
+};
+
+// 复制送货单
+window.copyDeliveryNote = async function(index) {
+  var notes = getAllDeliveryNotes();
+  var note = notes[index];
+  if (!note) return;
+
+  // 创建新的送货单副本
+  var newNote = {
+    no: generateDeliveryNoteNo(),
+    customer: note.customer,
+    contact: note.contact,
+    contactPhone: note.contactPhone,
+    date: new Date().toISOString().split('T')[0],
+    address: note.address,
+    remark: note.remark,
+    items: note.items ? JSON.parse(JSON.stringify(note.items)) : [],
+    status: '待送达'
+  };
+
+  var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+  if (isLoggedIn) {
+    try {
+      var result = await apiAddDeliveryNote(newNote);
+      if (result.success) {
+        deliveryNotesLoaded = false;
+        await getAllDeliveryNotesAsync();
+        renderDeliveryNotesTable();
+        alert('送货单复制成功');
+      } else {
+        alert(result.message || '复制失败');
+      }
+    } catch (e) {
+      console.error('复制送货单失败:', e);
+      alert('复制失败，请重试');
+    }
+  } else {
+    notes.push(newNote);
+    saveDeliveryNotes(notes);
+    renderDeliveryNotesTable();
+    alert('送货单复制成功');
   }
 };
 

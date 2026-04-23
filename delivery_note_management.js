@@ -150,7 +150,7 @@ function renderDeliveryNotesTable() {
         '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + index + ')">编辑</button> ' +
         '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + index + ')">打印</button> ' +
         '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button> ' +
-        '<button class="btn btn-sm btn-secondary" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
+        '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
         '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + index + ')">删除</button>' +
       '</td>' +
     '</tr>';

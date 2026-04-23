@@ -1309,6 +1309,7 @@
         localStorage.setItem('userInfo', JSON.stringify(currentUserInfo));
       }
       const loginButton = document.getElementById('login-button');
+      const registerButton = document.getElementById('register-button');
       if (loginButton) {
         if (currentUserInfo && currentUserInfo.isLoggedIn) {
           // 根据用户类型显示不同的名称
@@ -1325,9 +1326,21 @@
           }
           loginButton.textContent = displayName.slice(0, 10);
           loginButton.onclick = function() { window.location.href = 'member.html'; };
+          // 已登录时，注册按钮变成退出按钮
+          if (registerButton) {
+            registerButton.textContent = '退出';
+            registerButton.style.backgroundColor = '#e74c3c';
+            registerButton.onclick = function() { handleLogout(); };
+          }
         } else {
           loginButton.textContent = '登录';
           loginButton.onclick = function() { window.location.href = 'login.html'; };
+          // 未登录时，保持注册按钮
+          if (registerButton) {
+            registerButton.textContent = '注册';
+            registerButton.style.backgroundColor = '#27ae60';
+            registerButton.href = 'register.html';
+          }
         }
       }
 

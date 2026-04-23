@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>商品管理 - 银河星辰财务专用浏览器</title>
+  <link rel="stylesheet" href="inventory_management.css">
+  <script src="user_menu.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用浏览器</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">供应链管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="inventory_management.html" onclick="event.stopPropagation();">进销存</a></li>
+            <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();" class="active">商品管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">公司管理</a></li>
+            <li class="submenu-item"><a href="contract_management.html" onclick="event.stopPropagation();">合同管理</a></li>
+            <li class="submenu-item"><a href="seal_management.html" onclick="event.stopPropagation();">电子印章管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="tax_zone.html" onclick="event.stopPropagation();">税务专区</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html" onclick="event.stopPropagation();">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html" onclick="event.stopPropagation();">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html" onclick="event.stopPropagation();">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html" onclick="event.stopPropagation();">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html" onclick="event.stopPropagation();">蜻蜓助手</a></li>
+        <li class="nav-item"><a href="forum.html" onclick="event.stopPropagation();">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html" onclick="event.stopPropagation();">付费问答</a></li>
+        <li class="nav-item"><a href="news.html" onclick="event.stopPropagation();">行业头条</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); event.stopPropagation(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <h1>商品管理</h1>
+        <div>
+          <button type="button" class="btn btn-primary" onclick="openAddProductModal()">新增商品</button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <!-- 商品管理 -->
+        <div class="card">
+          <div class="section-header">
+            <h3>商品列表</h3>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="btn btn-sm btn-primary" onclick="toggleSelectAllProducts()">全选/取消全选</button>
+              <button type="button" class="btn btn-sm btn-danger" onclick="batchDeleteProducts()">批量删除</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="select-all-products" onchange="toggleSelectAllProducts()"></th>
+                  <th>商品编号</th>
+                  <th>商品名称</th>
+                  <th>类别</th>
+                  <th>单位</th>
+                  <th>单价</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商品编辑弹窗 -->
+  <div class="modal" id="product-edit-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="product-modal-title">新增商品</h3>
+        <button class="btn btn-danger" onclick="closeProductModal()">关闭</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="product-edit-index" value="">
+        <div class="form-group">
+          <label>商品名称</label>
+          <input type="text" id="product-name" placeholder="请输入商品名称">
+        </div>
+        <div class="form-group">
+          <label>商品编号</label>
+          <input type="text" id="product-code" placeholder="请输入商品编号">
+        </div>
+        <div class="form-group">
+          <label>类别</label>
+          <select id="product-category">
+            <option value="软件">软件</option>
+            <option value="服务">服务</option>
+            <option value="课程">课程</option>
+            <option value="模板">模板</option>
+            <option value="硬件">硬件</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>单位</label>
+          <input type="text" id="product-unit" placeholder="请输入单位（如：套、次、月）">
+        </div>
+        <div class="form-group">
+          <label>单价</label>
+          <input type="number" id="product-price" placeholder="请输入单价" step="0.01">
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" id="product-save-btn" onclick="saveProductFromForm()">保存</button>
+          <button type="button" class="btn btn-secondary" onclick="closeProductModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="product_management.js"></script>
+</body>
+</html>

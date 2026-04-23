@@ -122,6 +122,7 @@ function renderDeliveryNotesTable() {
   if (!tbody) return;
 
   var notes = getAllDeliveryNotes();
+  console.log('渲染送货单表格，数据数量:', notes.length);
 
   if (notes.length === 0) {
     tbody.innerHTML = '<tr><td colspan="9" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
@@ -134,14 +135,22 @@ function renderDeliveryNotesTable() {
     var itemsStr = '';
     if (note.items && note.items.length > 0) {
       itemsStr = note.items.map(function(item) {
-        return (item.product || item.name || '') + ' ×' + (item.quantity || 0);
-      }).join(', ');
+        // 构建商品明细字符串，包含型号、长度、瓦数等信息
+        var parts = [];
+        parts.push(item.product || item.name || '');
+        if (item.model) parts.push('型号:' + item.model);
+        if (item.length) parts.push('长度:' + item.length);
+        if (item.wattage) parts.push('瓦数:' + item.wattage);
+        if (item.brightness) parts.push(item.brightness);
+        if (item.sensorMode) parts.push(item.sensorMode);
+        return parts.join(' ') + ' ×' + (item.quantity || 0) + (item.unit || '');
+      }).join('; ');
     }
     return '<tr>' +
       '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + index + '" data-id="' + (note.id || '') + '"></td>' +
       '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + index + ')">' + (note.no || '') + '</td>' +
       '<td>' + (note.customer || '') + '</td>' +
-      '<td>' + itemsStr + '</td>' +
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="' + itemsStr.replace(/"/g, '&quot;') + '">' + itemsStr + '</td>' +
       '<td>' + (note.date || '') + '</td>' +
       '<td>' + (note.contact || '') + '</td>' +
       '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + index + ')">' + (note.status || '待送达') + '</span></td>' +

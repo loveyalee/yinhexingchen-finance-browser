@@ -3583,19 +3583,27 @@
     var productsLoaded = false;
 
     async function getAllProductsAsync() {
-      try {
-        // 先尝试从API获取
-        var apiProducts = await apiGetProducts();
-        if (apiProducts && apiProducts.length > 0) {
-          productsCache = apiProducts;
+      // 检查用户是否已登录
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+      // 已登录用户：只从API获取数据
+      if (isLoggedIn) {
+        try {
+          var apiProducts = await apiGetProducts();
+          productsCache = apiProducts || [];
           productsLoaded = true;
-          return apiProducts;
+          console.log('API返回商品数量:', productsCache.length);
+          return productsCache;
+        } catch (e) {
+          console.error('API获取商品失败:', e);
+          productsCache = [];
+          productsLoaded = true;
+          return [];
         }
-      } catch (e) {
-        console.warn('API获取商品失败，使用localStorage:', e);
       }
-      
-      // 回退到localStorage
+
+      // 未登录用户：使用localStorage或预置数据
       try {
         var saved = JSON.parse(localStorage.getItem(productStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
@@ -3604,8 +3612,8 @@
           return saved;
         }
       } catch (error) {}
-      
-      // 首次使用时保存预设数据
+
+      // 首次使用时保存预设数据（仅未登录用户）
       saveProducts(productDatabase);
       productsCache = productDatabase.slice();
       productsLoaded = true;
@@ -3617,14 +3625,29 @@
       if (productsLoaded && productsCache) {
         return productsCache;
       }
-      
+
+      // 检查用户是否已登录
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+      // 已登录用户：返回空数组，等待异步加载
+      if (isLoggedIn) {
+        if (!productsLoaded) {
+          getAllProductsAsync().then(() => {
+            renderProductsTable();
+          });
+        }
+        return productsCache || [];
+      }
+
+      // 未登录用户：使用localStorage或预置数据
       try {
         var saved = JSON.parse(localStorage.getItem(productStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
           return saved;
         }
       } catch (error) {}
-      
+
       saveProducts(productDatabase);
       return productDatabase.slice();
     }

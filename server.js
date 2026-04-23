@@ -3834,27 +3834,100 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
-        if (!data.no || !data.customer || !data.date || !data.userId) {
+        if (!data.customer || !data.date || !data.userId) {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '单号、客户、日期和用户ID为必填项' }));
+          res.end(JSON.stringify({ success: false, message: '客户、日期和用户ID为必填项' }));
           return;
         }
+
+        const now = new Date();
+        const orderNo = data.no || ('SHD' + now.getFullYear() +
+          String(now.getMonth() + 1).padStart(2, '0') +
+          String(now.getDate()).padStart(2, '0') +
+          String(Date.now()).slice(-3));
+
+        // 优先写入MySQL
+        if (mysqlPool) {
+          try {
+            const conn = await mysqlPool.getConnection();
+            try {
+              await conn.beginTransaction();
+
+              // 插入送货单主表
+              const [orderResult] = await conn.execute(
+                `INSERT INTO delivery_orders (order_no, customer_name, customer_phone, customer_address, delivery_date, total_amount, status, user_id, create_time, update_time)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  orderNo,
+                  data.customer,
+                  data.contactPhone || '',
+                  data.address || '',
+                  data.date,
+                  0,
+                  data.status === '已送达' ? 'delivered' : 'pending',
+                  data.userId,
+                  now,
+                  now
+                ]
+              );
+
+              const deliveryId = orderResult.insertId;
+
+              // 插入商品明细
+              if (data.items && data.items.length > 0) {
+                let totalAmount = 0;
+                for (const item of data.items) {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.price) || 0;
+                  const amount = qty * price;
+                  totalAmount += amount;
+
+                  await conn.execute(
+                    `INSERT INTO delivery_items (delivery_id, product_name, quantity, unit_price, amount)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [deliveryId, item.product || item.name || '', qty, price, amount]
+                  );
+                }
+
+                // 更新总金额
+                await conn.execute(
+                  'UPDATE delivery_orders SET total_amount = ? WHERE id = ?',
+                  [totalAmount, deliveryId]
+                );
+              }
+
+              await conn.commit();
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(JSON.stringify({ success: true, data: { id: deliveryId, no: orderNo } }));
+              return;
+            } catch (e) {
+              await conn.rollback();
+              throw e;
+            } finally {
+              conn.release();
+            }
+          } catch (e) {
+            console.error('MySQL添加送货单失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
-        const now = new Date().toISOString();
         const stmt = usersDb.prepare(
           'INSERT INTO delivery_notes (no, customer, contact, contact_phone, date, status, address, remark, items, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         const result = stmt.run(
-          data.no,
+          orderNo,
           data.customer,
           data.contact || '',
           data.contactPhone || '',
@@ -3864,12 +3937,12 @@ if (!data.id) {
           data.remark || '',
           data.items ? JSON.stringify(data.items) : '[]',
           data.userId,
-          now,
-          now
+          now.toISOString(),
+          now.toISOString()
         );
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid, no: orderNo } }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

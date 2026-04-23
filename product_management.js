@@ -309,9 +309,6 @@ window.deleteProductRow = async function(index) {
 window.toggleSelectAllProducts = function() {
   var selectAllCheckbox = document.getElementById('select-all-products');
   var productCheckboxes = document.querySelectorAll('.product-checkbox');
-
-  // 切换全选checkbox状态
-  selectAllCheckbox.checked = !selectAllCheckbox.checked;
   var checked = selectAllCheckbox.checked;
 
   productCheckboxes.forEach(function(checkbox) {

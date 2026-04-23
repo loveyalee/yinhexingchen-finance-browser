@@ -2494,47 +2494,11 @@ if (!data.id) {
       }
 
       const products = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY id ASC').all(userId);
-      
-      // 如果没有商品，插入预设商品数据
-      if (products.length === 0) {
-        const defaultProducts = [
-          { name: '财务软件专业版', code: 'SP001', category: '软件', unit: '套', price: 2999, stock: 45, threshold: 10 },
-          { name: '财务软件标准版', code: 'SP002', category: '软件', unit: '套', price: 1999, stock: 50, threshold: 10 },
-          { name: '财务软件基础版', code: 'SP003', category: '软件', unit: '套', price: 999, stock: 80, threshold: 20 },
-          { name: '税务筹划服务', code: 'SP004', category: '服务', unit: '次', price: 1500, stock: 20, threshold: 5 },
-          { name: '财务咨询服务', code: 'SP005', category: '服务', unit: '次', price: 2000, stock: 0, threshold: 0 },
-          { name: '审计服务', code: 'SP006', category: '服务', unit: '次', price: 3000, stock: 10, threshold: 3 },
-          { name: '代理记账服务', code: 'SP007', category: '服务', unit: '月', price: 500, stock: 100, threshold: 50 },
-          { name: '会计培训课程', code: 'SP008', category: '课程', unit: '套', price: 999, stock: 5, threshold: 5 },
-          { name: '税务培训课程', code: 'SP009', category: '课程', unit: '套', price: 1299, stock: 30, threshold: 10 },
-          { name: '财务模板包', code: 'SP010', category: '模板', unit: '套', price: 199, stock: 30, threshold: 20 },
-          { name: '税务申报模板', code: 'SP011', category: '模板', unit: '套', price: 99, stock: 50, threshold: 30 },
-          { name: '财务报表模板', code: 'SP012', category: '模板', unit: '套', price: 149, stock: 40, threshold: 20 },
-          { name: '发票打印机', code: 'SP013', category: '硬件', unit: '台', price: 2500, stock: 5, threshold: 2 },
-          { name: '财务专用扫描仪', code: 'SP014', category: '硬件', unit: '台', price: 1800, stock: 8, threshold: 3 },
-          { name: '凭证装订机', code: 'SP015', category: '硬件', unit: '台', price: 800, stock: 12, threshold: 5 }
-        ];
 
-        const insertStmt = usersDb.prepare(`
-          INSERT INTO products (code, name, category, unit, price, stock, threshold, user_id, create_time, update_time)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        const now = new Date().toISOString();
-        defaultProducts.forEach(function(product) {
-          insertStmt.run(product.code, product.name, product.category, product.unit, product.price, product.stock, product.threshold, userId, now, now);
-        });
-
-        // 重新查询商品列表
-        const newProducts = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY id ASC').all(userId);
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: newProducts }));
-      } else {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: products }));
-      }
+      // 不再自动插入预置商品，已登录用户只显示自己添加的商品
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: products }));
     } catch (e) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');

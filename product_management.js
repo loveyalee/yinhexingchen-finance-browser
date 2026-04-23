@@ -2,25 +2,6 @@
  * 商品管理页面 JavaScript
  */
 
-// 预设商品数据
-var productDatabase = [
-  { name: '财务软件专业版', code: 'SP001', category: '软件', unit: '套', price: 2999 },
-  { name: '财务软件标准版', code: 'SP002', category: '软件', unit: '套', price: 1999 },
-  { name: '财务软件基础版', code: 'SP003', category: '软件', unit: '套', price: 999 },
-  { name: '税务筹划服务', code: 'SP004', category: '服务', unit: '次', price: 1500 },
-  { name: '财务咨询服务', code: 'SP005', category: '服务', unit: '次', price: 2000 },
-  { name: '审计服务', code: 'SP006', category: '服务', unit: '次', price: 3000 },
-  { name: '代理记账服务', code: 'SP007', category: '服务', unit: '月', price: 500 },
-  { name: '会计培训课程', code: 'SP008', category: '课程', unit: '套', price: 999 },
-  { name: '税务培训课程', code: 'SP009', category: '课程', unit: '套', price: 1299 },
-  { name: '财务模板包', code: 'SP010', category: '模板', unit: '套', price: 199 },
-  { name: '税务申报模板', code: 'SP011', category: '模板', unit: '套', price: 99 },
-  { name: '财务报表模板', code: 'SP012', category: '模板', unit: '套', price: 149 },
-  { name: '发票打印机', code: 'SP013', category: '硬件', unit: '台', price: 2500 },
-  { name: '财务专用扫描仪', code: 'SP014', category: '硬件', unit: '台', price: 1800 },
-  { name: '凭证装订机', code: 'SP015', category: '硬件', unit: '台', price: 800 }
-];
-
 var productStorageKey = 'inventoryProducts';
 var productsCache = null;
 var productsLoaded = false;

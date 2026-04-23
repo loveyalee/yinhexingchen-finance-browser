@@ -147,8 +147,10 @@ function renderDeliveryNotesTable() {
       '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + index + ')">' + (note.status || '待送达') + '</span></td>' +
       '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
       '<td>' +
-        '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
+        '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + index + ')">编辑</button> ' +
+        '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + index + ')">打印</button> ' +
         '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button> ' +
+        '<button class="btn btn-sm btn-secondary" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
         '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + index + ')">删除</button>' +
       '</td>' +
     '</tr>';
@@ -684,6 +686,93 @@ window.exportSingleDeliveryNote = function(index) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// 打印送货单
+window.printDeliveryNote = function(index) {
+  var notes = getAllDeliveryNotes();
+  var note = notes[index];
+  if (!note) {
+    alert('送货单不存在');
+    return;
+  }
+
+  var totalAmount = calcNoteTotal(note.items);
+
+  var printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>送货单 - ${note.no || ''}</title>
+  <style>
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none; }
+    }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 20px; line-height: 1.6; }
+    .header { text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px solid #333; }
+    .header h1 { font-size: 24px; color: #333; margin: 0; }
+    .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+    .info-section .info { font-size: 14px; }
+    .info-section .info p { margin: 5px 0; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 8px 12px; text-align: center; }
+    .items-table th { background-color: #f5f5f5; font-weight: 600; }
+    .total-section { text-align: right; margin-top: 15px; font-size: 16px; font-weight: 600; }
+    .total-section .amount { color: #e74c3c; }
+    .footer { margin-top: 40px; display: flex; justify-content: space-between; }
+    .signature-box { width: 150px; text-align: center; }
+    .signature-box .line { border-top: 1px solid #333; margin-top: 40px; padding-top: 5px; }
+    .print-btn { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #1a65b8; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <button class="print-btn no-print" onclick="window.print()">打印</button>
+  <div class="header"><h1>送 货 单</h1></div>
+  <div class="info-section">
+    <div class="info">
+      <p><strong>送货单号：</strong>${note.no || ''}</p>
+      <p><strong>客户名称：</strong>${note.customer || ''}</p>
+      <p><strong>联系人：</strong>${note.contact || '-'}</p>
+      ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
+    </div>
+    <div class="info">
+      <p><strong>送货日期：</strong>${note.date || ''}</p>
+      <p><strong>送货地址：</strong>${note.address || '-'}</p>
+      <p><strong>状态：</strong>${note.status || '待送达'}</p>
+    </div>
+  </div>
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th style="width: 40px;">序号</th>
+        <th>商品名称</th>
+        <th style="width: 60px;">数量</th>
+        <th style="width: 80px;">单价</th>
+        <th style="width: 80px;">小计</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${(note.items || []).map(function(item, i) {
+        var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.quantity || 0) + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+      }).join('')}
+    </tbody>
+  </table>
+  <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
+  ${note.remark ? '<div style="margin-top: 15px;"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+  <div class="footer">
+    <div class="signature-box"><div class="line">收货人签字</div></div>
+    <div class="signature-box"><div class="line">送货人签字</div></div>
+  </div>
+</body>
+</html>
+  `;
+
+  var printWindow = window.open('', '_blank');
+  printWindow.document.write(printContent);
+  printWindow.document.close();
 };
 
 // 页面初始化

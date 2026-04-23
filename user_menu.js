@@ -37,6 +37,16 @@
         }
       });
 
+      // 企业用户显示"企业管理"菜单
+      const enterpriseMenus = document.querySelectorAll('.enterprise-menu');
+      enterpriseMenus.forEach(function(menu) {
+        if (userType === 'enterprise') {
+          menu.style.display = '';
+        } else {
+          menu.style.display = 'none';
+        }
+      });
+
       // 更新页面标题（如果在 member.html 页面）
       const headerTitle = document.querySelector('.header h1');
       if (headerTitle && window.location.pathname.includes('member.html')) {

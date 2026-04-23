@@ -922,26 +922,6 @@
           </ul>
         </li>
         <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
-          <ul class="submenu">
-            <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
-              </ul>
-            </li>
-            <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
-          </ul>
-        </li>
-        <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">个人求职</a></li>
@@ -966,6 +946,25 @@
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
+            <li class="submenu-item enterprise-menu" style="display:none;"><a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+                <li class="submenu-item has-submenu">
+                  <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+                  <ul class="submenu">
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
+                  </ul>
+                </li>
+                <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
+              </ul>
+            </li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>

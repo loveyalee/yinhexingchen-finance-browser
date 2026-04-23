@@ -3334,25 +3334,9 @@
       }
     };
 
-    // 新增商品 - 滚动到新增商品表单区域
+    // 新增商品 - 打开新增商品弹窗
     window.showAddProductSection = function() {
-      var cards = document.querySelectorAll('.card');
-      for (var card of cards) {
-        var title = card.querySelector('h3');
-        if (title && title.textContent.includes('新增商品')) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          card.style.boxShadow = '0 0 0 3px #1a65b8, 0 4px 12px rgba(26, 101, 184, 0.3)';
-          setTimeout(function() {
-            card.style.boxShadow = '';
-          }, 2000);
-          var firstInput = card.querySelector('input');
-          if (firstInput) {
-            setTimeout(function() { firstInput.focus(); }, 500);
-          }
-          return;
-        }
-      }
-      alert('新增商品区域正在加载，请稍后再试');
+      openAddProductModal();
     };
 
     // 库存盘点 - 显示盘点弹窗

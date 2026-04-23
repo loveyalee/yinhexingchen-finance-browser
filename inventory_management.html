@@ -1494,8 +1494,8 @@
     // 获取当前用户ID
     function getCurrentUserId() {
       try {
-        var profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        return profile.id || '';
+        var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        return userInfo.id || '';
       } catch (e) {
         return '';
       }
@@ -3094,7 +3094,7 @@
     window.handleLogout = function() {
       if (confirm('确定要退出登录吗？')) {
         localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userInfo');
         localStorage.removeItem('userWallet');
         localStorage.removeItem('userTransactions');
         window.location.href = 'login.html';

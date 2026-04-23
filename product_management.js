@@ -322,6 +322,8 @@ window.toggleSelectAllProducts = function() {
 // 批量删除商品
 window.batchDeleteProducts = async function() {
   var productCheckboxes = document.querySelectorAll('.product-checkbox:checked');
+  console.log('选中的商品数量:', productCheckboxes.length);
+
   if (productCheckboxes.length === 0) {
     alert('请先选择要删除的商品');
     return;
@@ -331,22 +333,33 @@ window.batchDeleteProducts = async function() {
 
   var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+  console.log('用户信息:', userInfo);
+  console.log('是否已登录:', isLoggedIn);
 
   if (isLoggedIn) {
     var deletePromises = [];
     productCheckboxes.forEach(function(checkbox) {
       var productId = checkbox.getAttribute('data-id');
+      console.log('商品ID:', productId);
       if (productId) {
         deletePromises.push(apiDeleteProduct(productId));
       }
     });
 
+    console.log('删除请求数量:', deletePromises.length);
+
+    if (deletePromises.length === 0) {
+      alert('没有找到有效的商品ID，请刷新页面重试');
+      return;
+    }
+
     try {
-      await Promise.all(deletePromises);
+      var results = await Promise.all(deletePromises);
+      console.log('删除结果:', results);
       productsLoaded = false;
       await getAllProductsAsync();
       renderProductsTable();
-      alert('已删除 ' + productCheckboxes.length + ' 个商品');
+      alert('已删除 ' + deletePromises.length + ' 个商品');
     } catch (e) {
       console.error('批量删除失败:', e);
       alert('删除失败，请重试');

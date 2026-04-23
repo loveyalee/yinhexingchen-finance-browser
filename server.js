@@ -430,6 +430,7 @@ function initMainDb() {
         );
       `);
       try { usersDb.exec(`ALTER TABLE customers ADD COLUMN user_id TEXT`); } catch (e) {}
+      try { usersDb.exec(`ALTER TABLE customers ADD COLUMN remark TEXT`); } catch (e) {}
       
       // 创建送货单表
       usersDb.exec(`

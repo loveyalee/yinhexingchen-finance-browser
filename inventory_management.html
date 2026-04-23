@@ -1153,42 +1153,9 @@
                   <th>操作</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="inventory-alerts-tbody">
                 <tr>
-                  <td>SP003</td>
-                  <td>会计培训课程</td>
-                  <td>5</td>
-                  <td>10</td>
-                  <td><span class="status-badge status-low-stock">低库存</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-warning">补货</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP004</td>
-                  <td>财务咨询服务</td>
-                  <td>0</td>
-                  <td>5</td>
-                  <td><span class="status-badge status-out-of-stock">缺货</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-warning">紧急补货</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>SP006</td>
-                  <td>税务软件</td>
-                  <td>8</td>
-                  <td>15</td>
-                  <td><span class="status-badge status-low-stock">低库存</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-warning">补货</button>
-                    </div>
-                  </td>
+                  <td colspan="6" class="empty-text">加载中...</td>
                 </tr>
               </tbody>
             </table>
@@ -1801,19 +1768,27 @@
     var deliveryNotesLoaded = false;
 
     async function getDeliveryNotesAsync() {
-      try {
-        // 先尝试从API获取
-        var apiNotes = await apiGetDeliveryNotes();
-        if (apiNotes && apiNotes.length > 0) {
-          deliveryNotesCache = apiNotes;
+      // 检查用户是否已登录
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+      // 已登录用户：只从API获取数据
+      if (isLoggedIn) {
+        try {
+          var apiNotes = await apiGetDeliveryNotes();
+          deliveryNotesCache = apiNotes || [];
           deliveryNotesLoaded = true;
-          return apiNotes;
+          console.log('API返回送货单数量:', deliveryNotesCache.length);
+          return deliveryNotesCache;
+        } catch (e) {
+          console.error('API获取送货单失败:', e);
+          deliveryNotesCache = [];
+          deliveryNotesLoaded = true;
+          return [];
         }
-      } catch (e) {
-        console.warn('API获取送货单失败，使用localStorage:', e);
       }
-      
-      // 回退到localStorage
+
+      // 未登录用户：使用localStorage或预置数据
       try {
         var saved = JSON.parse(localStorage.getItem(deliveryNoteStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
@@ -1831,7 +1806,7 @@
       } catch (error) {
         console.error('Error getting delivery notes from localStorage:', error);
       }
-      
+
       console.log('Using default delivery notes:', defaultDeliveryNotes);
       deliveryNotesCache = defaultDeliveryNotes.slice();
       deliveryNotesLoaded = true;
@@ -1843,7 +1818,22 @@
       if (deliveryNotesLoaded && deliveryNotesCache) {
         return deliveryNotesCache;
       }
-      
+
+      // 检查用户是否已登录
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+
+      // 已登录用户：返回空数组，等待异步加载
+      if (isLoggedIn) {
+        if (!deliveryNotesLoaded) {
+          getDeliveryNotesAsync().then(() => {
+            renderDeliveryNotes();
+          });
+        }
+        return deliveryNotesCache || [];
+      }
+
+      // 未登录用户：使用localStorage或预置数据
       try {
         var saved = JSON.parse(localStorage.getItem(deliveryNoteStorageKey) || 'null');
         if (Array.isArray(saved) && saved.length) {
@@ -1858,7 +1848,7 @@
       } catch (error) {
         console.error('Error getting delivery notes from localStorage:', error);
       }
-      
+
       console.log('Using default delivery notes:', defaultDeliveryNotes);
       return defaultDeliveryNotes.slice();
     }
@@ -3726,6 +3716,57 @@
       document.querySelectorAll('.product-checkbox').forEach(function(checkbox) {
         checkbox.addEventListener('change', updateSelectAllCheckbox);
       });
+
+      // 同时更新库存预警
+      renderInventoryAlerts();
+    }
+
+    // 渲染库存预警表格
+    function renderInventoryAlerts() {
+      var tbody = document.getElementById('inventory-alerts-tbody');
+      if (!tbody) return;
+
+      var products = getAllProducts();
+
+      // 过滤出需要预警的商品（库存低于阈值或缺货）
+      var alertProducts = products.filter(function(product) {
+        var stock = product.stock !== undefined ? product.stock : 0;
+        var threshold = product.threshold !== undefined ? product.threshold : 10;
+        return stock < threshold;
+      });
+
+      if (alertProducts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-text">暂无库存预警</td></tr>';
+        return;
+      }
+
+      var html = alertProducts.map(function(product) {
+        var stock = product.stock !== undefined ? product.stock : 0;
+        var threshold = product.threshold !== undefined ? product.threshold : 10;
+        var statusClass = 'status-low-stock';
+        var statusText = '低库存';
+        var buttonText = '补货';
+        if (stock === 0) {
+          statusClass = 'status-out-of-stock';
+          statusText = '缺货';
+          buttonText = '紧急补货';
+        }
+
+        return '<tr>' +
+          '<td>' + (product.code || '') + '</td>' +
+          '<td>' + (product.name || '') + '</td>' +
+          '<td>' + stock + '</td>' +
+          '<td>' + threshold + '</td>' +
+          '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+          '<td>' +
+            '<div class="action-buttons">' +
+              '<button class="btn btn-sm btn-warning">' + buttonText + '</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      tbody.innerHTML = html;
     }
 
     // 全选/取消全选商品

@@ -234,6 +234,23 @@ async function createMySQLTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // 客户表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        contact VARCHAR(50),
+        phone VARCHAR(20),
+        address VARCHAR(255),
+        remark TEXT,
+        user_id VARCHAR(64) NOT NULL,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     // 兼容旧表：按需添加新增字段
     try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_status VARCHAR(20) DEFAULT 'normal'`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_reason TEXT`); } catch(e) {}
@@ -3534,6 +3551,24 @@ if (!data.id) {
   // 获取客户列表：GET /api/customers
   } else if (pathname === '/api/customers' && req.method === 'GET') {
     const userId = parsedUrl.query.userId;
+
+    // 优先从MySQL获取
+    if (mysqlPool) {
+      try {
+        const [customers] = await mysqlPool.execute(
+          'SELECT id, name, contact, phone, address, remark, user_id, create_time, update_time FROM customers WHERE user_id = ? ORDER BY create_time DESC',
+          [userId || '']
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: customers }));
+        return;
+      } catch (e) {
+        console.error('MySQL获取客户列表失败:', e.message);
+      }
+    }
+
+    // 回退到SQLite
     if (!usersDb) {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3554,7 +3589,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.name || !data.userId) {
@@ -3563,21 +3598,41 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户名称和用户ID为必填项' }));
           return;
         }
+
+        const now = new Date().toISOString();
+
+        // 优先写入MySQL
+        if (mysqlPool) {
+          try {
+            const [result] = await mysqlPool.execute(
+              'INSERT INTO customers (name, contact, phone, address, remark, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+              [data.name, data.contact || '', data.phone || '', data.address || '', data.remark || '', data.userId, now, now]
+            );
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, data: { id: result.insertId } }));
+            return;
+          } catch (e) {
+            console.error('MySQL添加客户失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
-        const now = new Date().toISOString();
         const stmt = usersDb.prepare(
-          'INSERT INTO customers (name, contact, phone, address, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)'
+          'INSERT INTO customers (name, contact, phone, address, remark, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
         const result = stmt.run(
           data.name,
           data.contact || '',
           data.phone || '',
           data.address || '',
+          data.remark || '',
           data.userId,
           now,
           now
@@ -3595,7 +3650,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'PUT') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -3604,6 +3659,33 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
           return;
         }
+
+        const now = new Date().toISOString();
+
+        // 优先更新MySQL
+        if (mysqlPool) {
+          try {
+            const updateFields = [];
+            const updateValues = [];
+            if (data.name !== undefined) { updateFields.push('name = ?'); updateValues.push(data.name); }
+            if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
+            if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
+            if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
+            if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
+            updateFields.push('update_time = ?');
+            updateValues.push(now);
+            updateValues.push(data.id);
+            await mysqlPool.execute(`UPDATE customers SET ${updateFields.join(', ')} WHERE id = ?`, updateValues);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, message: '客户更新成功' }));
+            return;
+          } catch (e) {
+            console.error('MySQL更新客户失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3616,8 +3698,9 @@ if (!data.id) {
         if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
         if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
         if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
+        if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
         updateFields.push('update_time = ?');
-        updateValues.push(new Date().toISOString());
+        updateValues.push(now);
         updateValues.push(data.id);
         const stmt = usersDb.prepare(`UPDATE customers SET ${updateFields.join(', ')} WHERE id = ?`);
         stmt.run(...updateValues);
@@ -3634,7 +3717,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'DELETE') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -3643,6 +3726,21 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
           return;
         }
+
+        // 优先从MySQL删除
+        if (mysqlPool) {
+          try {
+            await mysqlPool.execute('DELETE FROM customers WHERE id = ?', [data.id]);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, message: '客户删除成功' }));
+            return;
+          } catch (e) {
+            console.error('MySQL删除客户失败:', e.message);
+          }
+        }
+
+        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');

@@ -1846,13 +1846,15 @@ async function callAliyunOcr(imageBase64, type) {
 
     let result;
     if (type === 'table') {
-      // 表格识别
+      // 表格识别 - 使用body流
       const request = new OcrApi.RecognizeTableOcrRequest({
-        body: imageStream
+        body: imageStream,
+        lineLess: false,
+        skipDetection: false
       });
       result = await client.recognizeTableOcr(request);
     } else {
-      // 通用文字识别
+      // 通用文字识别 - 使用body流
       const request = new OcrApi.RecognizeGeneralRequest({
         body: imageStream
       });
@@ -1860,6 +1862,22 @@ async function callAliyunOcr(imageBase64, type) {
     }
 
     console.log('OCR结果:', JSON.stringify(result).substring(0, 500));
+
+    // 检查是否有错误
+    if (result.statusCode !== 200 || result.body?.Code) {
+      const errMsg = result.body?.Message || result.body?.code || 'OCR服务调用失败';
+      // 检查是否是服务未开通
+      if (errMsg.includes('not activated') || errMsg.includes('notOpen') || result.body?.Code === 'ocrServiceNotOpen') {
+        return {
+          success: false,
+          message: 'OCR服务未开通，请在阿里云控制台开通"文字识别OCR"服务。开通地址：https://ocr.console.aliyun.com/'
+        };
+      }
+      return {
+        success: false,
+        message: errMsg
+      };
+    }
 
     if (result.body && result.body.Data) {
       if (type === 'table') {
@@ -1888,9 +1906,17 @@ async function callAliyunOcr(imageBase64, type) {
     }
   } catch (e) {
     console.error('OCR识别错误:', e);
+    const errMsg = e.message || e.toString();
+    // 检查是否是服务未开通
+    if (errMsg.includes('not activated') || errMsg.includes('notOpen') || errMsg.includes('ocrServiceNotOpen')) {
+      return {
+        success: false,
+        message: 'OCR服务未开通，请在阿里云控制台开通"文字识别OCR"服务。开通地址：https://ocr.console.aliyun.com/'
+      };
+    }
     return {
       success: false,
-      message: 'OCR识别失败: ' + (e.message || e.toString())
+      message: 'OCR识别失败: ' + errMsg
     };
   }
 }

@@ -810,9 +810,8 @@ window.exportSingleDeliveryNote = function(index) {
       ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
     </div>
     <div class="info">
-      <p><strong>送货日期：</strong>${note.date || ''}</p>
+      <p><strong>制单日期：</strong>${note.date || ''}</p>
       <p><strong>送货地址：</strong>${note.address || '-'}</p>
-      <p><strong>状态：</strong>${note.status || '待送达'}</p>
     </div>
   </div>
   <table class="items-table">
@@ -844,6 +843,7 @@ window.exportSingleDeliveryNote = function(index) {
     <div class="signature-box"><div class="line">收货人签字</div></div>
     <div class="signature-box"><div class="line">送货人签字</div></div>
   </div>
+  <div style="text-align:right;margin-top:20px;font-size:10px;">送货日期：____年____月____日</div>
 </body>
 </html>
   `;
@@ -883,7 +883,7 @@ window.printDeliveryNote = function(index) {
           <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
         </div>
         <div class="info">
-          <p><strong>送货日期：</strong>${note.date || ''}</p>
+          <p><strong>制单日期：</strong>${note.date || ''}</p>
           <p><strong>送货地址：</strong>${note.address || '-'}</p>
         </div>
       </div>
@@ -917,7 +917,7 @@ window.printDeliveryNote = function(index) {
         <div class="signature-box" style="text-align:center;"><div class="line">送货人签字</div></div>
         <div style="width:120px;"></div>
       </div>
-      <div style="text-align:right;margin-top:20px;font-size:10px;white-space:nowrap;">打印日期：${printDate}</div>
+      <div style="text-align:right;margin-top:20px;font-size:10px;white-space:nowrap;">送货日期：____年____月____日</div>
     </div>
   `;
 

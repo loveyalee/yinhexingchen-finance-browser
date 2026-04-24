@@ -6,6 +6,24 @@ var deliveryNoteStorageKey = 'deliveryNotes';
 var deliveryNotesCache = null;
 var deliveryNotesLoaded = false;
 
+// ==================== 检查登录状态 ====================
+function checkLoginStatus() {
+  try {
+    var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (!userInfo.isLoggedIn || !userInfo.id) {
+      console.log('用户未登录，跳转到登录页面');
+      alert('请先登录');
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('检查登录状态失败:', e);
+    window.location.href = 'login.html';
+    return false;
+  }
+}
+
 // ==================== API调用辅助函数 ====================
 function getCurrentUserId() {
   try {
@@ -904,6 +922,10 @@ window.printDeliveryNote = function(index) {
 // 页面初始化
 document.addEventListener('DOMContentLoaded', async function() {
   try {
+    // 检查登录状态
+    if (!checkLoginStatus()) {
+      return;
+    }
     await getAllDeliveryNotesAsync();
     renderDeliveryNotesTable();
   } catch (e) {

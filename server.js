@@ -1809,86 +1809,124 @@ async function callAliyunOcr(imageBase64, type) {
   if (!accessKeyId || !accessKeySecret) {
     return {
       success: false,
-      message: 'OCR服务未配置，请联系管理员配置阿里云OCR密钥（ALIYUN_OCR_ACCESS_KEY_ID 和 ALIYUN_OCR_ACCESS_KEY_SECRET）'
+      message: 'OCR服务未配置，请联系管理员配置阿里云OCR密钥'
     };
   }
 
   return new Promise((resolve, reject) => {
-    const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    // 使用阿里云OCR API (视觉智能开放平台)
+    const endpoint = 'ocr-api.cn-hangzhou.aliyuncs.com';
+    const apiVersion = '2021-07-07';
+    const action = type === 'table' ? 'RecognizeTable' : 'RecognizeGeneral';
+
+    const timestamp = new Date().toISOString();
     const nonce = Math.random().toString(36).substring(2);
 
-    const params = {
-      Format: 'JSON',
-      Version: '2021-07-07',
-      AccessKeyId: accessKeyId,
-      SignatureMethod: 'HMAC-SHA1',
-      Timestamp: timestamp,
-      SignatureVersion: '1.0',
-      SignatureNonce: nonce,
-      Action: type === 'table' ? 'RecognizeTable' : 'RecognizeGeneral',
-      ImageURL: '', // 使用Base64
+    // 构造请求体
+    const requestBody = JSON.stringify({
       ImageBase64: imageBase64
-    };
+    });
 
     // 构造签名字符串
+    const params = {
+      Action: action,
+      Format: 'JSON',
+      Version: apiVersion,
+      AccessKeyId: accessKeyId,
+      SignatureMethod: 'HMAC-SHA1',
+      SignatureVersion: '1.0',
+      SignatureNonce: nonce,
+      Timestamp: timestamp
+    };
+
     const sortedKeys = Object.keys(params).sort();
     const canonicalizedQueryString = sortedKeys.map(key => {
       return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
     }).join('&');
 
-    const stringToSign = 'GET&%2F&' + encodeURIComponent(canonicalizedQueryString);
+    const stringToSign = 'POST&%2F&' + encodeURIComponent(canonicalizedQueryString);
 
     // 计算签名
     const hmac = crypto.createHmac('sha1', accessKeySecret + '&');
     hmac.update(stringToSign);
     const signature = hmac.digest('base64');
 
+    const path = '/?' + canonicalizedQueryString + '&Signature=' + encodeURIComponent(signature);
+
     const requestOptions = {
-      hostname: 'ocr-api.cn-hangzhou.aliyuncs.com',
+      hostname: endpoint,
       port: 443,
-      path: '/?' + canonicalizedQueryString + '&Signature=' + encodeURIComponent(signature),
-      method: 'GET'
+      path: path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(requestBody)
+      }
     };
 
     const req = https.request(requestOptions, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
+        console.log('OCR API响应:', data.substring(0, 500));
         try {
+          // 检查是否是HTML响应
+          if (data.trim().startsWith('<') || data.trim().startsWith('<!')) {
+            resolve({
+              success: false,
+              message: 'OCR服务请求失败，请检查API配置或联系管理员'
+            });
+            return;
+          }
+
           const result = JSON.parse(data);
+
           if (result.Code || result.code) {
             resolve({
               success: false,
               message: result.Message || result.message || 'OCR识别失败'
             });
+            return;
+          }
+
+          // 解析OCR结果
+          if (type === 'table') {
+            const tables = result.Data?.Tables || [];
+            const tableData = tables.map(t => t.TableBody || []);
+            resolve({
+              success: true,
+              type: 'table',
+              tables: tableData,
+              text: JSON.stringify(tableData)
+            });
           } else {
-            // 解析OCR结果
-            if (type === 'table') {
-              const tables = result.Data?.Tables || [];
-              const tableData = tables.map(t => t.TableBody || []);
-              resolve({
-                success: true,
-                type: 'table',
-                tables: tableData,
-                text: JSON.stringify(tableData)
-              });
-            } else {
-              const blocks = result.Data?.BlockList || [];
-              const text = blocks.map(b => b.Content || b.Text || '').join('\n');
-              resolve({
-                success: true,
-                type: 'text',
-                text: text
-              });
-            }
+            const blocks = result.Data?.BlockList || [];
+            const text = blocks.map(b => b.Content || b.Text || '').join('\n');
+            resolve({
+              success: true,
+              type: 'text',
+              text: text
+            });
           }
         } catch (e) {
-          reject(e);
+          console.error('OCR解析错误:', e.message, '响应:', data.substring(0, 200));
+          resolve({
+            success: false,
+            message: 'OCR结果解析失败: ' + e.message
+          });
         }
       });
     });
 
-    req.on('error', reject);
+    req.on('error', (e) => {
+      console.error('OCR请求错误:', e);
+      resolve({
+        success: false,
+        message: 'OCR服务连接失败: ' + e.message
+      });
+    });
+
+    req.write(requestBody);
     req.end();
   });
 }

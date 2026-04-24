@@ -844,7 +844,7 @@ window.exportSingleDeliveryNote = function(index) {
   document.body.removeChild(link);
 };
 
-// 打印送货单
+// 打印送货单 - 模态框预览
 window.printDeliveryNote = function(index) {
   var notes = getAllDeliveryNotes();
   var note = notes[index];
@@ -855,102 +855,107 @@ window.printDeliveryNote = function(index) {
 
   var totalAmount = calcNoteTotal(note.items);
 
-  var printContent = `
+  var previewHtml = `
+    <div class="a4-preview">
+      <div class="header"><h1>送 货 单</h1></div>
+      <div class="info-section">
+        <div class="info">
+          <p><strong>送货单号：</strong>${note.no || ''}</p>
+          <p><strong>客户名称：</strong>${note.customer || ''}</p>
+          <p><strong>联系人：</strong>${note.contact || '-'}</p>
+          ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
+        </div>
+        <div class="info">
+          <p><strong>送货日期：</strong>${note.date || ''}</p>
+          <p><strong>送货地址：</strong>${note.address || '-'}</p>
+          <p><strong>状态：</strong>${note.status || '待送达'}</p>
+        </div>
+      </div>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:22px;">序号</th>
+            <th style="width:70px;">商品名称</th>
+            <th style="width:40px;">型号</th>
+            <th style="width:30px;">长度</th>
+            <th style="width:30px;">瓦数</th>
+            <th style="width:40px;">单/双亮</th>
+            <th style="width:50px;">感应模式</th>
+            <th style="width:25px;">数量</th>
+            <th style="width:25px;">单位</th>
+            <th style="width:45px;">单价</th>
+            <th style="width:50px;">小计</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(note.items || []).map(function(item, i) {
+            var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+            return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+          }).join('')}
+        </tbody>
+      </table>
+      <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
+      ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+      <div class="footer">
+        <div class="signature-box"><div class="line">收货人签字</div></div>
+        <div class="signature-box"><div class="line">送货人签字</div></div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('print-preview-content').innerHTML = previewHtml;
+  document.getElementById('print-preview-modal').classList.add('show');
+};
+
+// 关闭打印预览
+window.closePrintPreview = function() {
+  document.getElementById('print-preview-modal').classList.remove('show');
+};
+
+// 执行打印
+window.doPrint = function() {
+  var content = document.getElementById('print-preview-content').innerHTML;
+  var printWindow = window.open('', '_blank');
+  printWindow.document.write(`
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>送货单 - ${note.no || ''}</title>
+  <title>送货单打印</title>
   <style>
-    @page {
-      size: A4 portrait;
-      margin: 10mm;
+    @page { size: A4 portrait; margin: 10mm; }
+    body { margin: 0; padding: 0; }
+    .a4-preview {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 10mm;
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+      box-sizing: border-box;
     }
-    @media print {
-      body { margin: 0; }
-      .no-print { display: none !important; }
-      @page { size: A4 portrait; margin: 10mm; }
-    }
-    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; line-height: 1.5; font-size: 12px; }
-    .header { text-align: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #333; }
-    .header h1 { font-size: 18px; color: #333; margin: 0; }
-    .info-section { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .info-section .info { font-size: 11px; }
-    .info-section .info p { margin: 2px 0; }
-    .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; table-layout: fixed; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 3px 2px; text-align: center; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .items-table .col-no { width: 22px; }
-    .items-table .col-name { width: 70px; }
-    .items-table .col-model { width: 40px; }
-    .items-table .col-length { width: 30px; }
-    .items-table .col-wattage { width: 30px; }
-    .items-table .col-brightness { width: 40px; }
-    .items-table .col-sensor { width: 50px; }
-    .items-table .col-qty { width: 25px; }
-    .items-table .col-unit { width: 25px; }
-    .items-table .col-price { width: 45px; }
-    .items-table .col-subtotal { width: 50px; }
-    .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
-    .total-section .amount { color: #e74c3c; }
-    .remark-section { margin-top: 8px; font-size: 10px; }
-    .footer { margin-top: 25px; display: flex; justify-content: space-between; }
-    .signature-box { width: 100px; text-align: center; font-size: 10px; }
-    .signature-box .line { border-top: 1px solid #333; margin-top: 25px; padding-top: 2px; }
-    .print-btn { position: fixed; top: 15px; right: 15px; padding: 8px 16px; background: #1a65b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .a4-preview .header { text-align: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #333; }
+    .a4-preview .header h1 { font-size: 18px; color: #333; margin: 0; }
+    .a4-preview .info-section { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .a4-preview .info-section .info { font-size: 11px; }
+    .a4-preview .info-section .info p { margin: 2px 0; }
+    .a4-preview .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; table-layout: fixed; }
+    .a4-preview .items-table th, .a4-preview .items-table td { border: 1px solid #333; padding: 3px 2px; text-align: center; font-size: 10px; }
+    .a4-preview .items-table th { background-color: #f5f5f5; font-weight: 600; }
+    .a4-preview .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
+    .a4-preview .total-section .amount { color: #e74c3c; }
+    .a4-preview .remark-section { margin-top: 8px; font-size: 10px; }
+    .a4-preview .footer { margin-top: 25px; display: flex; justify-content: space-between; }
+    .a4-preview .signature-box { width: 100px; text-align: center; font-size: 10px; }
+    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 25px; padding-top: 2px; }
   </style>
 </head>
 <body>
-  <button class="print-btn no-print" onclick="window.print()">打印</button>
-  <div class="header"><h1>送 货 单</h1></div>
-  <div class="info-section">
-    <div class="info">
-      <p><strong>送货单号：</strong>${note.no || ''}</p>
-      <p><strong>客户名称：</strong>${note.customer || ''}</p>
-      <p><strong>联系人：</strong>${note.contact || '-'}</p>
-      ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
-    </div>
-    <div class="info">
-      <p><strong>送货日期：</strong>${note.date || ''}</p>
-      <p><strong>送货地址：</strong>${note.address || '-'}</p>
-      <p><strong>状态：</strong>${note.status || '待送达'}</p>
-    </div>
-  </div>
-  <table class="items-table">
-    <thead>
-      <tr>
-        <th class="col-no">序号</th>
-        <th class="col-name">商品名称</th>
-        <th class="col-model">型号</th>
-        <th class="col-length">长度</th>
-        <th class="col-wattage">瓦数</th>
-        <th class="col-brightness">单/双亮</th>
-        <th class="col-sensor">感应模式</th>
-        <th class="col-qty">数量</th>
-        <th class="col-unit">单位</th>
-        <th class="col-price">单价</th>
-        <th class="col-subtotal">小计</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${(note.items || []).map(function(item, i) {
-        var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
-      }).join('')}
-    </tbody>
-  </table>
-  <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
-  ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
-  <div class="footer">
-    <div class="signature-box"><div class="line">收货人签字</div></div>
-    <div class="signature-box"><div class="line">送货人签字</div></div>
-  </div>
+  ${content}
+  <script>window.onload = function() { window.print(); window.close(); }</script>
 </body>
 </html>
-  `;
-
-  var printWindow = window.open('', '_blank');
-  printWindow.document.write(printContent);
+  `);
   printWindow.document.close();
 };
 

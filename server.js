@@ -206,6 +206,7 @@ async function createMySQLTables() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         order_no VARCHAR(50) NOT NULL,
         customer_name VARCHAR(100) NOT NULL,
+        project_name VARCHAR(100),
         customer_phone VARCHAR(20),
         customer_address VARCHAR(255),
         contact_name VARCHAR(50),
@@ -224,6 +225,7 @@ async function createMySQLTables() {
     // 兼容旧表：添加新字段
     try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN contact_name VARCHAR(50)`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN remark TEXT`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN project_name VARCHAR(100)`); } catch(e) {}
 
     // 送货单明细表
     await conn.execute(`
@@ -3802,6 +3804,7 @@ if (!data.id) {
             id: order.id,
             no: order.order_no,
             customer: order.customer_name,
+            project: order.project_name || '',
             contact: order.contact_name || '',
             contact_phone: order.customer_phone || '',
             date: order.delivery_date.toISOString().split('T')[0],
@@ -3884,11 +3887,12 @@ if (!data.id) {
 
               // 插入送货单主表
               const [orderResult] = await conn.execute(
-                `INSERT INTO delivery_orders (order_no, customer_name, customer_phone, customer_address, contact_name, remark, delivery_date, total_amount, status, user_id, create_time, update_time)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO delivery_orders (order_no, customer_name, project_name, customer_phone, customer_address, contact_name, remark, delivery_date, total_amount, status, user_id, create_time, update_time)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                   orderNo,
                   data.customer,
+                  data.project || '',
                   data.contactPhone || '',
                   data.address || '',
                   data.contact || '',
@@ -4017,6 +4021,7 @@ if (!data.id) {
               if (data.customer !== undefined) { updateFields.push('customer_name = ?'); updateValues.push(data.customer); }
               if (data.contactPhone !== undefined) { updateFields.push('customer_phone = ?'); updateValues.push(data.contactPhone); }
               if (data.address !== undefined) { updateFields.push('customer_address = ?'); updateValues.push(data.address); }
+              if (data.project !== undefined) { updateFields.push('project_name = ?'); updateValues.push(data.project); }
               if (data.contact !== undefined) { updateFields.push('contact_name = ?'); updateValues.push(data.contact); }
               if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
               if (data.date !== undefined) { updateFields.push('delivery_date = ?'); updateValues.push(data.date); }

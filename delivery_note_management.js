@@ -148,7 +148,7 @@ function renderDeliveryNotesTable() {
   console.log('渲染送货单表格，数据数量:', notes.length);
 
   if (notes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="18" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
     return;
   }
 
@@ -163,8 +163,9 @@ function renderDeliveryNotesTable() {
         '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>' +
         '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>' +
         '<td>' + (note.customer || '') + '</td>' +
-        '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
-        '<td>' + (note.address || '') + '</td>' +
+        '<td>' + (note.project || '') + '</td>' +
+        '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
+        '<td style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>' +
         '<td>' + (note.date || '') + '</td>' +
         '<td>' + (note.contact || '') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
@@ -189,6 +190,7 @@ function renderDeliveryNotesTable() {
           html += '<td' + rowSpan + '><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>';
           html += '<td' + rowSpan + ' class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.customer || '') + '</td>';
+          html += '<td' + rowSpan + '>' + (note.project || '') + '</td>';
         }
 
         // 商品明细列
@@ -205,7 +207,7 @@ function renderDeliveryNotesTable() {
 
         // 只在第一行显示送货地址、送货日期、联系人、状态、操作
         if (itemIndex === 0) {
-          html += '<td' + rowSpan + '>' + (note.address || '') + '</td>';
+          html += '<td' + rowSpan + ' style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.date || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.contact || '') + '</td>';
           html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
@@ -249,6 +251,7 @@ window.openAddDeliveryNoteModal = function() {
   document.getElementById('delivery-note-modal-title').textContent = '新增送货单';
   document.getElementById('delivery-note-edit-id').value = '';
   document.getElementById('delivery-customer').value = '';
+  document.getElementById('delivery-project').value = '';
   document.getElementById('delivery-contact').value = '';
   document.getElementById('delivery-phone').value = '';
   document.getElementById('delivery-date').value = new Date().toISOString().split('T')[0];
@@ -270,6 +273,7 @@ window.openEditDeliveryNoteModal = function(index) {
   document.getElementById('delivery-note-modal-title').textContent = '编辑送货单';
   document.getElementById('delivery-note-edit-id').value = note.id || '';
   document.getElementById('delivery-customer').value = note.customer || '';
+  document.getElementById('delivery-project').value = note.project || '';
   document.getElementById('delivery-contact').value = note.contact || '';
   document.getElementById('delivery-phone').value = note.contactPhone || '';
   document.getElementById('delivery-date').value = note.date || '';
@@ -469,6 +473,7 @@ function updateDeliveryTotal() {
 window.saveDeliveryNote = async function() {
   var editId = document.getElementById('delivery-note-edit-id').value;
   var customer = document.getElementById('delivery-customer').value.trim();
+  var project = document.getElementById('delivery-project').value.trim();
   var contact = document.getElementById('delivery-contact').value.trim();
   var phone = document.getElementById('delivery-phone').value.trim();
   var date = document.getElementById('delivery-date').value;
@@ -517,6 +522,7 @@ window.saveDeliveryNote = async function() {
   var noteData = {
     no: generateDeliveryNoteNo(),
     customer: customer,
+    project: project,
     contact: contact,
     contactPhone: phone,
     date: date,
@@ -641,6 +647,7 @@ window.copyDeliveryNote = async function(index) {
   var newNote = {
     no: generateDeliveryNoteNo(),
     customer: note.customer,
+    project: note.project,
     contact: note.contact,
     contactPhone: note.contactPhone,
     date: new Date().toISOString().split('T')[0],
@@ -870,6 +877,7 @@ window.printDeliveryNote = function(index) {
         <div class="info">
           <p><strong>送货单号：</strong>${note.no || ''}</p>
           <p><strong>客户名称：</strong>${note.customer || ''}</p>
+          <p><strong>项目楼盘：</strong>${note.project || '-'}</p>
           <p><strong>联系人：</strong>${note.contact || '-'}</p>
           ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
         </div>

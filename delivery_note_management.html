@@ -445,6 +445,7 @@
               <th style="width:30px;"><input type="checkbox" id="select-all-delivery-notes" onclick="toggleSelectAllDeliveryNotes()"></th>
               <th>送货单号</th>
               <th>客户名称</th>
+              <th>项目楼盘</th>
               <th>商品名称</th>
               <th>型号</th>
               <th>长度</th>
@@ -455,7 +456,7 @@
               <th>单位</th>
               <th>单价</th>
               <th>小计</th>
-              <th>送货地址</th>
+              <th style="max-width:100px;">送货地址</th>
               <th>送货日期</th>
               <th>联系人</th>
               <th>状态</th>
@@ -482,6 +483,10 @@
           <div class="form-group">
             <label>客户名称 <span style="color:#e74c3c;">*</span></label>
             <input type="text" id="delivery-customer" placeholder="请输入客户名称">
+          </div>
+          <div class="form-group">
+            <label>项目楼盘</label>
+            <input type="text" id="delivery-project" placeholder="请输入项目楼盘">
           </div>
           <div class="form-group">
             <label>联系人</label>

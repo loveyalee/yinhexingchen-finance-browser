@@ -169,6 +169,7 @@ function renderDeliveryNotesTable() {
         '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
         '<td>' +
           '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
+          '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + noteIndex + ')">导出</button> ' +
           '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + noteIndex + ')">打印</button> ' +
           '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + noteIndex + ')">复制</button> ' +
           '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + noteIndex + ')">删除</button>' +
@@ -208,6 +209,7 @@ function renderDeliveryNotesTable() {
           html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
           html += '<td' + rowSpan + '>' +
             '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
+            '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + noteIndex + ')">导出</button> ' +
             '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + noteIndex + ')">打印</button> ' +
             '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + noteIndex + ')">复制</button> ' +
             '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + noteIndex + ')">删除</button>' +

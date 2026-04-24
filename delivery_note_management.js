@@ -10,8 +10,11 @@ var deliveryNotesLoaded = false;
 function getCurrentUserId() {
   try {
     var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    console.log('当前用户信息:', userInfo);
+    console.log('用户ID:', userInfo.id);
     return userInfo.id || '';
   } catch (e) {
+    console.error('获取用户ID失败:', e);
     return '';
   }
 }
@@ -19,8 +22,10 @@ function getCurrentUserId() {
 async function apiGetDeliveryNotes() {
   try {
     var userId = getCurrentUserId();
+    console.log('请求送货单API，用户ID:', userId);
     var response = await fetch('/api/delivery-notes?userId=' + encodeURIComponent(userId));
     var data = await response.json();
+    console.log('API响应:', data);
     if (data.success) {
       return data.data;
     }

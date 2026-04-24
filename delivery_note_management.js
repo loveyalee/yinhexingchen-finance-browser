@@ -895,9 +895,6 @@ window.printDeliveryNote = function(index) {
 </body>
 </html>
   `;
-</body>
-</html>
-  `;
 
   var printWindow = window.open('', '_blank');
   printWindow.document.write(printContent);

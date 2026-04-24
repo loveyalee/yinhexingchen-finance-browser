@@ -857,9 +857,13 @@ window.printDeliveryNote = function(index) {
 
   var totalAmount = calcNoteTotal(note.items);
 
+  // 获取当前打印日期
+  var today = new Date();
+  var printDate = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
+
   var previewHtml = `
     <div class="a4-preview">
-      <div class="header"><h1>送 货 单</h1></div>
+      <div class="header"><h1 style="text-align:center;">送 货 单</h1></div>
       <div class="info-section">
         <div class="info">
           <p><strong>送货单号：</strong>${note.no || ''}</p>
@@ -900,8 +904,8 @@ window.printDeliveryNote = function(index) {
       ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
       <div class="footer">
         <div class="signature-box"><div class="line">收货人签字</div></div>
-        <div class="date-box"><div class="line">日期：____年____月____日</div></div>
         <div class="signature-box"><div class="line">送货人签字</div></div>
+        <div class="signature-box"><div class="line">打印日期</div><div style="margin-top:5px;">${printDate}</div></div>
       </div>
     </div>
   `;

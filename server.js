@@ -1803,8 +1803,8 @@ function callWechatAPI(apiPath, xmlBody) {
 // 阿里云OCR API调用
 // ============================================================
 async function callAliyunOcr(imageBase64, type) {
-  const accessKeyId = process.env.ALIYUN_OCR_ACCESS_KEY_ID || process.env.ALIYUN_ACCESS_KEY_ID || '';
-  const accessKeySecret = process.env.ALIYUN_OCR_ACCESS_KEY_SECRET || process.env.ALIYUN_ACCESS_KEY_SECRET || '';
+  const accessKeyId = process.env.ALIYUN_OCR_ACCESS_KEY_ID || process.env.ALIYUN_ACCESS_KEY_ID || process.env.ALIYUN_SMS_ACCESS_KEY_ID || '';
+  const accessKeySecret = process.env.ALIYUN_OCR_ACCESS_KEY_SECRET || process.env.ALIYUN_ACCESS_KEY_SECRET || process.env.ALIYUN_SMS_ACCESS_KEY_SECRET || '';
 
   if (!accessKeyId || !accessKeySecret) {
     return {

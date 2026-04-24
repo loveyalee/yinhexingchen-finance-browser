@@ -148,7 +148,7 @@ function renderDeliveryNotesTable() {
   console.log('渲染送货单表格，数据数量:', notes.length);
 
   if (notes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="19" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="20" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
     return;
   }
 
@@ -162,12 +162,13 @@ function renderDeliveryNotesTable() {
       html += '<tr>' +
         '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>' +
         '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>' +
-        '<td>' + (note.customer || '') + '</td>' +
+        '<td style="max-width:80px;word-wrap:break-word;word-break:break-all;">' + (note.customer || '') + '</td>' +
         '<td>' + (note.project || '') + '</td>' +
         '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
         '<td style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>' +
         '<td>' + (note.date || '') + '</td>' +
         '<td>' + (note.contact || '') + '</td>' +
+        '<td>' + (note.contactPhone || '') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
         '<td>' +
           '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
@@ -189,7 +190,7 @@ function renderDeliveryNotesTable() {
         if (itemIndex === 0) {
           html += '<td' + rowSpan + '><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>';
           html += '<td' + rowSpan + ' class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>';
-          html += '<td' + rowSpan + '>' + (note.customer || '') + '</td>';
+          html += '<td' + rowSpan + ' style="max-width:80px;word-wrap:break-word;word-break:break-all;">' + (note.customer || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.project || '') + '</td>';
         }
 
@@ -205,11 +206,12 @@ function renderDeliveryNotesTable() {
         html += '<td>' + (item.price ? '¥' + parseFloat(item.price).toFixed(2) : '') + '</td>';
         html += '<td>' + (subtotal > 0 ? '¥' + subtotal.toFixed(2) : '') + '</td>';
 
-        // 只在第一行显示送货地址、送货日期、联系人、状态、操作
+        // 只在第一行显示送货地址、送货日期、联系人、联系电话、状态、操作
         if (itemIndex === 0) {
           html += '<td' + rowSpan + ' style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.date || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.contact || '') + '</td>';
+          html += '<td' + rowSpan + '>' + (note.contactPhone || '') + '</td>';
           html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
           html += '<td' + rowSpan + '>' +
             '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +

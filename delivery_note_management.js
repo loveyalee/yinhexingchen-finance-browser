@@ -900,6 +900,7 @@ window.printDeliveryNote = function(index) {
       ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
       <div class="footer">
         <div class="signature-box"><div class="line">收货人签字</div></div>
+        <div class="date-box"><div class="line">日期：____年____月____日</div></div>
         <div class="signature-box"><div class="line">送货人签字</div></div>
       </div>
     </div>
@@ -947,9 +948,11 @@ window.doPrint = function() {
     .a4-preview .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
     .a4-preview .total-section .amount { color: #e74c3c; }
     .a4-preview .remark-section { margin-top: 8px; font-size: 10px; }
-    .a4-preview .footer { margin-top: 25px; display: flex; justify-content: space-between; }
-    .a4-preview .signature-box { width: 100px; text-align: center; font-size: 10px; }
-    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 25px; padding-top: 2px; }
+    .a4-preview .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .a4-preview .signature-box { width: 120px; text-align: center; font-size: 10px; }
+    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 30px; padding-top: 3px; }
+    .a4-preview .date-box { text-align: center; font-size: 10px; }
+    .a4-preview .date-box .line { margin-top: 30px; padding-top: 3px; }
   </style>
 </head>
 <body>

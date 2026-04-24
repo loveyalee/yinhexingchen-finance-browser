@@ -40,6 +40,13 @@ try {
   console.warn('阿里云短信 SDK 未安装，短信将保持测试模式:', e.message);
 }
 
+let OcrApi;
+try {
+  OcrApi = require('@alicloud/ocr-api20210707');
+} catch (e) {
+  console.warn('阿里云OCR SDK 未安装:', e.message);
+}
+
 // ============================================================
 // 蜻蜓Chat 内存存储（备用方案）
 // ============================================================
@@ -1813,122 +1820,72 @@ async function callAliyunOcr(imageBase64, type) {
     };
   }
 
-  return new Promise((resolve, reject) => {
-    // 使用阿里云OCR API (视觉智能开放平台)
-    const endpoint = 'ocr-api.cn-hangzhou.aliyuncs.com';
-    const apiVersion = '2021-07-07';
-    const action = type === 'table' ? 'RecognizeTable' : 'RecognizeGeneral';
+  if (!OcrApi) {
+    return {
+      success: false,
+      message: 'OCR SDK未安装，请联系管理员安装@alicloud/ocr-api20210707'
+    };
+  }
 
-    const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2);
-
-    // 构造请求体
-    const requestBody = JSON.stringify({
-      ImageBase64: imageBase64
+  try {
+    // 创建OCR客户端
+    const config = new OpenApi.Config({
+      accessKeyId: accessKeyId,
+      accessKeySecret: accessKeySecret,
+      endpoint: 'ocr-api.cn-hangzhou.aliyuncs.com'
     });
 
-    // 构造签名字符串
-    const params = {
-      Action: action,
-      Format: 'JSON',
-      Version: apiVersion,
-      AccessKeyId: accessKeyId,
-      SignatureMethod: 'HMAC-SHA1',
-      SignatureVersion: '1.0',
-      SignatureNonce: nonce,
-      Timestamp: timestamp
-    };
+    const client = new OcrApi(config);
 
-    const sortedKeys = Object.keys(params).sort();
-    const canonicalizedQueryString = sortedKeys.map(key => {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-    }).join('&');
+    let result;
+    if (type === 'table') {
+      // 表格识别
+      const request = new OcrApi.RecognizeTableRequest({
+        body: imageBase64
+      });
+      result = await client.recognizeTable(request);
+    } else {
+      // 通用文字识别
+      const request = new OcrApi.RecognizeGeneralRequest({
+        body: imageBase64
+      });
+      result = await client.recognizeGeneral(request);
+    }
 
-    const stringToSign = 'POST&%2F&' + encodeURIComponent(canonicalizedQueryString);
+    console.log('OCR结果:', JSON.stringify(result).substring(0, 500));
 
-    // 计算签名
-    const hmac = crypto.createHmac('sha1', accessKeySecret + '&');
-    hmac.update(stringToSign);
-    const signature = hmac.digest('base64');
-
-    const path = '/?' + canonicalizedQueryString + '&Signature=' + encodeURIComponent(signature);
-
-    const requestOptions = {
-      hostname: endpoint,
-      port: 443,
-      path: path,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(requestBody)
+    if (result.body && result.body.Data) {
+      if (type === 'table') {
+        const tables = result.body.Data.Tables || [];
+        const tableData = tables.map(t => t.TableBody || []);
+        return {
+          success: true,
+          type: 'table',
+          tables: tableData,
+          text: JSON.stringify(tableData)
+        };
+      } else {
+        const blocks = result.body.Data.BlockList || [];
+        const text = blocks.map(b => b.Content || b.Text || '').join('\n');
+        return {
+          success: true,
+          type: 'text',
+          text: text
+        };
       }
-    };
-
-    const req = https.request(requestOptions, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        console.log('OCR API响应:', data.substring(0, 500));
-        try {
-          // 检查是否是HTML响应
-          if (data.trim().startsWith('<') || data.trim().startsWith('<!')) {
-            resolve({
-              success: false,
-              message: 'OCR服务请求失败，请检查API配置或联系管理员'
-            });
-            return;
-          }
-
-          const result = JSON.parse(data);
-
-          if (result.Code || result.code) {
-            resolve({
-              success: false,
-              message: result.Message || result.message || 'OCR识别失败'
-            });
-            return;
-          }
-
-          // 解析OCR结果
-          if (type === 'table') {
-            const tables = result.Data?.Tables || [];
-            const tableData = tables.map(t => t.TableBody || []);
-            resolve({
-              success: true,
-              type: 'table',
-              tables: tableData,
-              text: JSON.stringify(tableData)
-            });
-          } else {
-            const blocks = result.Data?.BlockList || [];
-            const text = blocks.map(b => b.Content || b.Text || '').join('\n');
-            resolve({
-              success: true,
-              type: 'text',
-              text: text
-            });
-          }
-        } catch (e) {
-          console.error('OCR解析错误:', e.message, '响应:', data.substring(0, 200));
-          resolve({
-            success: false,
-            message: 'OCR结果解析失败: ' + e.message
-          });
-        }
-      });
-    });
-
-    req.on('error', (e) => {
-      console.error('OCR请求错误:', e);
-      resolve({
+    } else {
+      return {
         success: false,
-        message: 'OCR服务连接失败: ' + e.message
-      });
-    });
-
-    req.write(requestBody);
-    req.end();
-  });
+        message: 'OCR识别结果为空'
+      };
+    }
+  } catch (e) {
+    console.error('OCR识别错误:', e);
+    return {
+      success: false,
+      message: 'OCR识别失败: ' + (e.message || e.toString())
+    };
+  }
 }
 
 // 加载订单数据

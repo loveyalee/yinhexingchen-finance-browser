@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 
 function loadEnvFile(envFilePath) {
   if (!fs.existsSync(envFilePath)) return;
@@ -1839,17 +1840,21 @@ async function callAliyunOcr(imageBase64, type) {
 
     const client = new OcrApiClient(config);
 
+    // 将base64转换为Buffer，然后创建Readable流
+    const imageBuffer = Buffer.from(imageBase64, 'base64');
+    const imageStream = Readable.from(imageBuffer);
+
     let result;
     if (type === 'table') {
       // 表格识别
       const request = new OcrApi.RecognizeTableOcrRequest({
-        body: imageBase64
+        body: imageStream
       });
       result = await client.recognizeTableOcr(request);
     } else {
       // 通用文字识别
       const request = new OcrApi.RecognizeGeneralRequest({
-        body: imageBase64
+        body: imageStream
       });
       result = await client.recognizeGeneral(request);
     }

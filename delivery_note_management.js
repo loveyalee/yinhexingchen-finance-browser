@@ -948,48 +948,6 @@ window.printDeliveryNote = function(index) {
 </body>
 </html>
   `;
-      <p><strong>客户名称：</strong>${note.customer || ''}</p>
-      <p><strong>联系人：</strong>${note.contact || '-'}</p>
-      ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
-    </div>
-    <div class="info">
-      <p><strong>送货日期：</strong>${note.date || ''}</p>
-      <p><strong>送货地址：</strong>${note.address || '-'}</p>
-      <p><strong>状态：</strong>${note.status || '待送达'}</p>
-    </div>
-  </div>
-  <table class="items-table">
-    <thead>
-      <tr>
-        <th class="col-no">序号</th>
-        <th class="col-name">商品名称</th>
-        <th class="col-model">型号</th>
-        <th class="col-length">长度</th>
-        <th class="col-wattage">瓦数</th>
-        <th class="col-brightness">单/双亮</th>
-        <th class="col-sensor">感应模式</th>
-        <th class="col-qty">数量</th>
-        <th class="col-unit">单位</th>
-        <th class="col-price">单价</th>
-        <th class="col-subtotal">小计</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${(note.items || []).map(function(item, i) {
-        var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-        return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
-      }).join('')}
-    </tbody>
-  </table>
-  <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
-  ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
-  <div class="footer">
-    <div class="signature-box"><div class="line">收货人签字</div></div>
-    <div class="signature-box"><div class="line">送货人签字</div></div>
-  </div>
-</body>
-</html>
-  `;
 
   var printWindow = window.open('', '_blank');
   printWindow.document.write(printContent);

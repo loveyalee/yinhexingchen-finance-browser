@@ -41,8 +41,10 @@ try {
 }
 
 let OcrApi;
+let OcrApiClient;
 try {
   OcrApi = require('@alicloud/ocr-api20210707');
+  OcrApiClient = OcrApi.default;
 } catch (e) {
   console.warn('阿里云OCR SDK 未安装:', e.message);
 }
@@ -1820,7 +1822,7 @@ async function callAliyunOcr(imageBase64, type) {
     };
   }
 
-  if (!OcrApi) {
+  if (!OcrApiClient) {
     return {
       success: false,
       message: 'OCR SDK未安装，请联系管理员安装@alicloud/ocr-api20210707'
@@ -1835,7 +1837,7 @@ async function callAliyunOcr(imageBase64, type) {
       endpoint: 'ocr-api.cn-hangzhou.aliyuncs.com'
     });
 
-    const client = new OcrApi(config);
+    const client = new OcrApiClient(config);
 
     let result;
     if (type === 'table') {

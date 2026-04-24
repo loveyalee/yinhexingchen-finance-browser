@@ -148,45 +148,76 @@ function renderDeliveryNotesTable() {
   console.log('渲染送货单表格，数据数量:', notes.length);
 
   if (notes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="17" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
     return;
   }
 
-  var html = notes.map(function(note, index) {
-    var total = calcNoteTotal(note.items);
+  var html = '';
+  notes.forEach(function(note, noteIndex) {
     var statusClass = note.status === '已送达' ? 'status-delivered' : 'status-pending';
-    var itemsStr = '';
-    if (note.items && note.items.length > 0) {
-      itemsStr = note.items.map(function(item) {
-        // 构建商品明细字符串，包含型号、长度、瓦数等信息
-        var parts = [];
-        parts.push(item.product || item.name || '');
-        if (item.model) parts.push('型号:' + item.model);
-        if (item.length) parts.push('长度:' + item.length);
-        if (item.wattage) parts.push('瓦数:' + item.wattage);
-        if (item.brightness) parts.push(item.brightness);
-        if (item.sensorMode) parts.push(item.sensorMode);
-        return parts.join(' ') + ' ×' + (item.quantity || 0) + (item.unit || '');
-      }).join('; ');
+    var items = note.items || [];
+
+    if (items.length === 0) {
+      // 没有商品明细的送货单
+      html += '<tr>' +
+        '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>' +
+        '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>' +
+        '<td>' + (note.customer || '') + '</td>' +
+        '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
+        '<td>' + (note.date || '') + '</td>' +
+        '<td>' + (note.contact || '') + '</td>' +
+        '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
+        '<td>' +
+          '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
+          '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + noteIndex + ')">打印</button> ' +
+          '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + noteIndex + ')">复制</button> ' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + noteIndex + ')">删除</button>' +
+        '</td>' +
+      '</tr>';
+    } else {
+      // 有商品明细，每个商品一行
+      items.forEach(function(item, itemIndex) {
+        var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+        var rowSpan = itemIndex === 0 ? ' rowspan="' + items.length + '"' : '';
+
+        html += '<tr>';
+
+        // 只在第一行显示送货单信息
+        if (itemIndex === 0) {
+          html += '<td' + rowSpan + '><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>';
+          html += '<td' + rowSpan + ' class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>';
+          html += '<td' + rowSpan + '>' + (note.customer || '') + '</td>';
+        }
+
+        // 商品明细列
+        html += '<td>' + (item.product || item.name || '') + '</td>';
+        html += '<td>' + (item.model || '') + '</td>';
+        html += '<td>' + (item.length || '') + '</td>';
+        html += '<td>' + (item.wattage || '') + '</td>';
+        html += '<td>' + (item.brightness || '') + '</td>';
+        html += '<td>' + (item.sensorMode || '') + '</td>';
+        html += '<td>' + (item.quantity || 0) + '</td>';
+        html += '<td>' + (item.unit || '') + '</td>';
+        html += '<td>' + (item.price ? '¥' + parseFloat(item.price).toFixed(2) : '') + '</td>';
+        html += '<td>' + (subtotal > 0 ? '¥' + subtotal.toFixed(2) : '') + '</td>';
+
+        // 只在第一行显示送货日期、联系人、状态、操作
+        if (itemIndex === 0) {
+          html += '<td' + rowSpan + '>' + (note.date || '') + '</td>';
+          html += '<td' + rowSpan + '>' + (note.contact || '') + '</td>';
+          html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
+          html += '<td' + rowSpan + '>' +
+            '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
+            '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + noteIndex + ')">打印</button> ' +
+            '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + noteIndex + ')">复制</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + noteIndex + ')">删除</button>' +
+          '</td>';
+        }
+
+        html += '</tr>';
+      });
     }
-    return '<tr>' +
-      '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + index + '" data-id="' + (note.id || '') + '"></td>' +
-      '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + index + ')">' + (note.no || '') + '</td>' +
-      '<td>' + (note.customer || '') + '</td>' +
-      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="' + itemsStr.replace(/"/g, '&quot;') + '">' + itemsStr + '</td>' +
-      '<td>' + (note.date || '') + '</td>' +
-      '<td>' + (note.contact || '') + '</td>' +
-      '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + index + ')">' + (note.status || '待送达') + '</span></td>' +
-      '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
-      '<td>' +
-        '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + index + ')">编辑</button> ' +
-        '<button class="btn btn-sm btn-warning" onclick="printDeliveryNote(' + index + ')">打印</button> ' +
-        '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button> ' +
-        '<button class="btn btn-sm btn-copy" onclick="copyDeliveryNote(' + index + ')">复制</button> ' +
-        '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNoteRow(' + index + ')">删除</button>' +
-      '</td>' +
-    '</tr>';
-  }).join('');
+  });
 
   tbody.innerHTML = html;
 }

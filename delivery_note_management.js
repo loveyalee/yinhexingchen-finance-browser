@@ -148,7 +148,7 @@ function renderDeliveryNotesTable() {
   console.log('渲染送货单表格，数据数量:', notes.length);
 
   if (notes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="17" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="18" class="empty-text">暂无送货单数据，请点击"新增送货单"添加</td></tr>';
     return;
   }
 
@@ -164,6 +164,7 @@ function renderDeliveryNotesTable() {
         '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>' +
         '<td>' + (note.customer || '') + '</td>' +
         '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
+        '<td>' + (note.address || '') + '</td>' +
         '<td>' + (note.date || '') + '</td>' +
         '<td>' + (note.contact || '') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
@@ -202,8 +203,9 @@ function renderDeliveryNotesTable() {
         html += '<td>' + (item.price ? '¥' + parseFloat(item.price).toFixed(2) : '') + '</td>';
         html += '<td>' + (subtotal > 0 ? '¥' + subtotal.toFixed(2) : '') + '</td>';
 
-        // 只在第一行显示送货日期、联系人、状态、操作
+        // 只在第一行显示送货地址、送货日期、联系人、状态、操作
         if (itemIndex === 0) {
+          html += '<td' + rowSpan + '>' + (note.address || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.date || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.contact || '') + '</td>';
           html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
@@ -863,7 +865,7 @@ window.printDeliveryNote = function(index) {
 
   var previewHtml = `
     <div class="a4-preview">
-      <div class="header" style="text-align:center;"><h1 style="display:inline-block;">送 货 单</h1></div>
+      <div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>
       <div class="info-section">
         <div class="info">
           <p><strong>送货单号：</strong>${note.no || ''}</p>
@@ -904,8 +906,8 @@ window.printDeliveryNote = function(index) {
       <div class="footer">
         <div class="signature-box"><div class="line">收货人签字</div></div>
         <div class="signature-box"><div class="line">送货人签字</div></div>
-        <div class="signature-box" style="text-align:right;"><span>打印日期：${printDate}</span></div>
       </div>
+      <div style="text-align:right;margin-top:20px;font-size:10px;white-space:nowrap;">打印日期：${printDate}</div>
     </div>
   `;
 

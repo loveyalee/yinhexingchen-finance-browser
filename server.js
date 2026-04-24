@@ -1842,10 +1842,10 @@ async function callAliyunOcr(imageBase64, type) {
     let result;
     if (type === 'table') {
       // 表格识别
-      const request = new OcrApi.RecognizeTableRequest({
+      const request = new OcrApi.RecognizeTableOcrRequest({
         body: imageBase64
       });
-      result = await client.recognizeTable(request);
+      result = await client.recognizeTableOcr(request);
     } else {
       // 通用文字识别
       const request = new OcrApi.RecognizeGeneralRequest({

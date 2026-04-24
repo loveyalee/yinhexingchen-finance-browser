@@ -915,6 +915,7 @@ window.printDeliveryNote = function(index) {
       <div class="footer" style="justify-content:space-between;">
         <div class="signature-box" style="text-align:center;"><div class="line">收货人签字</div></div>
         <div class="signature-box" style="text-align:center;"><div class="line">送货人签字</div></div>
+        <div style="width:120px;"></div>
       </div>
       <div style="text-align:right;margin-top:20px;font-size:10px;white-space:nowrap;">打印日期：${printDate}</div>
     </div>
@@ -968,8 +969,8 @@ window.doPrint = function() {
   </style>
 </head>
 <body>
-  ${content}
-  <script>window.onload = function() { window.print(); window.close(); }</script>
+${content}
+<script>window.onload = function() { window.print(); window.close(); }</script>
 </body>
 </html>
   `);

@@ -168,7 +168,7 @@ function renderDeliveryNotesTable() {
         '<td style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>' +
         '<td>' + (note.date || '') + '</td>' +
         '<td>' + (note.contact || '') + '</td>' +
-        '<td>' + (note.contactPhone || '') + '</td>' +
+        '<td>' + (note.contact_phone || note.contactPhone || '') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>' +
         '<td>' +
           '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
@@ -211,7 +211,7 @@ function renderDeliveryNotesTable() {
           html += '<td' + rowSpan + ' style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.date || '') + '</td>';
           html += '<td' + rowSpan + '>' + (note.contact || '') + '</td>';
-          html += '<td' + rowSpan + '>' + (note.contactPhone || '') + '</td>';
+          html += '<td' + rowSpan + '>' + (note.contact_phone || note.contactPhone || '') + '</td>';
           html += '<td' + rowSpan + '><span class="status-badge ' + statusClass + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + (note.status || '待送达') + '</span></td>';
           html += '<td' + rowSpan + '>' +
             '<button class="btn btn-sm btn-primary" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">编辑</button> ' +
@@ -277,7 +277,7 @@ window.openEditDeliveryNoteModal = function(index) {
   document.getElementById('delivery-customer').value = note.customer || '';
   document.getElementById('delivery-project').value = note.project || '';
   document.getElementById('delivery-contact').value = note.contact || '';
-  document.getElementById('delivery-phone').value = note.contactPhone || '';
+  document.getElementById('delivery-phone').value = note.contact_phone || note.contactPhone || '';
   document.getElementById('delivery-date').value = note.date || '';
   document.getElementById('delivery-address').value = note.address || '';
   document.getElementById('delivery-remark').value = note.remark || '';
@@ -651,7 +651,7 @@ window.copyDeliveryNote = async function(index) {
     customer: note.customer,
     project: note.project,
     contact: note.contact,
-    contactPhone: note.contactPhone,
+    contactPhone: note.contact_phone || note.contactPhone,
     date: new Date().toISOString().split('T')[0],
     address: note.address,
     remark: note.remark,

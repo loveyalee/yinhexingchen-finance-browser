@@ -880,7 +880,7 @@ window.printDeliveryNote = function(index) {
           <p><strong>送货单号：</strong>${note.no || ''}</p>
           <p><strong>客户名称：</strong>${note.customer || ''}</p>
           <p><strong>项目楼盘：</strong>${note.project || '-'}</p>
-          <p><strong>联系人：</strong>${note.contact || '-'}${note.contactPhone ? '  ' + note.contactPhone : ''}</p>
+          <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
         </div>
         <div class="info">
           <p><strong>送货日期：</strong>${note.date || ''}</p>
@@ -912,7 +912,7 @@ window.printDeliveryNote = function(index) {
       </table>
       <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
       ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
-      <div class="footer" style="justify-content:center;">
+      <div class="footer" style="justify-content:space-between;">
         <div class="signature-box" style="text-align:center;"><div class="line">收货人签字</div></div>
         <div class="signature-box" style="text-align:center;"><div class="line">送货人签字</div></div>
       </div>
@@ -962,7 +962,7 @@ window.doPrint = function() {
     .a4-preview .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
     .a4-preview .total-section .amount { color: #e74c3c; }
     .a4-preview .remark-section { margin-top: 8px; font-size: 10px; }
-    .a4-preview .footer { margin-top: 30px; display: flex; justify-content: center; align-items: flex-end; gap: 60px; }
+    .a4-preview .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
     .a4-preview .signature-box { width: 120px; text-align: center; font-size: 10px; }
     .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 30px; padding-top: 3px; }
   </style>

@@ -1799,6 +1799,100 @@ function callWechatAPI(apiPath, xmlBody) {
   });
 }
 
+// ============================================================
+// 阿里云OCR API调用
+// ============================================================
+async function callAliyunOcr(imageBase64, type) {
+  const accessKeyId = process.env.ALIYUN_OCR_ACCESS_KEY_ID || process.env.ALIYUN_ACCESS_KEY_ID || '';
+  const accessKeySecret = process.env.ALIYUN_OCR_ACCESS_KEY_SECRET || process.env.ALIYUN_ACCESS_KEY_SECRET || '';
+
+  if (!accessKeyId || !accessKeySecret) {
+    return {
+      success: false,
+      message: 'OCR服务未配置，请联系管理员配置阿里云OCR密钥（ALIYUN_OCR_ACCESS_KEY_ID 和 ALIYUN_OCR_ACCESS_KEY_SECRET）'
+    };
+  }
+
+  return new Promise((resolve, reject) => {
+    const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const nonce = Math.random().toString(36).substring(2);
+
+    const params = {
+      Format: 'JSON',
+      Version: '2021-07-07',
+      AccessKeyId: accessKeyId,
+      SignatureMethod: 'HMAC-SHA1',
+      Timestamp: timestamp,
+      SignatureVersion: '1.0',
+      SignatureNonce: nonce,
+      Action: type === 'table' ? 'RecognizeTable' : 'RecognizeGeneral',
+      ImageURL: '', // 使用Base64
+      ImageBase64: imageBase64
+    };
+
+    // 构造签名字符串
+    const sortedKeys = Object.keys(params).sort();
+    const canonicalizedQueryString = sortedKeys.map(key => {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    }).join('&');
+
+    const stringToSign = 'GET&%2F&' + encodeURIComponent(canonicalizedQueryString);
+
+    // 计算签名
+    const hmac = crypto.createHmac('sha1', accessKeySecret + '&');
+    hmac.update(stringToSign);
+    const signature = hmac.digest('base64');
+
+    const requestOptions = {
+      hostname: 'ocr-api.cn-hangzhou.aliyuncs.com',
+      port: 443,
+      path: '/?' + canonicalizedQueryString + '&Signature=' + encodeURIComponent(signature),
+      method: 'GET'
+    };
+
+    const req = https.request(requestOptions, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.Code || result.code) {
+            resolve({
+              success: false,
+              message: result.Message || result.message || 'OCR识别失败'
+            });
+          } else {
+            // 解析OCR结果
+            if (type === 'table') {
+              const tables = result.Data?.Tables || [];
+              const tableData = tables.map(t => t.TableBody || []);
+              resolve({
+                success: true,
+                type: 'table',
+                tables: tableData,
+                text: JSON.stringify(tableData)
+              });
+            } else {
+              const blocks = result.Data?.BlockList || [];
+              const text = blocks.map(b => b.Content || b.Text || '').join('\n');
+              resolve({
+                success: true,
+                type: 'text',
+                text: text
+              });
+            }
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 // 加载订单数据
 loadOrders();
 
@@ -4580,6 +4674,85 @@ if (!data.id) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  // ============================================================
+  // OCR API - 图片识别转文字/表格
+  // ============================================================
+  } else if (pathname === '/api/ocr/general' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.image) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        // 调用阿里云OCR API
+        const ocrResult = await callAliyunOcr(data.image, 'general');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(ocrResult));
+      } catch (e) {
+        console.error('OCR识别失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/ocr/word' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.image) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const ocrResult = await callAliyunOcr(data.image, 'general');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(ocrResult));
+      } catch (e) {
+        console.error('OCR识别失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/ocr/excel' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.image) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const ocrResult = await callAliyunOcr(data.image, 'table');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(ocrResult));
+      } catch (e) {
+        console.error('OCR识别失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
       }
     });
 

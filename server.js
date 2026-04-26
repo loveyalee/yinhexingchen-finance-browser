@@ -8,7 +8,6 @@ const crypto = require('crypto');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { Readable } = require('stream');
 
 function loadEnvFile(envFilePath) {
   if (!fs.existsSync(envFilePath)) return;
@@ -41,13 +40,50 @@ try {
   console.warn('阿里云短信 SDK 未安装，短信将保持测试模式:', e.message);
 }
 
+// ============================================================
+// 阿里云 OCR SDK
+// ============================================================
 let OcrApi;
-let OcrApiClient;
 try {
   OcrApi = require('@alicloud/ocr-api20210707');
-  OcrApiClient = OcrApi.default;
 } catch (e) {
-  console.warn('阿里云OCR SDK 未安装:', e.message);
+  console.warn('阿里云 OCR SDK 未安装，OCR功能将不可用:', e.message);
+}
+
+// 创建 OCR 客户端
+function createOcrClient() {
+  if (!OcrApi || !OpenApi) {
+    return null;
+  }
+  const config = new OpenApi.Config({
+    accessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID,
+    accessKeySecret: process.env.ALIYUN_SMS_ACCESS_KEY_SECRET,
+    endpoint: 'ocr-api.cn-hangzhou.aliyuncs.com'
+  });
+  return new OcrApi(config);
+}
+
+// 解析表格单元格数据为二维数组
+function parseTableData(cells) {
+  if (!cells || !Array.isArray(cells)) return [];
+
+  const maxRow = Math.max(...cells.map(c => c.rowIndex || 0)) + 1;
+  const maxCol = Math.max(...cells.map(c => c.colIndex || 0)) + 1;
+
+  const tableData = [];
+  for (let i = 0; i < maxRow; i++) {
+    tableData[i] = new Array(maxCol).fill('');
+  }
+
+  cells.forEach(cell => {
+    const row = cell.rowIndex || 0;
+    const col = cell.colIndex || 0;
+    if (row < maxRow && col < maxCol) {
+      tableData[row][col] = cell.text || '';
+    }
+  });
+
+  return tableData;
 }
 
 // ============================================================
@@ -81,12 +117,12 @@ async function initMySQL() {
     return false;
   }
 
-    const mysqlConfig = {
-    host: 'rm-bp1t731ujc98jo9c10o.mysql.rds.aliyuncs.com',
-    port: 3306,
-    database: 'rds_dingding',
-    user: 'ram_dingding',
-    password: 'h5J5BVEXtrjKVDSxmS4w',
+  const mysqlConfig = {
+    host: process.env.MYSQL_HOST,
+    port: parseInt(process.env.MYSQL_PORT || '3306'),
+    database: process.env.MYSQL_DATABASE,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -155,10 +191,19 @@ async function createMySQLTables() {
         INDEX idx_phone (phone),
         INDEX idx_username (username),
         INDEX idx_user_type (user_type),
-        INDEX idx_ban_status (ban_status),
-        UNIQUE INDEX idx_personal_phone (phone, user_type)
+        INDEX idx_ban_status (ban_status)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+
+    // 修改唯一索引：个人用户手机号唯一，企业用户用户名唯一
+    // MySQL不支持条件索引，删除旧索引后依靠应用逻辑检查唯一性
+    try {
+      // 先删除旧的唯一索引
+      await conn.execute(`ALTER TABLE users DROP INDEX idx_personal_phone`);
+      console.log('已删除旧的唯一索引 idx_personal_phone');
+    } catch (e) {
+      // 索引可能不存在，忽略错误
+    }
 
     // 账套表
     await conn.execute(`
@@ -216,11 +261,8 @@ async function createMySQLTables() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         order_no VARCHAR(50) NOT NULL,
         customer_name VARCHAR(100) NOT NULL,
-        project_name VARCHAR(100),
         customer_phone VARCHAR(20),
         customer_address VARCHAR(255),
-        contact_name VARCHAR(50),
-        remark TEXT,
         delivery_date DATE NOT NULL,
         total_amount DECIMAL(10,2) DEFAULT 0,
         status VARCHAR(20) DEFAULT 'pending',
@@ -232,10 +274,6 @@ async function createMySQLTables() {
         INDEX idx_status (status)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
-    // 兼容旧表：添加新字段
-    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN contact_name VARCHAR(50)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN remark TEXT`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN project_name VARCHAR(100)`); } catch(e) {}
 
     // 送货单明细表
     await conn.execute(`
@@ -243,41 +281,11 @@ async function createMySQLTables() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         delivery_id INT NOT NULL,
         product_name VARCHAR(200) NOT NULL,
-        model VARCHAR(100),
-        length VARCHAR(50),
-        wattage VARCHAR(50),
-        brightness VARCHAR(50),
-        sensor_mode VARCHAR(50),
         quantity DECIMAL(10,2) DEFAULT 1,
-        unit VARCHAR(20),
         unit_price DECIMAL(10,2) DEFAULT 0,
         amount DECIMAL(10,2) DEFAULT 0,
         remark TEXT,
         INDEX idx_delivery_id (delivery_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    // 兼容旧表：添加新字段
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN model VARCHAR(100)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN length VARCHAR(50)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN wattage VARCHAR(50)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN brightness VARCHAR(50)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN sensor_mode VARCHAR(50)`); } catch(e) {}
-    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN unit VARCHAR(20)`); } catch(e) {}
-
-    // 客户表
-    await conn.execute(`
-      CREATE TABLE IF NOT EXISTS customers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        contact VARCHAR(50),
-        phone VARCHAR(20),
-        address VARCHAR(255),
-        remark TEXT,
-        user_id VARCHAR(64) NOT NULL,
-        create_time DATETIME NOT NULL,
-        update_time DATETIME NOT NULL,
-        INDEX idx_user_id (user_id),
-        INDEX idx_name (name)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
@@ -291,6 +299,141 @@ async function createMySQLTables() {
     try { await conn.execute(`ALTER TABLE users ADD COLUMN credit_score INT DEFAULT 0`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE users ADD COLUMN account_balance DECIMAL(10,2) DEFAULT 0`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE users ADD COLUMN exclusive_services INT DEFAULT 0`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN real_name VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN id_type VARCHAR(20) DEFAULT 'idcard'`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN id_number VARCHAR(50)`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE users ADD COLUMN is_verified TINYINT DEFAULT 0`); } catch(e) {}
+
+    // 云盘文件表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS cloud_files (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        size BIGINT DEFAULT 0,
+        folder_id INT DEFAULT 0,
+        category VARCHAR(50) DEFAULT 'all',
+        description TEXT,
+        share_link VARCHAR(255),
+        share_password VARCHAR(50),
+        share_expiry DATETIME,
+        is_shared TINYINT DEFAULT 0,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_category (category),
+        INDEX idx_folder_id (folder_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 云盘文件夹表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS cloud_folders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        parent_id INT DEFAULT 0,
+        create_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_parent_id (parent_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 论坛帖子表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS forum_posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        author_id VARCHAR(64) NOT NULL,
+        author_name VARCHAR(100) NOT NULL,
+        category VARCHAR(20) DEFAULT 'other',
+        tags TEXT,
+        views INT DEFAULT 0,
+        likes INT DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'published',
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_category (category),
+        INDEX idx_status (status),
+        INDEX idx_create_time (create_time)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 论坛评论表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS forum_comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        author_id VARCHAR(64) NOT NULL,
+        author_name VARCHAR(100) NOT NULL,
+        content TEXT NOT NULL,
+        likes INT DEFAULT 0,
+        create_time DATETIME NOT NULL,
+        INDEX idx_post_id (post_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 论坛点赞表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS forum_likes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_id VARCHAR(64) NOT NULL,
+        create_time DATETIME NOT NULL,
+        UNIQUE KEY uk_post_user (post_id, user_id),
+        INDEX idx_post_id (post_id),
+        INDEX idx_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 论坛收藏表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS forum_bookmarks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_id VARCHAR(64) NOT NULL,
+        create_time DATETIME NOT NULL,
+        UNIQUE KEY uk_post_user (post_id, user_id),
+        INDEX idx_post_id (post_id),
+        INDEX idx_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 知识库文章表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS knowledge_articles (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        content TEXT NOT NULL,
+        author VARCHAR(100),
+        category VARCHAR(20) DEFAULT 'other',
+        views INT DEFAULT 0,
+        likes INT DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'published',
+        create_time DATETIME NOT NULL,
+        INDEX idx_category (category),
+        INDEX idx_status (status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 用户交易记录表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS user_transactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        type VARCHAR(20) NOT NULL,
+        amount DECIMAL(10,2) DEFAULT 0,
+        balance DECIMAL(10,2) DEFAULT 0,
+        description VARCHAR(255),
+        status VARCHAR(20) DEFAULT 'completed',
+        create_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_type (type),
+        INDEX idx_create_time (create_time)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
 
     console.log('MySQL表结构创建/更新成功');
   } finally {
@@ -388,8 +531,10 @@ function initMainDb() {
       try { usersDb.exec(`ALTER TABLE users ADD COLUMN ban_end_time TEXT`); } catch (e) {}
 
       // 创建唯一索引：个人用户手机号唯一，企业用户用户名唯一
-      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_personal_phone ON users(phone) WHERE user_type = 'personal'`); } catch (e) {}
-      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_username ON users(username)`); } catch (e) {}
+      try { usersDb.exec(`DROP INDEX IF EXISTS idx_personal_phone`); } catch (e) {}
+      try { usersDb.exec(`DROP INDEX IF EXISTS idx_username`); } catch (e) {}
+      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_personal_phone_unique ON users(phone) WHERE user_type = 'personal'`); } catch (e) {}
+      try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_enterprise_username ON users(username) WHERE user_type = 'enterprise'`); } catch (e) {}
       // 企业用户：同一企业名称+信用代码组合唯一
       try { usersDb.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_enterprise_unique ON users(credit_code) WHERE user_type = 'enterprise' AND credit_code IS NOT NULL AND credit_code != ''`); } catch (e) {}
       
@@ -460,7 +605,6 @@ function initMainDb() {
         );
       `);
       try { usersDb.exec(`ALTER TABLE customers ADD COLUMN user_id TEXT`); } catch (e) {}
-      try { usersDb.exec(`ALTER TABLE customers ADD COLUMN remark TEXT`); } catch (e) {}
       
       // 创建送货单表
       usersDb.exec(`
@@ -577,6 +721,247 @@ function initMainDb() {
           create_time TEXT NOT NULL
         );
       `);
+
+      // 创建模板表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS templates (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          template_id TEXT UNIQUE NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT,
+          category TEXT NOT NULL,
+          industry TEXT,
+          format TEXT DEFAULT 'Excel',
+          icon TEXT DEFAULT '📄',
+          download_count INTEGER DEFAULT 0,
+          file_path TEXT,
+          status TEXT DEFAULT 'active',
+          create_time TEXT NOT NULL,
+          update_time TEXT
+        );
+      `);
+
+      // 创建工具表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS tools (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tool_id TEXT UNIQUE NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT,
+          icon TEXT DEFAULT '🔧',
+          category TEXT,
+          status TEXT DEFAULT 'active',
+          create_time TEXT NOT NULL,
+          update_time TEXT
+        );
+      `);
+
+      // 创建会员套餐表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS membership_plans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          plan_id TEXT UNIQUE NOT NULL,
+          name TEXT NOT NULL,
+          description TEXT,
+          duration_days INTEGER NOT NULL,
+          price INTEGER NOT NULL,
+          original_price INTEGER,
+          features TEXT,
+          status TEXT DEFAULT 'active',
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建用户会员表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS user_memberships (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id TEXT NOT NULL,
+          plan_id TEXT NOT NULL,
+          order_id TEXT,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          status TEXT DEFAULT 'active',
+          payment_method TEXT,
+          amount INTEGER,
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 初始化会员套餐数据
+      const existingPlans = usersDb.prepare('SELECT COUNT(*) as count FROM membership_plans').get();
+      if (existingPlans.count === 0) {
+        const plans = [
+          { plan_id: 'monthly', name: '月卡会员', description: '畅享30天会员权益', duration_days: 30, price: 4500, original_price: 5900, features: JSON.stringify(['无限使用所有功能', '优先客服支持', '数据云备份', '专属会员标识']) },
+          { plan_id: 'quarterly', name: '季卡会员', description: '畅享90天会员权益', duration_days: 90, price: 10800, original_price: 17700, features: JSON.stringify(['无限使用所有功能', '优先客服支持', '数据云备份', '专属会员标识', '季度财务报告']) },
+          { plan_id: 'yearly', name: '年卡会员', description: '畅享365天会员权益', duration_days: 365, price: 19900, original_price: 39900, features: JSON.stringify(['无限使用所有功能', '专属客服支持', '数据云备份', '专属会员标识', '年度财务报告', '免费升级新功能']) }
+        ];
+        const insertPlan = usersDb.prepare('INSERT INTO membership_plans (plan_id, name, description, duration_days, price, original_price, features, create_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        for (const plan of plans) {
+          insertPlan.run(plan.plan_id, plan.name, plan.description, plan.duration_days, plan.price, plan.original_price, plan.features, new Date().toISOString());
+        }
+        console.log('会员套餐数据初始化完成');
+      }
+
+      // 创建论坛帖子表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS forum_posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          author_id TEXT NOT NULL,
+          author_name TEXT NOT NULL,
+          category TEXT DEFAULT 'other',
+          tags TEXT,
+          views INTEGER DEFAULT 0,
+          likes INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'published',
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建帖子评论表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS forum_comments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          post_id INTEGER NOT NULL,
+          author_id TEXT NOT NULL,
+          author_name TEXT NOT NULL,
+          content TEXT NOT NULL,
+          likes INTEGER DEFAULT 0,
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建帖子点赞表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS forum_likes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          post_id INTEGER NOT NULL,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          UNIQUE(post_id, user_id)
+        );
+      `);
+
+      // 创建帖子收藏表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS forum_bookmarks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          post_id INTEGER NOT NULL,
+          user_id TEXT NOT NULL,
+          create_time TEXT NOT NULL,
+          UNIQUE(post_id, user_id)
+        );
+      `);
+
+      // 创建知识库文章表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS knowledge_articles (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          author TEXT,
+          category TEXT DEFAULT 'other',
+          views INTEGER DEFAULT 0,
+          likes INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'published',
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建云盘文件表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS cloud_files (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          size INTEGER DEFAULT 0,
+          folder_id INTEGER DEFAULT 0,
+          category TEXT DEFAULT 'all',
+          description TEXT,
+          share_link TEXT,
+          share_password TEXT,
+          share_expiry TEXT,
+          is_shared INTEGER DEFAULT 0,
+          create_time TEXT NOT NULL,
+          update_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建云盘文件夹表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS cloud_folders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          parent_id INTEGER DEFAULT 0,
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 创建用户交易记录表
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS user_transactions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          amount REAL DEFAULT 0,
+          balance REAL DEFAULT 0,
+          description TEXT,
+          status TEXT DEFAULT 'completed',
+          create_time TEXT NOT NULL
+        );
+      `);
+
+      // 初始化示例帖子数据
+      const existingPosts = usersDb.prepare('SELECT COUNT(*) as count FROM forum_posts').get();
+      if (existingPosts.count === 0) {
+        const posts = [
+          { title: '如何做好企业财务分析？', content: '作为财务人员，如何进行有效的企业财务分析？需要关注哪些关键指标？有什么实用的分析方法和技巧？欢迎大家分享经验。', author_id: 'user001', author_name: '财务专家', category: 'finance', tags: JSON.stringify(['财务分析', '财务管理']), views: 156, likes: 25 },
+          { title: '税务筹划的常见方法有哪些？', content: '企业在合法范围内如何进行税务筹划？有哪些实用的方法和技巧？希望能得到专业人士的指导。', author_id: 'user002', author_name: '税务顾问', category: 'tax', tags: JSON.stringify(['税务筹划', '增值税', '企业所得税']), views: 203, likes: 18 },
+          { title: '财务软件选择指南', content: '如何选择适合企业的财务软件？需要考虑哪些因素？市面上主流的财务软件有哪些优缺点？', author_id: 'user003', author_name: 'IT顾问', category: 'accounting', tags: JSON.stringify(['财务软件', '会计']), views: 289, likes: 32 },
+          { title: '年度审计准备工作要点', content: '马上要年度审计了，需要准备哪些资料？有哪些注意事项？如何与审计师有效沟通？', author_id: 'user004', author_name: '审计专员', category: 'audit', tags: JSON.stringify(['审计', '内部控制', '年度审计']), views: 312, likes: 45 },
+          { title: '增值税发票开具注意事项', content: '开具增值税发票时有哪些注意事项？发票抬头、税号、金额等信息如何核对？', author_id: 'user005', author_name: '开票员', category: 'tax', tags: JSON.stringify(['发票', '增值税']), views: 178, likes: 28 },
+          { title: '企业预算编制流程分享', content: '分享一套完整的企业预算编制流程，包括预算编制、执行、监控和调整四个阶段。', author_id: 'user006', author_name: '财务经理', category: 'finance', tags: JSON.stringify(['预算管理', '财务管理']), views: 421, likes: 56 },
+          { title: '新会计准则变化解读', content: '最新会计准则有哪些重要变化？对企业财务报表有什么影响？如何应对这些变化？', author_id: 'user007', author_name: '会计专家', category: 'accounting', tags: JSON.stringify(['会计准则', '财务报表']), views: 534, likes: 67 },
+          { title: '报销流程优化建议', content: '公司报销流程比较繁琐，想请教各位有没有好的优化建议？如何在合规的前提下提高效率？', author_id: 'user008', author_name: '行政主管', category: 'other', tags: JSON.stringify(['报销', '流程优化']), views: 145, likes: 23 }
+        ];
+        const insertPost = usersDb.prepare('INSERT INTO forum_posts (title, content, author_id, author_name, category, tags, views, likes, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        const now = new Date().toISOString();
+        for (const post of posts) {
+          insertPost.run(post.title, post.content, post.author_id, post.author_name, post.category, post.tags, post.views, post.likes, now, now);
+        }
+
+        // 添加示例评论
+        const insertComment = usersDb.prepare('INSERT INTO forum_comments (post_id, author_id, author_name, content, create_time) VALUES (?, ?, ?, ?, ?)');
+        insertComment.run(1, 'user010', '会计小白', '我觉得应该关注盈利能力、运营能力和偿债能力三大指标。', now);
+        insertComment.run(1, 'user011', '财务经理', '除了财务指标，还要结合行业特点和企业战略进行分析', now);
+        insertComment.run(2, 'user012', '企业会计', '希望能分享一些具体的案例', now);
+        insertComment.run(4, 'user013', '财务总监', '建议提前整理好凭证、合同、银行对账单等核心资料。', now);
+        insertComment.run(6, 'user014', '预算专员', '非常详细，学习了！', now);
+        insertComment.run(6, 'user015', '会计新人', '请问预算执行差异分析怎么做？', now);
+
+        console.log('论坛帖子数据初始化完成');
+      }
+
+      // 初始化知识库文章数据
+      const existingArticles = usersDb.prepare('SELECT COUNT(*) as count FROM knowledge_articles').get();
+      if (existingArticles.count === 0) {
+        const articles = [
+          { title: '企业会计准则解读', content: '详细解读最新企业会计准则的变化和应用', author: '会计准则专家', category: 'accounting', views: 320, likes: 45 },
+          { title: '财务报表编制指南', content: '手把手教你编制规范的财务报表', author: '财务总监', category: 'finance', views: 280, likes: 38 },
+          { title: '税务申报实务', content: '各类税种的申报流程和注意事项', author: '税务专家', category: 'tax', views: 450, likes: 62 }
+        ];
+        const insertArticle = usersDb.prepare('INSERT INTO knowledge_articles (title, content, author, category, views, likes, create_time) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        const now = new Date().toISOString();
+        for (const article of articles) {
+          insertArticle.run(article.title, article.content, article.author, article.category, article.views, article.likes, now);
+        }
+        console.log('知识库文章数据初始化完成');
+      }
 
       // 设置控制台编码为UTF-8（Windows）
       if (process.stdout && process.stdout.isTTY) {
@@ -1402,6 +1787,7 @@ function generateCreditCode() {
 function searchEnterpriseFromExternalAPI(keyword, callback) {
   const qccApiKey = process.env.QCC_API_KEY || '';
   const tianyanchaApiKey = process.env.TIANYANCHA_API_KEY || '';
+  const xujianCode = process.env.XUJIAN_CODE || '';
 
   // 优先使用企查查API（数据更全面）
   if (qccApiKey) {
@@ -1410,11 +1796,39 @@ function searchEnterpriseFromExternalAPI(keyword, callback) {
         callback(null, results);
         return;
       }
-      // 企查查失败，尝试天眼查
+      // 企查查失败，尝试数字续坚
+      if (xujianCode) {
+        searchFromXujian(keyword, xujianCode, function(err2, results2) {
+          if (!err2 && results2 && results2.length > 0) {
+            callback(null, results2);
+            return;
+          }
+          // 数字续坚也失败，尝试天眼查
+          if (tianyanchaApiKey) {
+            searchFromTianyancha(keyword, tianyanchaApiKey, callback);
+          } else {
+            searchEnterpriseFromPublicAPI(keyword, callback);
+          }
+        });
+      } else if (tianyanchaApiKey) {
+        searchFromTianyancha(keyword, tianyanchaApiKey, callback);
+      } else {
+        searchEnterpriseFromPublicAPI(keyword, callback);
+      }
+    });
+    return;
+  }
+
+  // 没有企查查，尝试数字续坚
+  if (xujianCode) {
+    searchFromXujian(keyword, xujianCode, function(err, results) {
+      if (!err && results && results.length > 0) {
+        callback(null, results);
+        return;
+      }
       if (tianyanchaApiKey) {
         searchFromTianyancha(keyword, tianyanchaApiKey, callback);
       } else {
-        // 尝试免费公开接口
         searchEnterpriseFromPublicAPI(keyword, callback);
       }
     });
@@ -1428,7 +1842,6 @@ function searchEnterpriseFromExternalAPI(keyword, callback) {
         callback(null, results);
         return;
       }
-      // 天眼查失败，尝试免费公开接口
       searchEnterpriseFromPublicAPI(keyword, callback);
     });
     return;
@@ -1442,24 +1855,99 @@ function searchEnterpriseFromExternalAPI(keyword, callback) {
 function searchFromQcc(keyword, apiKey, callback) {
   const secretKey = process.env.QCC_SECRET_KEY || '';
 
-  // 企查查API签名认证
-  // 生成时间戳（企查查要求秒级10位时间戳）
+  // 企查查API签名认证（官方格式）
   const timespan = Math.floor(Date.now() / 1000).toString();
-
-  // 生成签名: MD5(Key + Timespan + SecretKey)
   const signStr = apiKey + timespan + secretKey;
-  const signature = crypto.createHash('md5').update(signStr).digest('hex').toUpperCase();
+  const token = crypto.createHash('md5').update(signStr).digest('hex').toUpperCase();
 
+  console.log('[企查查] 搜索关键词:', keyword);
+  console.log('[企查查] Token:', token);
+
+  // 企查查模糊搜索API - 使用正确的参数名 searchKey
   const options = {
     hostname: 'api.qichacha.com',
-    path: '/ECISimple/GetSimpleSearch?keyword=' + encodeURIComponent(keyword),
+    path: '/FuzzySearch/GetList?key=' + apiKey + '&searchKey=' + encodeURIComponent(keyword),
     method: 'GET',
     headers: {
-      'AuthId': apiKey,
-      'AuthKey': signature,
-      'Timespan': timespan,
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Content-Type': 'application/json'
+      'Token': token,
+      'Timespan': timespan
+    }
+  };
+
+  console.log('[企查查] 请求URL:', 'http://' + options.hostname + options.path);
+
+  const req = http.request(options, function(res) {
+    let data = '';
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
+      console.log('[企查查] 状态码:', res.statusCode);
+      console.log('[企查查] 响应:', data.substring(0, 800));
+
+      try {
+        const result = JSON.parse(data);
+        if (result.Status === '200' && result.Result && result.Result.length > 0) {
+          const enterprises = result.Result.map(function(item) {
+            return {
+              name: item.Name || '',
+              creditCode: item.CreditCode || item.No || '',
+              legalPerson: item.OperName || '',
+              address: item.Address || '',
+              status: item.Status || '',
+              regCapital: item.RegCapital || '',
+              startDate: item.StartDate || '',
+              businessScope: item.Scope || '',
+              keyNo: item.KeyNo || '',
+              source: 'qcc'
+            };
+          });
+          console.log('[企查查] 成功获取', enterprises.length, '条数据');
+          callback(null, enterprises);
+        } else if (result.Message) {
+          console.log('[企查查] API返回:', result.Message);
+          callback(new Error(result.Message), null);
+        } else {
+          console.log('[企查查] 未找到数据');
+          callback(new Error('未找到相关企业'), null);
+        }
+      } catch (e) {
+        console.log('[企查查] 解析失败:', e.message);
+        callback(e, null);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    console.log('[企查查] 错误:', e.message);
+    callback(e, null);
+  });
+
+  req.setTimeout(10000, function() {
+    req.destroy();
+    console.log('[企查查] 超时');
+    callback(new Error('企查查请求超时'), null);
+  });
+
+  req.end();
+}
+
+// 数字续坚平台API搜索（企查查备选方案，免费每天20次）
+function searchFromXujian(keyword, code, callback) {
+  // keyword最少4个字符
+  if (keyword.length < 4) {
+    console.log('[数字续坚] 关键词不足4字，跳过');
+    callback(new Error('关键词不足4字'), null);
+    return;
+  }
+
+  console.log('[数字续坚] 搜索关键词:', keyword);
+
+  const options = {
+    hostname: 'www.xujian.tech',
+    path: '/atlapi/data/c/query/like?keyword=' + encodeURIComponent(keyword) + '&code=' + encodeURIComponent(code),
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'Mozilla/5.0'
     }
   };
 
@@ -1467,38 +1955,51 @@ function searchFromQcc(keyword, apiKey, callback) {
     let data = '';
     res.on('data', function(chunk) { data += chunk; });
     res.on('end', function() {
+      console.log('[数字续坚] 状态码:', res.statusCode);
+      console.log('[数字续坚] 响应:', data.substring(0, 500));
+
       try {
         const result = JSON.parse(data);
-        if (result.Status === '200' && result.Result) {
-          const enterprises = result.Result.slice(0, 10).map(function(item) {
+        if (result.code === 200 && result.data && result.data.length > 0) {
+          const enterprises = result.data.map(function(item) {
             return {
-              name: item.Name || item.name || '',
-              creditCode: item.CreditCode || item.creditCode || '',
-              legalPerson: item.OperName || item.legalPerson || '',
-              address: item.Address || item.address || '',
-              status: item.Status || item.status || '',
-              regCapital: item.RegistCapi || item.regCapital || '',
-              estiblishTime: item.SetupDate || item.estiblishTime || '',
-              source: 'qcc'
+              name: item.name || '',
+              creditCode: item.creditNo || '',
+              legalPerson: item.operName || '',
+              address: '',
+              status: '',
+              regCapital: '',
+              startDate: item.startDate || '',
+              businessScope: '',
+              keyNo: item.qxbId || '',
+              source: 'xujian'
             };
           });
+          console.log('[数字续坚] 成功获取', enterprises.length, '条数据');
           callback(null, enterprises);
+        } else if (result.msg) {
+          console.log('[数字续坚] API返回:', result.msg);
+          callback(new Error(result.msg), null);
         } else {
-          callback(new Error('企查查API返回错误: ' + (result.Message || '未知错误')), null);
+          console.log('[数字续坚] 未找到数据');
+          callback(new Error('未找到相关企业'), null);
         }
       } catch (e) {
+        console.log('[数字续坚] 解析失败:', e.message);
         callback(e, null);
       }
     });
   });
 
   req.on('error', function(e) {
+    console.log('[数字续坚] 请求失败:', e.message);
     callback(e, null);
   });
 
-  req.setTimeout(8000, function() {
+  req.setTimeout(10000, function() {
     req.destroy();
-    callback(new Error('企查查请求超时'), null);
+    console.log('[数字续坚] 请求超时');
+    callback(new Error('请求超时'), null);
   });
 
   req.end();
@@ -1712,7 +2213,8 @@ const WechatPay = {
   // XML转JSON
   xmlToJson: function(xml) {
     const result = {};
-    const regex = /<([^>]+)>([^<]*)<\/[^>]+>/g;
+    // 匹配 <key>value</key> 或 <key><![CDATA[value]]></key>
+    const regex = /<([^>]+)>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/\1>/g;
     let match;
     while ((match = regex.exec(xml)) !== null) {
       result[match[1]] = match[2];
@@ -1728,6 +2230,41 @@ const WechatPay = {
     }
     xml += '</xml>';
     return xml;
+  },
+
+  // 调用微信统一下单API
+  unifiedOrder: async function(params) {
+    return new Promise((resolve, reject) => {
+      const xml = this.jsonToXml(params);
+
+      const options = {
+        hostname: 'api.mch.weixin.qq.com',
+        port: 443,
+        path: '/pay/unifiedorder',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/xml',
+          'Content-Length': Buffer.byteLength(xml)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const result = this.xmlToJson(data);
+            resolve(result);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+
+      req.on('error', reject);
+      req.write(xml);
+      req.end();
+    });
   }
 };
 
@@ -1807,118 +2344,6 @@ function callWechatAPI(apiPath, xmlBody) {
     wxReq.write(xmlBody);
     wxReq.end();
   });
-}
-
-// ============================================================
-// 阿里云OCR API调用
-// ============================================================
-async function callAliyunOcr(imageBase64, type) {
-  const accessKeyId = process.env.ALIYUN_OCR_ACCESS_KEY_ID || process.env.ALIYUN_ACCESS_KEY_ID || process.env.ALIYUN_SMS_ACCESS_KEY_ID || '';
-  const accessKeySecret = process.env.ALIYUN_OCR_ACCESS_KEY_SECRET || process.env.ALIYUN_ACCESS_KEY_SECRET || process.env.ALIYUN_SMS_ACCESS_KEY_SECRET || '';
-
-  if (!accessKeyId || !accessKeySecret) {
-    return {
-      success: false,
-      message: 'OCR服务未配置，请联系管理员配置阿里云OCR密钥'
-    };
-  }
-
-  if (!OcrApiClient) {
-    return {
-      success: false,
-      message: 'OCR SDK未安装，请联系管理员安装@alicloud/ocr-api20210707'
-    };
-  }
-
-  try {
-    // 创建OCR客户端
-    const config = new OpenApi.Config({
-      accessKeyId: accessKeyId,
-      accessKeySecret: accessKeySecret,
-      endpoint: 'ocr-api.cn-hangzhou.aliyuncs.com'
-    });
-
-    const client = new OcrApiClient(config);
-
-    // 将base64转换为Buffer，然后创建Readable流
-    const imageBuffer = Buffer.from(imageBase64, 'base64');
-    const imageStream = Readable.from(imageBuffer);
-
-    let result;
-    if (type === 'table') {
-      // 表格识别 - 使用body流
-      const request = new OcrApi.RecognizeTableOcrRequest({
-        body: imageStream,
-        lineLess: false,
-        skipDetection: false
-      });
-      result = await client.recognizeTableOcr(request);
-    } else {
-      // 通用文字识别 - 使用body流
-      const request = new OcrApi.RecognizeGeneralRequest({
-        body: imageStream
-      });
-      result = await client.recognizeGeneral(request);
-    }
-
-    console.log('OCR结果:', JSON.stringify(result).substring(0, 500));
-
-    // 检查是否有错误
-    if (result.statusCode !== 200 || result.body?.Code) {
-      const errMsg = result.body?.Message || result.body?.code || 'OCR服务调用失败';
-      // 检查是否是服务未开通
-      if (errMsg.includes('not activated') || errMsg.includes('notOpen') || result.body?.Code === 'ocrServiceNotOpen') {
-        return {
-          success: false,
-          message: 'OCR服务未开通，请在阿里云控制台开通"文字识别OCR"服务。开通地址：https://ocr.console.aliyun.com/'
-        };
-      }
-      return {
-        success: false,
-        message: errMsg
-      };
-    }
-
-    if (result.body && result.body.Data) {
-      if (type === 'table') {
-        const tables = result.body.Data.Tables || [];
-        const tableData = tables.map(t => t.TableBody || []);
-        return {
-          success: true,
-          type: 'table',
-          tables: tableData,
-          text: JSON.stringify(tableData)
-        };
-      } else {
-        const blocks = result.body.Data.BlockList || [];
-        const text = blocks.map(b => b.Content || b.Text || '').join('\n');
-        return {
-          success: true,
-          type: 'text',
-          text: text
-        };
-      }
-    } else {
-      return {
-        success: false,
-        message: 'OCR识别结果为空'
-      };
-    }
-  } catch (e) {
-    console.error('OCR识别错误:', e);
-    const errMsg = e.message || e.toString();
-    // 检查是否是服务未开通
-    if (errMsg.includes('not activated') || errMsg.includes('notOpen') || errMsg.includes('ocrServiceNotOpen')) {
-      return {
-        success: false,
-        message: 'OCR服务未开通，请在阿里云控制台开通"文字识别OCR"服务。开通地址：https://ocr.console.aliyun.com/'
-      };
-    }
-    return {
-      success: false,
-      message: 'OCR识别失败: ' + errMsg
-    };
-  }
 }
 
 // 加载订单数据
@@ -2130,14 +2555,19 @@ const server = http.createServer(async (req, res) => {
         if (WechatPay.verifySign(params, paymentConfig.wechat.apiKey)) {
           const orderId = params.out_trade_no;
           const transactionId = params.transaction_id;
-          
+
           if (orders[orderId]) {
             orders[orderId].status = 'paid';
             orders[orderId].transactionId = transactionId;
             orders[orderId].updateTime = new Date().toISOString();
             orders[orderId].wechatNotify = params;
             saveOrders();
-            
+
+            // 如果是会员订单，开通会员
+            if (orders[orderId].planId && usersDb) {
+              activateMembership(orders[orderId]);
+            }
+
             console.log(`微信支付成功: 订单 ${orderId}, 交易号 ${transactionId}`);
           }
           
@@ -2181,14 +2611,19 @@ const server = http.createServer(async (req, res) => {
           const orderId = params.out_trade_no;
           const tradeNo = params.trade_no;
           const tradeStatus = params.trade_status;
-          
+
           if (orders[orderId] && (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED')) {
             orders[orderId].status = 'paid';
             orders[orderId].transactionId = tradeNo;
             orders[orderId].updateTime = new Date().toISOString();
             orders[orderId].alipayNotify = params;
             saveOrders();
-            
+
+            // 如果是会员订单，开通会员
+            if (orders[orderId].planId && usersDb) {
+              activateMembership(orders[orderId]);
+            }
+
             console.log(`支付宝支付成功: 订单 ${orderId}, 交易号 ${tradeNo}`);
           }
           
@@ -2300,6 +2735,802 @@ const server = http.createServer(async (req, res) => {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, message: '企业搜索失败: ' + e.message }));
     }
+
+  } else if (pathname === '/api/tax/reporting-progress' && req.method === 'GET') {
+    // 获取税务申报进度
+    try {
+      if (!usersDb) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: [] }));
+        return;
+      }
+
+      // 确保表存在
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS tax_reporting_progress (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tax_type TEXT NOT NULL,
+          period TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          amount REAL DEFAULT 0,
+          deadline TEXT,
+          report_date TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // 查询数据
+      const rows = usersDb.prepare(`SELECT * FROM tax_reporting_progress ORDER BY deadline ASC`).all();
+
+      // 如果没有数据，插入示例数据
+      if (!rows || rows.length === 0) {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        const sampleData = [
+          { tax_type: '增值税', period: `${currentYear}年${currentMonth}月`, status: 'completed', amount: 12500, deadline: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`, report_date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-10` },
+          { tax_type: '企业所得税', period: `${currentYear}年第一季度`, status: 'pending', amount: 35000, deadline: `${currentYear}-04-15`, report_date: null },
+          { tax_type: '个人所得税', period: `${currentYear}年${currentMonth}月`, status: 'processing', amount: 8200, deadline: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`, report_date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-05` }
+        ];
+
+        const stmt = usersDb.prepare(`INSERT INTO tax_reporting_progress (tax_type, period, status, amount, deadline, report_date) VALUES (?, ?, ?, ?, ?, ?)`);
+        const insertMany = usersDb.transaction((items) => {
+          for (const item of items) {
+            stmt.run(item.tax_type, item.period, item.status, item.amount, item.deadline, item.report_date);
+          }
+        });
+        insertMany(sampleData);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: sampleData }));
+      } else {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: rows }));
+      }
+    } catch (e) {
+      console.error('获取申报进度失败:', e.message);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取申报进度失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/tax/fetch-sales' && req.method === 'GET') {
+    // 从电子税务局获取销售收入
+    try {
+      const taxType = parsedUrl.query.taxType || 'vat';
+      const period = parsedUrl.query.period || '';
+      const province = parsedUrl.query.province || process.env.TAX_BUREAU_PROVINCE || 'hunan';
+
+      if (!period) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '请提供申报期间' }));
+        return;
+      }
+
+      console.log('[电子税务局] 获取销售收入:', province, taxType, period);
+
+      // 各省份电子税务局配置
+      const taxBureauConfig = {
+        'hunan': {
+          name: '湖南省电子税务局',
+          baseUrl: 'https://etax.hunan.chinatax.gov.cn',
+          // 需要配置实际的API端点
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'guangdong': {
+          name: '广东省电子税务局',
+          baseUrl: 'https://etax.guangdong.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'beijing': {
+          name: '北京市电子税务局',
+          baseUrl: 'https://etax.beijing.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'shanghai': {
+          name: '上海市电子税务局',
+          baseUrl: 'https://etax.shanghai.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'zhejiang': {
+          name: '浙江省电子税务局',
+          baseUrl: 'https://etax.zj.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'jiangsu': {
+          name: '江苏省电子税务局',
+          baseUrl: 'https://etax.jiangsu.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'sichuan': {
+          name: '四川省电子税务局',
+          baseUrl: 'https://etax.sichuan.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'hubei': {
+          name: '湖北省电子税务局',
+          baseUrl: 'https://etax.hubei.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'henan': {
+          name: '河南省电子税务局',
+          baseUrl: 'https://etax.henan.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'shandong': {
+          name: '山东省电子税务局',
+          baseUrl: 'https://etax.shandong.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'fujian': {
+          name: '福建省电子税务局',
+          baseUrl: 'https://etax.fujian.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'anhui': {
+          name: '安徽省电子税务局',
+          baseUrl: 'https://etax.ah.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'chongqing': {
+          name: '重庆市电子税务局',
+          baseUrl: 'https://etax.chongqing.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'tianjin': {
+          name: '天津市电子税务局',
+          baseUrl: 'https://etax.tianjin.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'hebei': {
+          name: '河北省电子税务局',
+          baseUrl: 'https://etax.hebei.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'liaoning': {
+          name: '辽宁省电子税务局',
+          baseUrl: 'https://etax.liaoning.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'jilin': {
+          name: '吉林省电子税务局',
+          baseUrl: 'https://etax.jl.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'heilongjiang': {
+          name: '黑龙江省电子税务局',
+          baseUrl: 'https://etax.hlj.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'jiangxi': {
+          name: '江西省电子税务局',
+          baseUrl: 'https://etax.jiangxi.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'guangxi': {
+          name: '广西壮族自治区电子税务局',
+          baseUrl: 'https://etax.guangxi.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'hainan': {
+          name: '海南省电子税务局',
+          baseUrl: 'https://etax.hainan.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'guizhou': {
+          name: '贵州省电子税务局',
+          baseUrl: 'https://etax.guizhou.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'yunnan': {
+          name: '云南省电子税务局',
+          baseUrl: 'https://etax.yunnan.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'shaanxi': {
+          name: '陕西省电子税务局',
+          baseUrl: 'https://etax.shaanxi.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'gansu': {
+          name: '甘肃省电子税务局',
+          baseUrl: 'https://etax.gansu.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'qinghai': {
+          name: '青海省电子税务局',
+          baseUrl: 'https://etax.qinghai.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'ningxia': {
+          name: '宁夏回族自治区电子税务局',
+          baseUrl: 'https://etax.ningxia.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'xinjiang': {
+          name: '新疆维吾尔自治区电子税务局',
+          baseUrl: 'https://etax.xinjiang.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'xizang': {
+          name: '西藏自治区电子税务局',
+          baseUrl: 'https://etax.xizang.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'neimenggu': {
+          name: '内蒙古自治区电子税务局',
+          baseUrl: 'https://etax.nm.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'shenzhen': {
+          name: '深圳市电子税务局',
+          baseUrl: 'https://etax.shenzhen.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'ningbo': {
+          name: '宁波市电子税务局',
+          baseUrl: 'https://etax.ningbo.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'xiamen': {
+          name: '厦门市电子税务局',
+          baseUrl: 'https://etax.xiamen.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'qingdao': {
+          name: '青岛市电子税务局',
+          baseUrl: 'https://etax.qingdao.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        },
+        'dalian': {
+          name: '大连市电子税务局',
+          baseUrl: 'https://etax.dalian.chinatax.gov.cn',
+          apiEndpoints: {
+            sales: '/api/sb/sales/query',
+            auth: '/api/auth/login'
+          }
+        }
+      };
+
+      const config = taxBureauConfig[province] || taxBureauConfig['hunan'];
+
+      // 检查是否配置了电子税务局认证信息
+      const taxBureauEnabled = process.env.TAX_BUREAU_ENABLED === 'true';
+      const taxBureauToken = process.env.TAX_BUREAU_TOKEN || '';
+
+      if (taxBureauEnabled && taxBureauToken) {
+        // 实际调用电子税务局API
+        const taxBureauApiUrl = config.baseUrl + config.apiEndpoints.sales;
+
+        console.log('[电子税务局] 请求:', taxBureauApiUrl);
+
+        const apiUrlParsed = new URL(taxBureauApiUrl);
+        const taxReqOptions = {
+          hostname: apiUrlParsed.hostname,
+          port: apiUrlParsed.port || 443,
+          path: apiUrlParsed.pathname + '?taxType=' + encodeURIComponent(taxType) + '&period=' + encodeURIComponent(period),
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + taxBureauToken,
+            'Content-Type': 'application/json',
+            'User-Agent': 'YinheXingchen/1.0'
+          }
+        };
+
+        const taxReq = https.request(taxReqOptions, function(taxRes) {
+          let taxData = '';
+          taxRes.on('data', function(chunk) { taxData += chunk; });
+          taxRes.on('end', function() {
+            try {
+              console.log('[电子税务局] 响应:', taxRes.statusCode, taxData.substring(0, 500));
+              if (taxRes.statusCode === 200) {
+                const result = JSON.parse(taxData);
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                res.end(JSON.stringify({
+                  success: true,
+                  data: {
+                    salesAmount: result.salesAmount || result.data?.salesAmount,
+                    taxableAmount: result.taxableAmount || result.data?.taxableAmount,
+                    taxRate: result.taxRate || result.data?.taxRate,
+                    source: config.name
+                  },
+                  message: '数据获取成功'
+                }));
+              } else {
+                // API调用失败，返回模拟数据
+                returnMockData();
+              }
+            } catch (e) {
+              console.error('[电子税务局] 解析失败:', e.message);
+              returnMockData();
+            }
+          });
+        });
+
+        taxReq.on('error', function(e) {
+          console.error('[电子税务局] 请求失败:', e.message);
+          returnMockData();
+        });
+
+        taxReq.setTimeout(10000, function() {
+          taxReq.destroy();
+          console.error('[电子税务局] 请求超时');
+          returnMockData();
+        });
+
+        taxReq.end();
+
+      } else {
+        // 未配置真实API，返回模拟数据
+        returnMockData();
+      }
+
+      function returnMockData() {
+        // 模拟数据（实际生产环境需要对接真实的电子税务局API）
+        const mockData = {
+          'vat': {
+            salesAmount: Math.floor(Math.random() * 500000) + 100000,
+            taxableAmount: null,
+            taxRate: 0.13,
+            source: config.name + '（演示数据）'
+          },
+          'corporate-income': {
+            salesAmount: Math.floor(Math.random() * 2000000) + 500000,
+            taxableAmount: Math.floor(Math.random() * 200000) + 50000,
+            taxRate: 0.25,
+            source: config.name + '（演示数据）'
+          },
+          'personal-income': {
+            salesAmount: null,
+            taxableAmount: Math.floor(Math.random() * 30000) + 5000,
+            taxRate: 0.03,
+            source: config.name + '（演示数据）'
+          },
+          'city-tax': {
+            salesAmount: null,
+            taxableAmount: null,
+            taxRate: 0.07,
+            source: config.name + '（演示数据）'
+          }
+        };
+
+        const data = mockData[taxType] || mockData['vat'];
+
+        setTimeout(function() {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({
+            success: true,
+            data: data,
+            message: '数据获取成功',
+            province: config.name,
+            note: '当前为演示数据，配置TAX_BUREAU_ENABLED=true后可对接真实API'
+          }));
+        }, 800);
+      }
+
+    } catch (e) {
+      console.error('[电子税务局] 错误:', e);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取数据失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/tax/provinces' && req.method === 'GET') {
+    // 获取支持的省份列表
+    const provinces = [
+      { code: 'hunan', name: '湖南省' },
+      { code: 'guangdong', name: '广东省' },
+      { code: 'beijing', name: '北京市' },
+      { code: 'shanghai', name: '上海市' },
+      { code: 'zhejiang', name: '浙江省' },
+      { code: 'jiangsu', name: '江苏省' },
+      { code: 'sichuan', name: '四川省' },
+      { code: 'hubei', name: '湖北省' },
+      { code: 'henan', name: '河南省' },
+      { code: 'shandong', name: '山东省' },
+      { code: 'fujian', name: '福建省' },
+      { code: 'anhui', name: '安徽省' },
+      { code: 'chongqing', name: '重庆市' },
+      { code: 'tianjin', name: '天津市' },
+      { code: 'hebei', name: '河北省' },
+      { code: 'liaoning', name: '辽宁省' },
+      { code: 'jilin', name: '吉林省' },
+      { code: 'heilongjiang', name: '黑龙江省' },
+      { code: 'jiangxi', name: '江西省' },
+      { code: 'guangxi', name: '广西壮族自治区' },
+      { code: 'hainan', name: '海南省' },
+      { code: 'guizhou', name: '贵州省' },
+      { code: 'yunnan', name: '云南省' },
+      { code: 'shaanxi', name: '陕西省' },
+      { code: 'gansu', name: '甘肃省' },
+      { code: 'qinghai', name: '青海省' },
+      { code: 'ningxia', name: '宁夏回族自治区' },
+      { code: 'xinjiang', name: '新疆维吾尔自治区' },
+      { code: 'xizang', name: '西藏自治区' },
+      { code: 'neimenggu', name: '内蒙古自治区' },
+      { code: 'shenzhen', name: '深圳市' },
+      { code: 'ningbo', name: '宁波市' },
+      { code: 'xiamen', name: '厦门市' },
+      { code: 'qingdao', name: '青岛市' },
+      { code: 'dalian', name: '大连市' }
+    ];
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ success: true, data: provinces }));
+
+  } else if (pathname === '/api/tax/reporting-progress' && req.method === 'POST') {
+    // 添加或更新申报进度
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库不可用' }));
+          return;
+        }
+
+        const data = JSON.parse(body || '{}');
+        const { id, tax_type, period, status, amount, deadline, report_date } = data;
+
+        // 确保表存在
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS tax_reporting_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tax_type TEXT NOT NULL,
+            period TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            amount REAL DEFAULT 0,
+            deadline TEXT,
+            report_date TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        if (id) {
+          // 更新
+          usersDb.prepare(`UPDATE tax_reporting_progress SET tax_type = ?, period = ?, status = ?, amount = ?, deadline = ?, report_date = ?, updated_at = datetime('now') WHERE id = ?`)
+            .run(tax_type, period, status, amount, deadline, report_date, id);
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, message: '更新成功', id: id }));
+        } else {
+          // 新增
+          const result = usersDb.prepare(`INSERT INTO tax_reporting_progress (tax_type, period, status, amount, deadline, report_date) VALUES (?, ?, ?, ?, ?, ?)`)
+            .run(tax_type, period, status || 'pending', amount || 0, deadline, report_date);
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, message: '添加成功', id: result.lastInsertRowid }));
+        }
+      } catch (e) {
+        console.error('操作申报进度失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '操作失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/tax/reporting-submit' && req.method === 'POST') {
+    // 提交税务申报
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库不可用' }));
+          return;
+        }
+
+        const data = JSON.parse(body || '{}');
+        const { tax_type, tax_type_label, period, period_label, sales_amount, taxable_amount, tax_rate, tax_amount, notes, status } = data;
+
+        if (!tax_type || !period) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '税种和申报期间不能为空' }));
+          return;
+        }
+
+        // 确保表存在
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS tax_filings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tax_type TEXT NOT NULL,
+            tax_type_label TEXT,
+            period TEXT NOT NULL,
+            period_label TEXT,
+            sales_amount REAL DEFAULT 0,
+            taxable_amount REAL DEFAULT 0,
+            tax_rate REAL DEFAULT 0,
+            tax_amount REAL DEFAULT 0,
+            notes TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        const result = usersDb.prepare(
+          `INSERT INTO tax_filings (tax_type, tax_type_label, period, period_label, sales_amount, taxable_amount, tax_rate, tax_amount, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).run(tax_type, tax_type_label || '', period, period_label || '', sales_amount || 0, taxable_amount || 0, tax_rate || 0, tax_amount || 0, notes || '', status || 'pending');
+
+        // 同时更新申报进度
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS tax_reporting_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tax_type TEXT NOT NULL,
+            period TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            amount REAL DEFAULT 0,
+            deadline TEXT,
+            report_date TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        const today = new Date().toISOString().split('T')[0];
+        usersDb.prepare(
+          `INSERT INTO tax_reporting_progress (tax_type, period, status, amount, report_date) VALUES (?, ?, ?, ?, ?)`
+        ).run(tax_type_label || tax_type, period_label || period, 'pending', tax_amount || 0, today);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '申报提交成功', id: result.lastInsertRowid }));
+      } catch (e) {
+        console.error('提交税务申报失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '提交失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/company/list' && req.method === 'GET') {
+    // 获取公司列表
+    try {
+      if (!usersDb) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: [] }));
+        return;
+      }
+
+      // 确保表存在
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS companies (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          credit_code TEXT,
+          legal_person TEXT,
+          registered_capital REAL,
+          establish_date TEXT,
+          business_scope TEXT,
+          address TEXT,
+          phone TEXT,
+          email TEXT,
+          status TEXT DEFAULT 'active',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      const rows = usersDb.prepare(`SELECT * FROM companies ORDER BY created_at DESC`).all();
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: rows || [] }));
+    } catch (e) {
+      console.error('获取公司列表失败:', e.message);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取公司列表失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/company/save' && req.method === 'POST') {
+    // 保存公司信息
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库不可用' }));
+          return;
+        }
+
+        const data = JSON.parse(body || '{}');
+        const { id, name, credit_code, legal_person, registered_capital, establish_date, business_scope, address, phone, email } = data;
+
+        // 确保表存在
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS companies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            credit_code TEXT,
+            legal_person TEXT,
+            registered_capital REAL,
+            establish_date TEXT,
+            business_scope TEXT,
+            address TEXT,
+            phone TEXT,
+            email TEXT,
+            status TEXT DEFAULT 'active',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        if (id) {
+          // 更新
+          usersDb.prepare(`UPDATE companies SET name = ?, credit_code = ?, legal_person = ?, registered_capital = ?, establish_date = ?, business_scope = ?, address = ?, phone = ?, email = ?, updated_at = datetime('now') WHERE id = ?`)
+            .run(name, credit_code, legal_person, registered_capital, establish_date, business_scope, address, phone, email, id);
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, message: '更新成功', id: id }));
+        } else {
+          // 新增
+          const result = usersDb.prepare(`INSERT INTO companies (name, credit_code, legal_person, registered_capital, establish_date, business_scope, address, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .run(name, credit_code, legal_person, registered_capital, establish_date, business_scope, address, phone, email);
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, message: '保存成功', id: result.lastInsertRowid }));
+        }
+      } catch (e) {
+        console.error('保存公司信息失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '保存失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/company/delete' && req.method === 'POST') {
+    // 删除公司
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', function() {
+      try {
+        if (!usersDb) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库不可用' }));
+          return;
+        }
+
+        const data = JSON.parse(body || '{}');
+        const { id } = data;
+
+        if (!id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '缺少公司ID' }));
+          return;
+        }
+
+        usersDb.prepare(`DELETE FROM companies WHERE id = ?`).run(id);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '删除成功' }));
+      } catch (e) {
+        console.error('删除公司失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除失败: ' + e.message }));
+      }
+    });
 
   } else if (pathname === '/api/sms/send-code' && req.method === 'POST') {
     let body = '';
@@ -2646,16 +3877,22 @@ if (!data.id) {
       const urlParams = new URL(req.url, 'http://localhost');
       const userId = urlParams.searchParams.get('userId');
 
-      if (!userId) {
-        res.statusCode = 400;
+      // 未登录用户返回演示数据
+      if (!userId || userId === 'guest' || userId === 'demo') {
+        const demoProducts = [
+          { id: 1, name: '财务软件专业版', code: 'SP001', category: '软件', unit: '套', price: 2999, stock: 45, threshold: 10 },
+          { id: 2, name: '财务软件标准版', code: 'SP002', category: '软件', unit: '套', price: 1999, stock: 50, threshold: 10 },
+          { id: 3, name: '代账服务年费', code: 'SP003', category: '服务', unit: '年', price: 3600, stock: 100, threshold: 20 },
+          { id: 4, name: '税务咨询费', code: 'SP004', category: '服务', unit: '次', price: 500, stock: 200, threshold: 50 },
+          { id: 5, name: '审计服务费', code: 'SP005', category: '服务', unit: '次', price: 3000, stock: 30, threshold: 10 }
+        ];
+        res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: '用户ID不能为空' }));
+        res.end(JSON.stringify({ success: true, data: demoProducts, isDemo: true }));
         return;
       }
 
       const products = usersDb.prepare('SELECT * FROM products WHERE user_id = ? ORDER BY id ASC').all(userId);
-
-      // 不再自动插入预置商品，已登录用户只显示自己添加的商品
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: true, data: products }));
@@ -2939,13 +4176,15 @@ if (!data.id) {
           }
         }
 
-        // 检查用户名是否已存在
-        const [existsRows] = await mysqlPool.execute('SELECT id FROM users WHERE username = ?', [username]);
-        if (existsRows.length > 0) {
-          res.statusCode = 409;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '该用户名已被使用，请更换用户名' }));
-          return;
+        // 企业注册：检查用户名是否已存在（企业用户以用户名为唯一标识）
+        if (data.userType === 'enterprise') {
+          const [existsRows] = await mysqlPool.execute('SELECT id FROM users WHERE username = ? AND user_type = ?', [username, 'enterprise']);
+          if (existsRows.length > 0) {
+            res.statusCode = 409;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '该用户名已被使用，请更换用户名' }));
+            return;
+          }
         }
 
         const userId = 'USER_' + Date.now();
@@ -3045,6 +4284,47 @@ if (!data.id) {
       res.end(JSON.stringify({ success: false, message: '查询失败: ' + e.message }));
     }
 
+  } else if (pathname === '/api/users/verify' && req.method === 'POST') {
+    // 实名认证
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        const userId = data.user_id;
+        const realName = data.real_name;
+        const idType = data.id_type || 'idcard';
+        const idNumber = data.id_number;
+
+        if (!userId || !realName || !idNumber) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        // 更新用户实名信息
+        if (mysqlPool) {
+          await mysqlPool.execute(
+            'UPDATE users SET real_name = ?, id_type = ?, id_number = ?, is_verified = 1, update_time = NOW() WHERE id = ?',
+            [realName, idType, idNumber, userId]
+          );
+        } else if (usersDb) {
+          usersDb.prepare('UPDATE users SET real_name = ?, id_type = ?, id_number = ?, is_verified = 1, update_time = ? WHERE id = ?')
+            .run(realName, idType, idNumber, new Date().toISOString(), userId);
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '实名认证提交成功' }));
+      } catch (e) {
+        console.error('实名认证失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '认证失败: ' + e.message }));
+      }
+    });
+
   } else if (pathname === '/api/users/login' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
@@ -3054,6 +4334,8 @@ if (!data.id) {
         const account = (data.account || '').trim();
         const password = data.password || '';
         const userType = data.userType || 'personal';
+
+        console.log('登录请求 - 账号:', account, '用户类型:', userType);
 
         if (!account || !password) {
           res.statusCode = 400;
@@ -3079,7 +4361,9 @@ if (!data.id) {
             params = [account, userType];
           }
 
+          console.log('MySQL查询:', query, params);
           const [rows] = await mysqlPool.execute(query, params);
+          console.log('MySQL查询结果数量:', rows.length);
           if (rows.length > 0) {
             user = rows[0];
           }
@@ -3087,15 +4371,18 @@ if (!data.id) {
 
         // MySQL没有则从SQLite查询
         if (!user && usersDb) {
+          console.log('从SQLite查询用户');
           if (userType === 'enterprise') {
             user = usersDb.prepare('SELECT * FROM users WHERE username = ? AND user_type = ?').get(account, 'enterprise');
           } else {
             user = usersDb.prepare('SELECT * FROM users WHERE phone = ? AND user_type = ?').get(account, userType);
           }
+          console.log('SQLite查询结果:', user ? '找到用户' : '未找到用户');
         }
 
         // 用户不存在
         if (!user) {
+          console.log('用户不存在:', account);
           res.statusCode = 404;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '用户不存在，请先注册' }));
@@ -3104,23 +4391,51 @@ if (!data.id) {
 
         // 密码验证
         if (user.password !== password) {
+          console.log('密码错误');
           res.statusCode = 401;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '密码错误' }));
           return;
         }
 
+        console.log('登录成功:', account);
+
         // 登录成功，返回用户信息（不包含密码）
         const userData = { ...user };
         delete userData.password;
+
+        // 转换字段名为camelCase格式，兼容前端
+        const responseData = {
+          id: userData.id,
+          username: userData.username,
+          phone: userData.phone,
+          userType: userData.user_type,
+          institutionType: userData.institution_type,
+          institutionName: userData.institution_name,
+          enterpriseName: userData.enterprise_name,
+          creditCode: userData.credit_code,
+          contactPerson: userData.contact_person,
+          industry: userData.industry,
+          memberPoints: userData.member_points,
+          memberExpiry: userData.member_expiry,
+          creditScore: userData.credit_score,
+          accountBalance: userData.account_balance,
+          exclusiveServices: userData.exclusive_services,
+          banStatus: userData.ban_status,
+          banReason: userData.ban_reason,
+          createTime: userData.create_time,
+          updateTime: userData.update_time,
+          isLoggedIn: true
+        };
 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
           success: true,
-          data: userData
+          data: responseData
         }));
       } catch (e) {
+        console.error('登录失败:', e);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '登录失败: ' + e.message }));
@@ -3694,24 +5009,6 @@ if (!data.id) {
   // 获取客户列表：GET /api/customers
   } else if (pathname === '/api/customers' && req.method === 'GET') {
     const userId = parsedUrl.query.userId;
-
-    // 优先从MySQL获取
-    if (mysqlPool) {
-      try {
-        const [customers] = await mysqlPool.execute(
-          'SELECT id, name, contact, phone, address, remark, user_id, create_time, update_time FROM customers WHERE user_id = ? ORDER BY create_time DESC',
-          [userId || '']
-        );
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: customers }));
-        return;
-      } catch (e) {
-        console.error('MySQL获取客户列表失败:', e.message);
-      }
-    }
-
-    // 回退到SQLite
     if (!usersDb) {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3732,7 +5029,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.name || !data.userId) {
@@ -3741,41 +5038,21 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户名称和用户ID为必填项' }));
           return;
         }
-
-        const now = new Date().toISOString();
-
-        // 优先写入MySQL
-        if (mysqlPool) {
-          try {
-            const [result] = await mysqlPool.execute(
-              'INSERT INTO customers (name, contact, phone, address, remark, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              [data.name, data.contact || '', data.phone || '', data.address || '', data.remark || '', data.userId, now, now]
-            );
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ success: true, data: { id: result.insertId } }));
-            return;
-          } catch (e) {
-            console.error('MySQL添加客户失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
+        const now = new Date().toISOString();
         const stmt = usersDb.prepare(
-          'INSERT INTO customers (name, contact, phone, address, remark, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          'INSERT INTO customers (name, contact, phone, address, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
         const result = stmt.run(
           data.name,
           data.contact || '',
           data.phone || '',
           data.address || '',
-          data.remark || '',
           data.userId,
           now,
           now
@@ -3793,7 +5070,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'PUT') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -3802,33 +5079,6 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
           return;
         }
-
-        const now = new Date().toISOString();
-
-        // 优先更新MySQL
-        if (mysqlPool) {
-          try {
-            const updateFields = [];
-            const updateValues = [];
-            if (data.name !== undefined) { updateFields.push('name = ?'); updateValues.push(data.name); }
-            if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
-            if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
-            if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
-            if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
-            updateFields.push('update_time = ?');
-            updateValues.push(now);
-            updateValues.push(data.id);
-            await mysqlPool.execute(`UPDATE customers SET ${updateFields.join(', ')} WHERE id = ?`, updateValues);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ success: true, message: '客户更新成功' }));
-            return;
-          } catch (e) {
-            console.error('MySQL更新客户失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3841,9 +5091,8 @@ if (!data.id) {
         if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
         if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
         if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
-        if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
         updateFields.push('update_time = ?');
-        updateValues.push(now);
+        updateValues.push(new Date().toISOString());
         updateValues.push(data.id);
         const stmt = usersDb.prepare(`UPDATE customers SET ${updateFields.join(', ')} WHERE id = ?`);
         stmt.run(...updateValues);
@@ -3860,7 +5109,7 @@ if (!data.id) {
   } else if (pathname === '/api/customers' && req.method === 'DELETE') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -3869,21 +5118,6 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '客户ID为必填项' }));
           return;
         }
-
-        // 优先从MySQL删除
-        if (mysqlPool) {
-          try {
-            await mysqlPool.execute('DELETE FROM customers WHERE id = ?', [data.id]);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ success: true, message: '客户删除成功' }));
-            return;
-          } catch (e) {
-            console.error('MySQL删除客户失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -3918,7 +5152,7 @@ if (!data.id) {
         for (const order of orders) {
           // 获取该送货单的商品明细
           const [items] = await mysqlPool.execute(
-            'SELECT product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
+            'SELECT product_name, quantity, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
             [order.id]
           );
 
@@ -3926,28 +5160,17 @@ if (!data.id) {
             id: order.id,
             no: order.order_no,
             customer: order.customer_name,
-            project: order.project_name || '',
-            contact: order.contact_name || '',
-            contact_phone: order.customer_phone || '',
+            contactPhone: order.customer_phone,
+            address: order.customer_address,
             date: order.delivery_date.toISOString().split('T')[0],
             status: order.status === 'pending' ? '待送达' : '已送达',
-            address: order.customer_address || '',
-            remark: order.remark || '',
             items: items.map(item => ({
               product: item.product_name,
-              name: item.product_name,
-              model: item.model || '',
-              length: item.length || '',
-              wattage: item.wattage || '',
-              brightness: item.brightness || '',
-              sensorMode: item.sensor_mode || '',
               quantity: item.quantity,
-              unit: item.unit || '',
               price: item.unit_price
             })),
-            user_id: order.user_id,
-            create_time: order.create_time,
-            update_time: order.update_time
+            createTime: order.create_time,
+            updateTime: order.update_time
           });
         }
 
@@ -3980,119 +5203,32 @@ if (!data.id) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, message: '获取送货单列表失败: ' + e.message }));
-    }  // 添加送货单：POST /api/delivery-notes
+    }
+  // 添加送货单：POST /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
-        if (!data.customer || !data.date || !data.userId) {
+        if (!data.no || !data.customer || !data.date || !data.userId) {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '客户、日期和用户ID为必填项' }));
+          res.end(JSON.stringify({ success: false, message: '单号、客户、日期和用户ID为必填项' }));
           return;
         }
-
-        const now = new Date();
-        const orderNo = data.no || ('SHD' + now.getFullYear() +
-          String(now.getMonth() + 1).padStart(2, '0') +
-          String(now.getDate()).padStart(2, '0') +
-          String(Date.now()).slice(-3));
-
-        // 优先写入MySQL
-        if (mysqlPool) {
-          try {
-            const conn = await mysqlPool.getConnection();
-            try {
-              await conn.beginTransaction();
-
-              // 插入送货单主表
-              const [orderResult] = await conn.execute(
-                `INSERT INTO delivery_orders (order_no, customer_name, project_name, customer_phone, customer_address, contact_name, remark, delivery_date, total_amount, status, user_id, create_time, update_time)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                  orderNo,
-                  data.customer,
-                  data.project || '',
-                  data.contactPhone || '',
-                  data.address || '',
-                  data.contact || '',
-                  data.remark || '',
-                  data.date,
-                  0,
-                  data.status === '已送达' ? 'delivered' : 'pending',
-                  data.userId,
-                  now,
-                  now
-                ]
-              );
-
-              const deliveryId = orderResult.insertId;
-
-              // 插入商品明细
-              if (data.items && data.items.length > 0) {
-                let totalAmount = 0;
-                for (const item of data.items) {
-                  const qty = parseFloat(item.quantity) || 0;
-                  const price = parseFloat(item.price) || 0;
-                  const amount = qty * price;
-                  totalAmount += amount;
-
-                  await conn.execute(
-                    `INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                      deliveryId,
-                      item.product || item.name || '',
-                      item.model || '',
-                      item.length || '',
-                      item.wattage || '',
-                      item.brightness || '',
-                      item.sensor || item.sensorMode || '',
-                      qty,
-                      item.unit || '',
-                      price,
-                      amount
-                    ]
-                  );
-                }
-
-                // 更新总金额
-                await conn.execute(
-                  'UPDATE delivery_orders SET total_amount = ? WHERE id = ?',
-                  [totalAmount, deliveryId]
-                );
-              }
-
-              await conn.commit();
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json; charset=utf-8');
-              res.end(JSON.stringify({ success: true, data: { id: deliveryId, no: orderNo } }));
-              return;
-            } catch (e) {
-              await conn.rollback();
-              throw e;
-            } finally {
-              conn.release();
-            }
-          } catch (e) {
-            console.error('MySQL添加送货单失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
+        const now = new Date().toISOString();
         const stmt = usersDb.prepare(
           'INSERT INTO delivery_notes (no, customer, contact, contact_phone, date, status, address, remark, items, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         const result = stmt.run(
-          orderNo,
+          data.no,
           data.customer,
           data.contact || '',
           data.contactPhone || '',
@@ -4102,12 +5238,12 @@ if (!data.id) {
           data.remark || '',
           data.items ? JSON.stringify(data.items) : '[]',
           data.userId,
-          now.toISOString(),
-          now.toISOString()
+          now,
+          now
         );
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid, no: orderNo } }));
+        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4118,7 +5254,7 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'PUT') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -4127,86 +5263,6 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
-
-        const now = new Date();
-
-        // 优先更新MySQL
-        if (mysqlPool) {
-          try {
-            const conn = await mysqlPool.getConnection();
-            try {
-              await conn.beginTransaction();
-
-              // 更新送货单主表
-              const updateFields = [];
-              const updateValues = [];
-              if (data.customer !== undefined) { updateFields.push('customer_name = ?'); updateValues.push(data.customer); }
-              if (data.contactPhone !== undefined) { updateFields.push('customer_phone = ?'); updateValues.push(data.contactPhone); }
-              if (data.address !== undefined) { updateFields.push('customer_address = ?'); updateValues.push(data.address); }
-              if (data.project !== undefined) { updateFields.push('project_name = ?'); updateValues.push(data.project); }
-              if (data.contact !== undefined) { updateFields.push('contact_name = ?'); updateValues.push(data.contact); }
-              if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
-              if (data.date !== undefined) { updateFields.push('delivery_date = ?'); updateValues.push(data.date); }
-              if (data.status !== undefined) { updateFields.push('status = ?'); updateValues.push(data.status === '已送达' ? 'delivered' : 'pending'); }
-              updateFields.push('update_time = ?');
-              updateValues.push(now);
-              updateValues.push(data.id);
-
-              if (updateFields.length > 1) {
-                await conn.execute(`UPDATE delivery_orders SET ${updateFields.join(', ')} WHERE id = ?`, updateValues);
-              }
-
-              // 更新商品明细：先删除旧的，再插入新的
-              if (data.items !== undefined) {
-                await conn.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
-
-                let totalAmount = 0;
-                for (const item of data.items) {
-                  const qty = parseFloat(item.quantity) || 0;
-                  const price = parseFloat(item.price) || 0;
-                  const amount = qty * price;
-                  totalAmount += amount;
-
-                  await conn.execute(
-                    `INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                      data.id,
-                      item.product || item.name || '',
-                      item.model || '',
-                      item.length || '',
-                      item.wattage || '',
-                      item.brightness || '',
-                      item.sensor || item.sensorMode || '',
-                      qty,
-                      item.unit || '',
-                      price,
-                      amount
-                    ]
-                  );
-                }
-
-                // 更新总金额
-                await conn.execute('UPDATE delivery_orders SET total_amount = ? WHERE id = ?', [totalAmount, data.id]);
-              }
-
-              await conn.commit();
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json; charset=utf-8');
-              res.end(JSON.stringify({ success: true, message: '送货单更新成功' }));
-              return;
-            } catch (e) {
-              await conn.rollback();
-              throw e;
-            } finally {
-              conn.release();
-            }
-          } catch (e) {
-            console.error('MySQL更新送货单失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4225,7 +5281,7 @@ if (!data.id) {
         if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
         if (data.items !== undefined) { updateFields.push('items = ?'); updateValues.push(JSON.stringify(data.items)); }
         updateFields.push('update_time = ?');
-        updateValues.push(now.toISOString());
+        updateValues.push(new Date().toISOString());
         updateValues.push(data.id);
         const stmt = usersDb.prepare(`UPDATE delivery_notes SET ${updateFields.join(', ')} WHERE id = ?`);
         stmt.run(...updateValues);
@@ -4242,7 +5298,7 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'DELETE') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', async function() {
+    req.on('end', function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -4251,34 +5307,6 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
-
-        // 优先从MySQL删除
-        if (mysqlPool) {
-          try {
-            const conn = await mysqlPool.getConnection();
-            try {
-              await conn.beginTransaction();
-              // 先删除商品明细
-              await conn.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
-              // 再删除送货单
-              await conn.execute('DELETE FROM delivery_orders WHERE id = ?', [data.id]);
-              await conn.commit();
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json; charset=utf-8');
-              res.end(JSON.stringify({ success: true, message: '送货单删除成功' }));
-              return;
-            } catch (e) {
-              await conn.rollback();
-              throw e;
-            } finally {
-              conn.release();
-            }
-          } catch (e) {
-            console.error('MySQL删除送货单失败:', e.message);
-          }
-        }
-
-        // 回退到SQLite
         if (!usersDb) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4466,6 +5494,2154 @@ if (!data.id) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '删除消息失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 营销活动API ====================
+  } else if (pathname === '/api/admin/coupons' && req.method === 'GET') {
+    // 获取优惠券列表
+    try {
+      let coupons = [];
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        await conn.execute(`
+          CREATE TABLE IF NOT EXISTS coupons (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            name VARCHAR(100) NOT NULL,
+            type VARCHAR(20) NOT NULL,
+            amount DECIMAL(10,2) DEFAULT 0,
+            discount DECIMAL(3,2) DEFAULT 1.00,
+            min_amount DECIMAL(10,2) DEFAULT 0,
+            start_date DATE,
+            end_date DATE,
+            total_count INT DEFAULT 0,
+            used_count INT DEFAULT 0,
+            status VARCHAR(20) DEFAULT 'active',
+            create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_status (status)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+        const [rows] = await conn.execute('SELECT * FROM coupons ORDER BY create_time DESC');
+        coupons = rows;
+        conn.release();
+      } else if (usersDb) {
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS coupons (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            amount REAL DEFAULT 0,
+            discount REAL DEFAULT 1,
+            min_amount REAL DEFAULT 0,
+            start_date TEXT,
+            end_date TEXT,
+            total_count INTEGER DEFAULT 0,
+            used_count INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'active',
+            create_time TEXT DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        coupons = usersDb.prepare('SELECT * FROM coupons ORDER BY id DESC').all();
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: coupons }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取优惠券失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/coupons' && req.method === 'POST') {
+    // 创建优惠券
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          await conn.execute(`
+            INSERT INTO coupons (name, type, amount, discount, min_amount, start_date, end_date, total_count)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `, [data.name, data.type, data.amount || 0, data.discount || 1, data.min_amount || 0, data.start_date, data.end_date, data.total_count || 0]);
+          conn.release();
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS coupons (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              type TEXT NOT NULL,
+              amount REAL DEFAULT 0,
+              discount REAL DEFAULT 1,
+              min_amount REAL DEFAULT 0,
+              start_date TEXT,
+              end_date TEXT,
+              total_count INTEGER DEFAULT 0,
+              used_count INTEGER DEFAULT 0,
+              status TEXT DEFAULT 'active',
+              create_time TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          usersDb.prepare(`INSERT INTO coupons (name, type, amount, discount, min_amount, start_date, end_date, total_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+            .run(data.name, data.type, data.amount || 0, data.discount || 1, data.min_amount || 0, data.start_date, data.end_date, data.total_count || 0);
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '优惠券创建成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '创建优惠券失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname.startsWith('/api/admin/coupons/') && req.method === 'DELETE') {
+    // 删除优惠券
+    const couponId = pathname.split('/')[4];
+    try {
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        await conn.execute('DELETE FROM coupons WHERE id = ?', [couponId]);
+        conn.release();
+      } else if (usersDb) {
+        usersDb.prepare('DELETE FROM coupons WHERE id = ?').run(couponId);
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, message: '优惠券已删除' }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '删除失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/activities' && req.method === 'GET') {
+    // 获取营销活动列表
+    try {
+      let activities = [];
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        await conn.execute(`
+          CREATE TABLE IF NOT EXISTS marketing_activities (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            name VARCHAR(100) NOT NULL,
+            type VARCHAR(20) NOT NULL,
+            description TEXT,
+            start_time DATETIME,
+            end_time DATETIME,
+            participants INT DEFAULT 0,
+            status VARCHAR(20) DEFAULT 'pending',
+            create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_status (status)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+        const [rows] = await conn.execute('SELECT * FROM marketing_activities ORDER BY create_time DESC');
+        activities = rows;
+        conn.release();
+      } else if (usersDb) {
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS marketing_activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            description TEXT,
+            start_time TEXT,
+            end_time TEXT,
+            participants INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            create_time TEXT DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        activities = usersDb.prepare('SELECT * FROM marketing_activities ORDER BY id DESC').all();
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: activities }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取活动失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/activities' && req.method === 'POST') {
+    // 创建营销活动
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          await conn.execute(`
+            INSERT INTO marketing_activities (name, type, description, start_time, end_time)
+            VALUES (?, ?, ?, ?, ?)
+          `, [data.name, data.type, data.description || '', data.start_time, data.end_time]);
+          conn.release();
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS marketing_activities (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              type TEXT NOT NULL,
+              description TEXT,
+              start_time TEXT,
+              end_time TEXT,
+              participants INTEGER DEFAULT 0,
+              status TEXT DEFAULT 'pending',
+              create_time TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          usersDb.prepare(`INSERT INTO marketing_activities (name, type, description, start_time, end_time) VALUES (?, ?, ?, ?, ?)`)
+            .run(data.name, data.type, data.description || '', data.start_time, data.end_time);
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '活动创建成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '创建活动失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname.startsWith('/api/admin/activities/') && req.method === 'DELETE') {
+    // 删除营销活动
+    const activityId = pathname.split('/')[4];
+    try {
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        await conn.execute('DELETE FROM marketing_activities WHERE id = ?', [activityId]);
+        conn.release();
+      } else if (usersDb) {
+        usersDb.prepare('DELETE FROM marketing_activities WHERE id = ?').run(activityId);
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, message: '活动已删除' }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '删除失败: ' + e.message }));
+    }
+
+  // ==================== 访问监控API ====================
+  } else if (pathname === '/api/admin/monitor' && req.method === 'GET') {
+    // 获取访问日志
+    try {
+      const range = parsedUrl.query.range || 'today';
+      let logs = [];
+      let uniqueVisitors = 0;
+
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        // 确保表存在
+        await conn.execute(`
+          CREATE TABLE IF NOT EXISTS visit_logs (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            ip VARCHAR(50) NOT NULL,
+            city VARCHAR(50),
+            user_agent TEXT,
+            page VARCHAR(255) NOT NULL,
+            user_id VARCHAR(64),
+            username VARCHAR(100),
+            phone VARCHAR(20),
+            visit_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            referer TEXT,
+            params TEXT,
+            INDEX idx_visit_time (visit_time),
+            INDEX idx_ip (ip)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+
+        // 根据时间范围查询
+        let whereClause = '1=1';
+        if (range === 'today') {
+          whereClause = "DATE(visit_time) = CURDATE()";
+        } else if (range === 'week') {
+          whereClause = "visit_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        } else if (range === 'month') {
+          whereClause = "visit_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        }
+
+        const [rows] = await conn.execute(`
+          SELECT * FROM visit_logs
+          WHERE ${whereClause}
+          ORDER BY visit_time DESC
+          LIMIT 500
+        `);
+        logs = rows;
+
+        // 统计独立访客
+        const [uniqueRows] = await conn.execute(`
+          SELECT COUNT(DISTINCT ip) as count FROM visit_logs WHERE ${whereClause}
+        `);
+        uniqueVisitors = uniqueRows[0]?.count || 0;
+        conn.release();
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          data: {
+            logs: logs,
+            total: logs.length,
+            uniqueVisitors: uniqueVisitors
+          }
+        }));
+      } else if (usersDb) {
+        // 确保表存在
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS visit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip TEXT NOT NULL,
+            city TEXT,
+            user_agent TEXT,
+            page TEXT NOT NULL,
+            user_id TEXT,
+            username TEXT,
+            phone TEXT,
+            visit_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            referer TEXT,
+            params TEXT
+          )
+        `);
+
+        // 根据时间范围查询
+        let whereClause = '1=1';
+        if (range === 'today') {
+          whereClause = "date(visit_time) = date('now', 'localtime')";
+        } else if (range === 'week') {
+          whereClause = "visit_time >= datetime('now', '-7 days', 'localtime')";
+        } else if (range === 'month') {
+          whereClause = "visit_time >= datetime('now', '-30 days', 'localtime')";
+        }
+
+        logs = usersDb.prepare(`
+          SELECT * FROM visit_logs
+          WHERE ${whereClause}
+          ORDER BY visit_time DESC
+          LIMIT 500
+        `).all();
+
+        // 统计独立访客
+        const uniqueResult = usersDb.prepare(`
+          SELECT COUNT(DISTINCT ip) as count FROM visit_logs WHERE ${whereClause}
+        `).get();
+        uniqueVisitors = uniqueResult?.count || 0;
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          data: {
+            logs: logs,
+            total: logs.length,
+            uniqueVisitors: uniqueVisitors?.count || 0
+          }
+        }));
+      } else {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { logs: [], total: 0, uniqueVisitors: 0 } }));
+      }
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取访问日志失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/monitor/user' && req.method === 'GET') {
+    // 获取用户活动详情
+    try {
+      const identifier = parsedUrl.query.identifier || '';
+
+      if (!usersDb) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: { user: {}, activities: [], posts: [] } }));
+        return;
+      }
+
+      // 确保表存在
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS visit_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ip TEXT NOT NULL,
+          city TEXT,
+          user_agent TEXT,
+          page TEXT NOT NULL,
+          user_id TEXT,
+          username TEXT,
+          phone TEXT,
+          visit_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+          referer TEXT,
+          params TEXT
+        )
+      `);
+
+      // 查找用户活动
+      let activities = [];
+      let user = {};
+
+      // 尝试按用户ID、手机号或IP查找
+      activities = usersDb.prepare(`
+        SELECT * FROM visit_logs
+        WHERE user_id = ? OR phone = ? OR username = ? OR ip = ?
+        ORDER BY visit_time DESC
+        LIMIT 100
+      `).all(identifier, identifier, identifier, identifier);
+
+      if (activities.length > 0) {
+        user = {
+          ip: activities[0].ip,
+          city: activities[0].city,
+          username: activities[0].username,
+          phone: activities[0].phone,
+          visit_count: activities.length,
+          last_visit: activities[0].visit_time
+        };
+      }
+
+      // 查找用户发布的内容（论坛帖子、评论等）
+      let posts = [];
+      try {
+        posts = usersDb.prepare(`
+          SELECT
+            '论坛帖子' as type,
+            title,
+            content,
+            create_time as time
+          FROM forum_posts
+          WHERE author_id = ? OR author_name = ?
+          ORDER BY create_time DESC
+          LIMIT 20
+        `).all(identifier, identifier);
+      } catch (e) {
+        // 表可能不存在
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          user: user,
+          activities: activities,
+          posts: posts
+        }
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取用户活动失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/track' && req.method === 'POST') {
+    // 记录访问日志（前端调用）
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+        ip = ip.replace('::ffff:', '').split(',')[0].trim();
+        const userAgent = req.headers['user-agent'] || '';
+        const referer = req.headers['referer'] || '';
+
+        // 通过IP获取城市
+        let city = data.city || '';
+
+        // 使用免费IP地理位置API获取城市
+        async function getCityByIPAPI(ip) {
+          if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+            return '本地网络';
+          }
+
+          // 检查缓存
+          if (!global.ipCityCache) global.ipCityCache = new Map();
+          const cached = global.ipCityCache.get(ip);
+          if (cached && Date.now() - cached.time < 3600000) { // 1小时缓存
+            return cached.city;
+          }
+
+          try {
+            // 使用 ip-api.com 免费API（无需API key，每分钟45次请求限制）
+            const httpModule = require('http');
+            return new Promise((resolve) => {
+              const req = httpModule.get(`http://ip-api.com/json/${ip}?lang=zh-CN&fields=status,country,regionName,city`, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                  try {
+                    const result = JSON.parse(data);
+                    if (result.status === 'success') {
+                      const cityStr = result.city || result.regionName || result.country || '未知';
+                      global.ipCityCache.set(ip, { city: cityStr, time: Date.now() });
+                      resolve(cityStr);
+                    } else {
+                      resolve(getCityByIPRange(ip));
+                    }
+                  } catch (e) {
+                    resolve(getCityByIPRange(ip));
+                  }
+                });
+              });
+              req.on('error', () => resolve(getCityByIPRange(ip)));
+              req.setTimeout(2000, () => { req.destroy(); resolve(getCityByIPRange(ip)); });
+            });
+          } catch (e) {
+            return getCityByIPRange(ip);
+          }
+        }
+
+        // IP范围映射（备用方案）
+        function getCityByIPRange(ip) {
+          if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+            return '本地网络';
+          }
+          const parts = ip.split('.');
+          if (parts.length !== 4) return '未知';
+          const first = parseInt(parts[0], 10);
+          const second = parseInt(parts[1], 10);
+          // 常见IP段对应城市（更准确的映射）
+          const ipRanges = [
+            // 北京
+            { min: [1, 0], max: [1, 255], city: '北京' },
+            { min: [14, 0], max: [14, 255], city: '北京' },
+            { min: [27, 0], max: [27, 255], city: '北京' },
+            { min: [42, 0], max: [42, 255], city: '北京' },
+            { min: [49, 0], max: [49, 255], city: '北京' },
+            { min: [58, 0], max: [58, 255], city: '北京' },
+            { min: [59, 0], max: [59, 255], city: '北京' },
+            { min: [60, 0], max: [60, 255], city: '北京' },
+            { min: [61, 0], max: [61, 255], city: '北京' },
+            { min: [106, 0], max: [106, 255], city: '北京' },
+            { min: [110, 0], max: [110, 255], city: '北京' },
+            { min: [111, 0], max: [111, 255], city: '北京' },
+            { min: [112, 0], max: [112, 255], city: '北京' },
+            { min: [113, 0], max: [113, 255], city: '北京' },
+            { min: [114, 0], max: [114, 255], city: '北京' },
+            { min: [115, 0], max: [115, 255], city: '北京' },
+            { min: [116, 0], max: [116, 150], city: '北京' },
+            { min: [117, 0], max: [117, 255], city: '北京' },
+            { min: [118, 0], max: [118, 255], city: '北京' },
+            { min: [119, 0], max: [119, 255], city: '北京' },
+            { min: [120, 0], max: [120, 255], city: '北京' },
+            { min: [121, 0], max: [121, 255], city: '北京' },
+            { min: [122, 0], max: [122, 255], city: '北京' },
+            { min: [123, 0], max: [123, 255], city: '北京' },
+            { min: [124, 0], max: [124, 255], city: '北京' },
+            { min: [125, 0], max: [125, 255], city: '北京' },
+            { min: [202, 0], max: [202, 255], city: '北京' },
+            { min: [203, 0], max: [203, 255], city: '北京' },
+            { min: [210, 0], max: [210, 255], city: '北京' },
+            { min: [211, 0], max: [211, 255], city: '北京' },
+            { min: [218, 0], max: [218, 255], city: '北京' },
+            { min: [219, 0], max: [219, 255], city: '北京' },
+            { min: [220, 0], max: [220, 150], city: '北京' },
+            { min: [221, 0], max: [221, 255], city: '北京' },
+            { min: [222, 0], max: [222, 255], city: '北京' },
+            { min: [223, 0], max: [223, 255], city: '北京' },
+            // 上海
+            { min: [58, 0], max: [58, 255], city: '上海' },
+            { min: [61, 128], max: [61, 191], city: '上海' },
+            { min: [101, 0], max: [101, 255], city: '上海' },
+            { min: [116, 224], max: [116, 255], city: '上海' },
+            { min: [180, 0], max: [180, 255], city: '上海' },
+            { min: [202, 96], max: [202, 127], city: '上海' },
+            // 广州/广东
+            { min: [14, 0], max: [14, 255], city: '广州' },
+            { min: [27, 0], max: [27, 255], city: '广州' },
+            { min: [42, 0], max: [42, 255], city: '广州' },
+            { min: [59, 0], max: [59, 255], city: '广州' },
+            { min: [61, 0], max: [61, 127], city: '广州' },
+            { min: [113, 64], max: [113, 127], city: '广州' },
+            { min: [119, 0], max: [119, 255], city: '广州' },
+            { min: [120, 0], max: [120, 255], city: '广州' },
+            { min: [121, 0], max: [121, 255], city: '广州' },
+            { min: [183, 0], max: [183, 255], city: '广州' },
+            // 深圳
+            { min: [113, 128], max: [113, 191], city: '深圳' },
+            // 杭州/浙江
+            { min: [60, 0], max: [60, 255], city: '杭州' },
+            { min: [115, 192], max: [115, 223], city: '杭州' },
+            { min: [122, 0], max: [122, 255], city: '杭州' },
+            // 南京/江苏
+            { min: [49, 0], max: [49, 255], city: '南京' },
+            { min: [58, 192], max: [58, 223], city: '南京' },
+            { min: [114, 224], max: [114, 255], city: '南京' },
+            // 成都/四川
+            { min: [118, 112], max: [118, 127], city: '成都' },
+            { min: [171, 0], max: [171, 255], city: '成都' },
+            { min: [182, 0], max: [182, 255], city: '成都' },
+            // 武汉/湖北
+            { min: [58, 48], max: [58, 63], city: '武汉' },
+            { min: [111, 0], max: [111, 255], city: '武汉' },
+            { min: [119, 96], max: [119, 127], city: '武汉' },
+            // 长沙/湖南
+            { min: [58, 20], max: [58, 39], city: '长沙' },
+            { min: [110, 0], max: [110, 255], city: '长沙' },
+            { min: [218, 76], max: [218, 79], city: '长沙' },
+            // 西安/陕西
+            { min: [61, 134], max: [61, 135], city: '西安' },
+            { min: [113, 192], max: [113, 207], city: '西安' },
+            { min: [124, 89], max: [124, 95], city: '西安' },
+            // 郑州/河南
+            { min: [61, 52], max: [61, 53], city: '郑州' },
+            { min: [61, 158], max: [61, 159], city: '郑州' },
+            { min: [125, 40], max: [125, 47], city: '郑州' },
+            // 天津
+            { min: [60, 24], max: [60, 31], city: '天津' },
+            { min: [117, 0], max: [117, 255], city: '天津' },
+            { min: [221, 196], max: [221, 199], city: '天津' },
+            // 重庆
+            { min: [61, 128], max: [61, 191], city: '重庆' },
+            { min: [118, 112], max: [118, 127], city: '重庆' },
+            { min: [222, 180], max: [222, 183], city: '重庆' },
+            // 沈阳/辽宁
+            { min: [59, 44], max: [59, 47], city: '沈阳' },
+            { min: [60, 0], max: [60, 15], city: '沈阳' },
+            { min: [61, 176], max: [61, 179], city: '沈阳' },
+            { min: [113, 224], max: [113, 239], city: '沈阳' },
+            // 哈尔滨/黑龙江
+            { min: [61, 138], max: [61, 139], city: '哈尔滨' },
+            { min: [113, 0], max: [113, 15], city: '哈尔滨' },
+            { min: [125, 208], max: [125, 223], city: '哈尔滨' },
+            // 济南/山东
+            { min: [60, 208], max: [60, 223], city: '济南' },
+            { min: [119, 176], max: [119, 191], city: '济南' },
+            { min: [123, 232], max: [123, 239], city: '济南' },
+            // 青岛/山东
+            { min: [119, 0], max: [119, 15], city: '青岛' },
+            { min: [221, 0], max: [221, 15], city: '青岛' },
+            // 福州/福建
+            { min: [59, 56], max: [59, 63], city: '福州' },
+            { min: [120, 32], max: [120, 39], city: '福州' },
+            { min: [218, 0], max: [218, 15], city: '福州' },
+            // 厦门/福建
+            { min: [59, 60], max: [59, 63], city: '厦门' },
+            { min: [121, 204], max: [121, 207], city: '厦门' },
+            // 昆明/云南
+            { min: [61, 159], max: [61, 159], city: '昆明' },
+            { min: [116, 52], max: [116, 55], city: '昆明' },
+            { min: [222, 212], max: [222, 215], city: '昆明' },
+            // 贵阳/贵州
+            { min: [61, 189], max: [61, 189], city: '贵阳' },
+            { min: [222, 84], max: [222, 87], city: '贵阳' },
+            // 南宁/广西
+            { min: [61, 235], max: [61, 235], city: '南宁' },
+            { min: [116, 252], max: [116, 255], city: '南宁' },
+            { min: [222, 216], max: [222, 219], city: '南宁' },
+            // 海口/海南
+            { min: [59, 50], max: [59, 51], city: '海口' },
+            { min: [124, 225], max: [124, 231], city: '海口' },
+            // 石家庄/河北
+            { min: [60, 4], max: [60, 7], city: '石家庄' },
+            { min: [61, 182], max: [61, 183], city: '石家庄' },
+            { min: [124, 128], max: [124, 135], city: '石家庄' },
+            // 合肥/安徽
+            { min: [60, 166], max: [60, 167], city: '合肥' },
+            { min: [61, 190], max: [61, 191], city: '合肥' },
+            { min: [124, 72], max: [124, 75], city: '合肥' },
+            // 南昌/江西
+            { min: [59, 52], max: [59, 55], city: '南昌' },
+            { min: [61, 180], max: [61, 180], city: '南昌' },
+            { min: [218, 64], max: [218, 67], city: '南昌' },
+            // 太原/山西
+            { min: [60, 220], max: [60, 223], city: '太原' },
+            { min: [61, 134], max: [61, 135], city: '太原' },
+            { min: [124, 164], max: [124, 167], city: '太原' },
+            // 呼和浩特/内蒙古
+            { min: [61, 134], max: [61, 135], city: '呼和浩特' },
+            { min: [124, 67], max: [124, 67], city: '呼和浩特' },
+            { min: [222, 74], max: [222, 75], city: '呼和浩特' },
+            // 兰州/甘肃
+            { min: [61, 178], max: [61, 179], city: '兰州' },
+            { min: [124, 88], max: [124, 89], city: '兰州' },
+            { min: [222, 240], max: [222, 243], city: '兰州' },
+            // 银川/宁夏
+            { min: [61, 133], max: [61, 133], city: '银川' },
+            { min: [124, 68], max: [124, 68], city: '银川' },
+            { min: [222, 240], max: [222, 240], city: '银川' },
+            // 西宁/青海
+            { min: [61, 133], max: [61, 133], city: '西宁' },
+            { min: [124, 152], max: [124, 152], city: '西宁' },
+            { min: [222, 240], max: [222, 240], city: '西宁' },
+            // 乌鲁木齐/新疆
+            { min: [61, 132], max: [61, 133], city: '乌鲁木齐' },
+            { min: [124, 112], max: [124, 127], city: '乌鲁木齐' },
+            { min: [222, 80], max: [222, 83], city: '乌鲁木齐' },
+            // 拉萨/西藏
+            { min: [61, 188], max: [61, 188], city: '拉萨' },
+            { min: [219, 151], max: [219, 151], city: '拉萨' },
+          ];
+          for (const range of ipRanges) {
+            if ((first > range.min[0] || (first === range.min[0] && second >= range.min[1])) &&
+                (first < range.max[0] || (first === range.max[0] && second <= range.max[1]))) {
+              return range.city;
+            }
+          }
+          // 根据第一个IP段大致判断
+          if (first >= 1 && first <= 50) return '海外';
+          if (first >= 51 && first <= 80) return '海外';
+          if (first >= 81 && first <= 126) return '中国';
+          if (first >= 128 && first <= 191) return '中国';
+          if (first >= 192 && first <= 223) return '中国';
+          return '未知';
+        }
+
+        // 尝试通过API获取城市
+        if (!city && ip && ip !== '127.0.0.1' && ip !== '::1' && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.')) {
+          try {
+            city = await getCityByIPAPI(ip);
+          } catch (e) {
+            city = getCityByIPRange(ip);
+          }
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          // 确保表存在
+          await conn.execute(`
+            CREATE TABLE IF NOT EXISTS visit_logs (
+              id INT PRIMARY KEY AUTO_INCREMENT,
+              ip VARCHAR(50) NOT NULL,
+              city VARCHAR(50),
+              user_agent TEXT,
+              page VARCHAR(255) NOT NULL,
+              user_id VARCHAR(64),
+              username VARCHAR(100),
+              phone VARCHAR(20),
+              visit_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+              referer TEXT,
+              params TEXT,
+              INDEX idx_visit_time (visit_time),
+              INDEX idx_ip (ip)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+          `);
+
+          await conn.execute(`
+            INSERT INTO visit_logs (ip, city, user_agent, page, user_id, username, phone, referer, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [
+            ip,
+            city,
+            userAgent.substring(0, 500),
+            data.page || '',
+            data.userId || '',
+            data.username || '',
+            data.phone || '',
+            referer,
+            JSON.stringify(data.params || {})
+          ]);
+          conn.release();
+        } else if (usersDb) {
+          // 确保表存在
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS visit_logs (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              ip TEXT NOT NULL,
+              city TEXT,
+              user_agent TEXT,
+              page TEXT NOT NULL,
+              user_id TEXT,
+              username TEXT,
+              phone TEXT,
+              visit_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+              referer TEXT,
+              params TEXT
+            )
+          `);
+
+          usersDb.prepare(`
+            INSERT INTO visit_logs (ip, city, user_agent, page, user_id, username, phone, referer, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            ip,
+            city,
+            userAgent.substring(0, 500),
+            data.page || '',
+            data.userId || '',
+            data.username || '',
+            data.phone || '',
+            referer,
+            JSON.stringify(data.params || {})
+          );
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, city: city }));
+      } catch (e) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  // ==================== 发票管理 API ====================
+
+  } else if (pathname === '/api/invoices' && req.method === 'GET') {
+    // 获取发票列表
+    try {
+      const page = parseInt(parsedUrl.query.page || '1');
+      const pageSize = parseInt(parsedUrl.query.pageSize || '20');
+      const offset = (page - 1) * pageSize;
+      const status = parsedUrl.query.status || '';
+      const userId = parsedUrl.query.userId || '';
+
+      let invoices = [];
+      let total = 0;
+
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        try {
+          // 确保表存在
+          await conn.execute(`
+            CREATE TABLE IF NOT EXISTS invoices (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              invoice_no VARCHAR(50) NOT NULL,
+              customer_name VARCHAR(200) NOT NULL,
+              amount DECIMAL(12,2) NOT NULL,
+              tax_rate DECIMAL(5,2) DEFAULT 0.13,
+              tax_amount DECIMAL(12,2) DEFAULT 0,
+              total_amount DECIMAL(12,2) DEFAULT 0,
+              invoice_date DATE NOT NULL,
+              due_date DATE,
+              status VARCHAR(20) DEFAULT 'pending',
+              invoice_type VARCHAR(20) DEFAULT 'sales',
+              description TEXT,
+              user_id VARCHAR(64),
+              create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+              update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              INDEX idx_status (status),
+              INDEX idx_user_id (user_id),
+              INDEX idx_invoice_date (invoice_date)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          `);
+
+          let whereClause = '1=1';
+          const params = [];
+          if (status) {
+            whereClause += ' AND status = ?';
+            params.push(status);
+          }
+          if (userId) {
+            whereClause += ' AND user_id = ?';
+            params.push(userId);
+          }
+
+          const [countRows] = await conn.execute(
+            `SELECT COUNT(*) as total FROM invoices WHERE ${whereClause}`,
+            params
+          );
+          total = countRows[0].total;
+
+          const [rows] = await conn.execute(
+            `SELECT * FROM invoices WHERE ${whereClause} ORDER BY invoice_date DESC, create_time DESC LIMIT ? OFFSET ?`,
+            [...params, pageSize, offset]
+          );
+          invoices = rows;
+        } finally {
+          conn.release();
+        }
+      } else if (usersDb) {
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS invoices (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invoice_no TEXT NOT NULL,
+            customer_name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            tax_rate REAL DEFAULT 0.13,
+            tax_amount REAL DEFAULT 0,
+            total_amount REAL DEFAULT 0,
+            invoice_date TEXT NOT NULL,
+            due_date TEXT,
+            status TEXT DEFAULT 'pending',
+            invoice_type TEXT DEFAULT 'sales',
+            description TEXT,
+            user_id TEXT,
+            create_time TEXT NOT NULL,
+            update_time TEXT
+          )
+        `);
+
+        let whereClause = '1=1';
+        const params = [];
+        if (status) {
+          whereClause += ' AND status = ?';
+          params.push(status);
+        }
+        if (userId) {
+          whereClause += ' AND user_id = ?';
+          params.push(userId);
+        }
+
+        const countRow = usersDb.prepare(`SELECT COUNT(*) as total FROM invoices WHERE ${whereClause}`).get(...params);
+        total = countRow?.total || 0;
+
+        invoices = usersDb.prepare(`
+          SELECT * FROM invoices WHERE ${whereClause} ORDER BY invoice_date DESC, create_time DESC LIMIT ? OFFSET ?
+        `).all(...params, pageSize, offset);
+      }
+
+      // 如果没有数据，返回演示数据
+      if (invoices.length === 0) {
+        invoices = getDemoInvoices();
+        total = invoices.length;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          invoices: invoices,
+          total: total,
+          page: page,
+          pageSize: pageSize
+        }
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取发票列表失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/invoices' && req.method === 'POST') {
+    // 添加发票
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+
+        if (!data.invoiceNo || !data.customerName || !data.amount) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '缺少必填字段' }));
+          return;
+        }
+
+        const invoiceNo = data.invoiceNo || 'INV-' + Date.now();
+        const customerName = data.customerName;
+        const amount = parseFloat(data.amount) || 0;
+        const taxRate = parseFloat(data.taxRate) || 0.13;
+        const taxAmount = amount * taxRate;
+        const totalAmount = amount + taxAmount;
+        const invoiceDate = data.invoiceDate || new Date().toISOString().slice(0, 10);
+        const dueDate = data.dueDate || '';
+        const status = data.status || 'pending';
+        const invoiceType = data.invoiceType || 'sales';
+        const description = data.description || '';
+        const userId = data.userId || '';
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          try {
+            await conn.execute(`
+              INSERT INTO invoices (invoice_no, customer_name, amount, tax_rate, tax_amount, total_amount, invoice_date, due_date, status, invoice_type, description, user_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [invoiceNo, customerName, amount, taxRate, taxAmount, totalAmount, invoiceDate, dueDate, status, invoiceType, description, userId]);
+          } finally {
+            conn.release();
+          }
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS invoices (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              invoice_no TEXT NOT NULL,
+              customer_name TEXT NOT NULL,
+              amount REAL NOT NULL,
+              tax_rate REAL DEFAULT 0.13,
+              tax_amount REAL DEFAULT 0,
+              total_amount REAL DEFAULT 0,
+              invoice_date TEXT NOT NULL,
+              due_date TEXT,
+              status TEXT DEFAULT 'pending',
+              invoice_type TEXT DEFAULT 'sales',
+              description TEXT,
+              user_id TEXT,
+              create_time TEXT NOT NULL,
+              update_time TEXT
+            )
+          `);
+
+          usersDb.prepare(`
+            INSERT INTO invoices (invoice_no, customer_name, amount, tax_rate, tax_amount, total_amount, invoice_date, due_date, status, invoice_type, description, user_id, create_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(invoiceNo, customerName, amount, taxRate, taxAmount, totalAmount, invoiceDate, dueDate, status, invoiceType, description, userId, new Date().toISOString());
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '发票添加成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加发票失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 新闻头条 API ====================
+
+  } else if (pathname === '/api/news' && req.method === 'GET') {
+    // 获取新闻列表
+    try {
+      const category = parsedUrl.query.category || '';
+      const page = parseInt(parsedUrl.query.page || '1');
+      const pageSize = parseInt(parsedUrl.query.pageSize || '20');
+      const offset = (page - 1) * pageSize;
+
+      let news = [];
+      let total = 0;
+
+      if (mysqlPool) {
+        // 使用MySQL
+        const conn = await mysqlPool.getConnection();
+        try {
+          // 确保表存在
+          await conn.execute(`
+            CREATE TABLE IF NOT EXISTS news_articles (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              title VARCHAR(500) NOT NULL,
+              source VARCHAR(100) NOT NULL,
+              category VARCHAR(50) NOT NULL,
+              content TEXT NOT NULL,
+              summary TEXT,
+              author VARCHAR(100),
+              publish_time DATETIME,
+              view_count INT DEFAULT 0,
+              like_count INT DEFAULT 0,
+              source_url VARCHAR(500),
+              status VARCHAR(20) DEFAULT 'published',
+              create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+              update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              INDEX idx_category (category),
+              INDEX idx_status (status),
+              INDEX idx_publish_time (publish_time)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          `);
+
+          let whereClause = "status = 'published'";
+          const params = [];
+          if (category && category !== '全部') {
+            whereClause += " AND category = ?";
+            params.push(category);
+          }
+
+          // 获取总数
+          const [countRows] = await conn.execute(
+            `SELECT COUNT(*) as total FROM news_articles WHERE ${whereClause}`,
+            params
+          );
+          total = countRows[0].total;
+
+          // 获取数据
+          const [rows] = await conn.execute(
+            `SELECT * FROM news_articles WHERE ${whereClause} ORDER BY publish_time DESC, create_time DESC LIMIT ? OFFSET ?`,
+            [...params, pageSize, offset]
+          );
+          news = rows.map(row => ({
+            id: row.id,
+            title: row.title,
+            source: row.source,
+            category: row.category,
+            content: row.content,
+            summary: row.summary,
+            author: row.author,
+            time: row.publish_time || row.create_time,
+            viewCount: row.view_count,
+            likeCount: row.like_count,
+            sourceUrl: row.source_url
+          }));
+        } finally {
+          conn.release();
+        }
+      } else if (usersDb) {
+        // 使用SQLite
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS news_articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            source TEXT NOT NULL,
+            category TEXT NOT NULL,
+            content TEXT NOT NULL,
+            summary TEXT,
+            author TEXT,
+            publish_time TEXT,
+            view_count INTEGER DEFAULT 0,
+            like_count INTEGER DEFAULT 0,
+            source_url TEXT,
+            status TEXT DEFAULT 'published',
+            create_time TEXT NOT NULL,
+            update_time TEXT
+          )
+        `);
+
+        let whereClause = "status = 'published'";
+        const params = [];
+        if (category && category !== '全部') {
+          whereClause += " AND category = ?";
+          params.push(category);
+        }
+
+        const countRow = usersDb.prepare(`SELECT COUNT(*) as total FROM news_articles WHERE ${whereClause}`).get(...params);
+        total = countRow?.total || 0;
+
+        news = usersDb.prepare(`
+          SELECT * FROM news_articles
+          WHERE ${whereClause}
+          ORDER BY publish_time DESC, create_time DESC
+          LIMIT ? OFFSET ?
+        `).all(...params, pageSize, offset).map(row => ({
+          id: row.id,
+          title: row.title,
+          source: row.source,
+          category: row.category,
+          content: row.content,
+          summary: row.summary,
+          author: row.author,
+          time: row.publish_time || row.create_time,
+          viewCount: row.view_count,
+          likeCount: row.like_count,
+          sourceUrl: row.source_url
+        }));
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          news: news,
+          total: total,
+          page: page,
+          pageSize: pageSize
+        }
+      }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '获取新闻失败: ' + e.message }));
+    }
+
+  } else if (pathname === '/api/admin/news' && req.method === 'POST') {
+    // 添加新闻（管理员）
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+
+        if (!data.title || !data.source || !data.category || !data.content) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '缺少必填字段' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          try {
+            await conn.execute(`
+              INSERT INTO news_articles (title, source, category, content, summary, author, publish_time, source_url, status)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+              data.title,
+              data.source,
+              data.category,
+              data.content,
+              data.summary || data.content.substring(0, 200),
+              data.author || '',
+              data.publishTime || new Date().toISOString().slice(0, 19).replace('T', ' '),
+              data.sourceUrl || '',
+              data.status || 'published'
+            ]);
+          } finally {
+            conn.release();
+          }
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS news_articles (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              source TEXT NOT NULL,
+              category TEXT NOT NULL,
+              content TEXT NOT NULL,
+              summary TEXT,
+              author TEXT,
+              publish_time TEXT,
+              view_count INTEGER DEFAULT 0,
+              like_count INTEGER DEFAULT 0,
+              source_url TEXT,
+              status TEXT DEFAULT 'published',
+              create_time TEXT NOT NULL,
+              update_time TEXT
+            )
+          `);
+
+          usersDb.prepare(`
+            INSERT INTO news_articles (title, source, category, content, summary, author, publish_time, source_url, status, create_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            data.title,
+            data.source,
+            data.category,
+            data.content,
+            data.summary || data.content.substring(0, 200),
+            data.author || '',
+            data.publishTime || new Date().toISOString(),
+            data.sourceUrl || '',
+            data.status || 'published',
+            new Date().toISOString()
+          );
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '新闻添加成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加新闻失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/admin/news/batch' && req.method === 'POST') {
+    // 批量添加新闻（采集时使用）
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        const articles = data.articles || [];
+
+        if (!articles.length) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '没有新闻数据' }));
+          return;
+        }
+
+        let inserted = 0;
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          try {
+            for (const article of articles) {
+              try {
+                await conn.execute(`
+                  INSERT INTO news_articles (title, source, category, content, summary, author, publish_time, source_url, status)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                  article.title,
+                  article.source || '自动采集',
+                  article.category || '行业动态',
+                  article.content,
+                  article.summary || article.content?.substring(0, 200) || '',
+                  article.author || '',
+                  article.publishTime || new Date().toISOString().slice(0, 19).replace('T', ' '),
+                  article.sourceUrl || '',
+                  'published'
+                ]);
+                inserted++;
+              } catch (insertErr) {
+                // 忽略重复标题等错误
+                console.warn('插入新闻失败:', insertErr.message);
+              }
+            }
+          } finally {
+            conn.release();
+          }
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS news_articles (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              source TEXT NOT NULL,
+              category TEXT NOT NULL,
+              content TEXT NOT NULL,
+              summary TEXT,
+              author TEXT,
+              publish_time TEXT,
+              view_count INTEGER DEFAULT 0,
+              like_count INTEGER DEFAULT 0,
+              source_url TEXT,
+              status TEXT DEFAULT 'published',
+              create_time TEXT NOT NULL,
+              update_time TEXT
+            )
+          `);
+
+          const insertStmt = usersDb.prepare(`
+            INSERT INTO news_articles (title, source, category, content, summary, author, publish_time, source_url, status, create_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `);
+
+          for (const article of articles) {
+            try {
+              insertStmt.run(
+                article.title,
+                article.source || '自动采集',
+                article.category || '行业动态',
+                article.content,
+                article.summary || article.content?.substring(0, 200) || '',
+                article.author || '',
+                article.publishTime || new Date().toISOString(),
+                article.sourceUrl || '',
+                'published',
+                new Date().toISOString()
+              );
+              inserted++;
+            } catch (insertErr) {
+              console.warn('插入新闻失败:', insertErr.message);
+            }
+          }
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: `成功添加 ${inserted} 条新闻`, inserted: inserted }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '批量添加新闻失败: ' + e.message }));
+      }
+    });
+
+  // ==================== 在线商城 API ====================
+
+  } else if (pathname === '/api/store/products' && req.method === 'GET') {
+    // 获取商品列表
+    try {
+      let products = [];
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        const [rows] = await conn.execute('SELECT * FROM store_products WHERE status = "active" ORDER BY sales DESC');
+        conn.release();
+        products = rows;
+      } else if (usersDb) {
+        products = usersDb.prepare('SELECT * FROM store_products WHERE status = "active" ORDER BY sales DESC').all();
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(products));
+    } catch (err) {
+      console.error('获取商品列表失败:', err.message);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: err.message }));
+    }
+
+  } else if (pathname === '/api/store/cart' && req.method === 'GET') {
+    // 获取购物车
+    const userId = parsedUrl.query.userId;
+    if (!userId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: '缺少用户ID' }));
+    } else {
+      try {
+        let cart = [];
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          const [rows] = await conn.execute(
+            'SELECT c.*, p.name as productName, p.price, p.icon FROM store_cart c LEFT JOIN store_products p ON c.product_id = p.id WHERE c.user_id = ?',
+            [userId]
+          );
+          conn.release();
+          cart = rows.map(item => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+            productName: item.productName,
+            price: item.price,
+            icon: item.icon
+          }));
+        } else if (usersDb) {
+          const rows = usersDb.prepare(`
+            SELECT c.*, p.name as productName, p.price, p.icon
+            FROM store_cart c
+            LEFT JOIN store_products p ON c.product_id = p.id
+            WHERE c.user_id = ?
+          `).all(userId);
+          cart = rows.map(item => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+            productName: item.productName,
+            price: item.price,
+            icon: item.icon
+          }));
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(cart));
+      } catch (err) {
+        console.error('获取购物车失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    }
+
+  } else if (pathname === '/api/store/cart' && req.method === 'POST') {
+    // 添加到购物车
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const { userId, productId, quantity = 1 } = JSON.parse(body || '{}');
+        if (!userId || !productId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: '缺少必要参数' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          await conn.execute(
+            `INSERT INTO store_cart (user_id, product_id, quantity) VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
+            [userId, productId, quantity, quantity]
+          );
+          conn.release();
+        } else if (usersDb) {
+          const existing = usersDb.prepare('SELECT * FROM store_cart WHERE user_id = ? AND product_id = ?').get(userId, productId);
+          if (existing) {
+            usersDb.prepare('UPDATE store_cart SET quantity = quantity + ? WHERE id = ?').run(quantity, existing.id);
+          } else {
+            usersDb.prepare('INSERT INTO store_cart (user_id, product_id, quantity) VALUES (?, ?, ?)').run(userId, productId, quantity);
+          }
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '已添加到购物车' }));
+      } catch (err) {
+        console.error('添加购物车失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+
+  } else if (pathname === '/api/store/orders' && req.method === 'GET') {
+    // 获取订单列表
+    const userId = parsedUrl.query.userId;
+    if (!userId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: '缺少用户ID' }));
+    } else {
+      try {
+        let orders = [];
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          const [rows] = await conn.execute(
+            'SELECT * FROM store_orders WHERE user_id = ? ORDER BY create_time DESC',
+            [userId]
+          );
+          conn.release();
+          orders = rows.map(order => ({
+            ...order,
+            items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items
+          }));
+        } else if (usersDb) {
+          const rows = usersDb.prepare('SELECT * FROM store_orders WHERE user_id = ? ORDER BY create_time DESC').all(userId);
+          orders = rows.map(order => ({
+            ...order,
+            items: JSON.parse(order.items || '[]')
+          }));
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(orders));
+      } catch (err) {
+        console.error('获取订单列表失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    }
+
+  } else if (pathname === '/api/store/orders' && req.method === 'POST') {
+    // 创建订单
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const { userId, items, total, paymentMethod } = JSON.parse(body || '{}');
+        if (!userId || !items || !total) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: '缺少必要参数' }));
+          return;
+        }
+
+        const orderNo = `ORD${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          await conn.execute(
+            'INSERT INTO store_orders (order_no, user_id, items, total, status, payment_method) VALUES (?, ?, ?, ?, ?, ?)',
+            [orderNo, userId, JSON.stringify(items), total, 'pending', paymentMethod || 'wechat']
+          );
+          await conn.execute('DELETE FROM store_cart WHERE user_id = ?', [userId]);
+          conn.release();
+        } else if (usersDb) {
+          usersDb.prepare(
+            'INSERT INTO store_orders (order_no, user_id, items, total, status, payment_method) VALUES (?, ?, ?, ?, ?, ?)'
+          ).run(orderNo, userId, JSON.stringify(items), total, 'pending', paymentMethod || 'wechat');
+          usersDb.prepare('DELETE FROM store_cart WHERE user_id = ?').run(userId);
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, orderNo, message: '订单创建成功' }));
+      } catch (err) {
+        console.error('创建订单失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+
+  // ==================== 好友系统 API ====================
+
+  } else if (pathname === '/api/friends' && req.method === 'GET') {
+    // 获取好友列表
+    const userId = parsedUrl.query.userId;
+    if (!userId) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: '缺少用户ID' }));
+    } else {
+      try {
+        let friends = [];
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          const [rows] = await conn.execute(
+            'SELECT f.friend_id, f.friend_name, f.create_time, u.avatar, u.nickname FROM user_friends f LEFT JOIN users u ON f.friend_id = u.id WHERE f.user_id = ? ORDER BY f.create_time DESC',
+            [userId]
+          );
+          conn.release();
+          friends = rows.map(row => ({
+            id: row.friend_id,
+            name: row.friend_name || row.nickname || '用户',
+            avatar: row.avatar,
+            time: row.create_time
+          }));
+        } else if (usersDb) {
+          const rows = usersDb.prepare(`
+            SELECT f.friend_id, f.friend_name, f.create_time
+            FROM user_friends f
+            WHERE f.user_id = ?
+            ORDER BY f.create_time DESC
+          `).all(userId);
+          friends = rows.map(row => ({
+            id: row.friend_id,
+            name: row.friend_name,
+            time: row.create_time
+          }));
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify(friends));
+      } catch (err) {
+        console.error('获取好友列表失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    }
+
+  } else if (pathname === '/api/friends' && req.method === 'POST') {
+    // 添加好友
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const { userId, friendId, friendName } = JSON.parse(body || '{}');
+        if (!userId || !friendId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: '缺少必要参数' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          // 创建好友表
+          await conn.execute(`
+            CREATE TABLE IF NOT EXISTS user_friends (
+              id INT PRIMARY KEY AUTO_INCREMENT,
+              user_id INT NOT NULL,
+              friend_id INT NOT NULL,
+              friend_name VARCHAR(100),
+              create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE KEY unique_friend (user_id, friend_id)
+            )
+          `);
+          // 添加好友关系（双向）
+          await conn.execute(
+            'INSERT IGNORE INTO user_friends (user_id, friend_id, friend_name) VALUES (?, ?, ?)',
+            [userId, friendId, friendName]
+          );
+          await conn.execute(
+            'INSERT IGNORE INTO user_friends (user_id, friend_id, friend_name) VALUES (?, ?, ?)',
+            [friendId, userId, null]
+          );
+          conn.release();
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS user_friends (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL,
+              friend_id INTEGER NOT NULL,
+              friend_name TEXT,
+              create_time TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          try {
+            usersDb.prepare('INSERT INTO user_friends (user_id, friend_id, friend_name) VALUES (?, ?, ?)').run(userId, friendId, friendName);
+          } catch (e) { /* 忽略重复 */ }
+          try {
+            usersDb.prepare('INSERT INTO user_friends (user_id, friend_id, friend_name) VALUES (?, ?, ?)').run(friendId, userId, null);
+          } catch (e) { /* 忽略重复 */ }
+        }
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '好友添加成功' }));
+      } catch (err) {
+        console.error('添加好友失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+
+  // ==================== 合同管理 API ====================
+
+  } else if (pathname === '/api/contracts' && req.method === 'GET') {
+    // 获取合同列表
+    try {
+      const queryData = querystring.parse(urlParts.query || '');
+      const userId = queryData.userId;
+      const status = queryData.status || '';
+      const keyword = queryData.keyword || '';
+
+      let contracts = [];
+
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        // 创建合同表
+        await conn.execute(`
+          CREATE TABLE IF NOT EXISTS contracts (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id VARCHAR(64),
+            contract_no VARCHAR(50),
+            contract_name VARCHAR(200) NOT NULL,
+            party_a VARCHAR(200),
+            party_b VARCHAR(200),
+            contract_type VARCHAR(50),
+            amount DECIMAL(15,2),
+            start_date DATE,
+            end_date DATE,
+            sign_date DATE,
+            status VARCHAR(20) DEFAULT 'pending',
+            description TEXT,
+            attachment VARCHAR(500),
+            create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_user_id (user_id),
+            INDEX idx_status (status)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+
+        let sql = 'SELECT * FROM contracts WHERE 1=1';
+        const params = [];
+
+        if (userId) {
+          sql += ' AND user_id = ?';
+          params.push(userId);
+        }
+        if (status) {
+          sql += ' AND status = ?';
+          params.push(status);
+        }
+        if (keyword) {
+          sql += ' AND (contract_name LIKE ? OR party_a LIKE ? OR party_b LIKE ?)';
+          params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+        }
+        sql += ' ORDER BY create_time DESC';
+
+        const [rows] = await conn.execute(sql, params);
+        contracts = rows.map(row => ({
+          id: row.id,
+          contractNo: row.contract_no,
+          contractName: row.contract_name,
+          partyA: row.party_a,
+          partyB: row.party_b,
+          contractType: row.contract_type,
+          amount: parseFloat(row.amount) || 0,
+          startDate: row.start_date,
+          endDate: row.end_date,
+          signDate: row.sign_date,
+          status: row.status,
+          description: row.description,
+          attachment: row.attachment,
+          createTime: row.create_time,
+          updateTime: row.update_time
+        }));
+        conn.release();
+      } else if (usersDb) {
+        usersDb.exec(`
+          CREATE TABLE IF NOT EXISTS contracts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            contract_no TEXT,
+            contract_name TEXT NOT NULL,
+            party_a TEXT,
+            party_b TEXT,
+            contract_type TEXT,
+            amount REAL,
+            start_date TEXT,
+            end_date TEXT,
+            sign_date TEXT,
+            status TEXT DEFAULT 'pending',
+            description TEXT,
+            attachment TEXT,
+            create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+            update_time TEXT DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        let sql = 'SELECT * FROM contracts WHERE 1=1';
+        const params = [];
+
+        if (userId) {
+          sql += ' AND user_id = ?';
+          params.push(userId);
+        }
+        if (status) {
+          sql += ' AND status = ?';
+          params.push(status);
+        }
+        if (keyword) {
+          sql += ' AND (contract_name LIKE ? OR party_a LIKE ? OR party_b LIKE ?)';
+          params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+        }
+        sql += ' ORDER BY id DESC';
+
+        const rows = usersDb.prepare(sql).all(...params);
+        contracts = rows.map(row => ({
+          id: row.id,
+          contractNo: row.contract_no,
+          contractName: row.contract_name,
+          partyA: row.party_a,
+          partyB: row.party_b,
+          contractType: row.contract_type,
+          amount: row.amount || 0,
+          startDate: row.start_date,
+          endDate: row.end_date,
+          signDate: row.sign_date,
+          status: row.status,
+          description: row.description,
+          attachment: row.attachment,
+          createTime: row.create_time,
+          updateTime: row.update_time
+        }));
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, contracts }));
+    } catch (err) {
+      console.error('获取合同列表失败:', err.message);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: err.message }));
+    }
+
+  } else if (pathname === '/api/contracts' && req.method === 'POST') {
+    // 保存合同（新增或更新）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const { id, userId, contractNo, contractName, partyA, partyB, contractType, amount, startDate, endDate, signDate, status, description, attachment } = data;
+
+        if (!contractName) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ error: '合同名称不能为空' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+          // 确保表存在
+          await conn.execute(`
+            CREATE TABLE IF NOT EXISTS contracts (
+              id INT PRIMARY KEY AUTO_INCREMENT,
+              user_id VARCHAR(64),
+              contract_no VARCHAR(50),
+              contract_name VARCHAR(200) NOT NULL,
+              party_a VARCHAR(200),
+              party_b VARCHAR(200),
+              contract_type VARCHAR(50),
+              amount DECIMAL(15,2),
+              start_date DATE,
+              end_date DATE,
+              sign_date DATE,
+              status VARCHAR(20) DEFAULT 'pending',
+              description TEXT,
+              attachment VARCHAR(500),
+              create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              INDEX idx_user_id (user_id),
+              INDEX idx_status (status)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          `);
+
+          if (id) {
+            // 更新
+            await conn.execute(
+              `UPDATE contracts SET contract_no=?, contract_name=?, party_a=?, party_b=?, contract_type=?, amount=?, start_date=?, end_date=?, sign_date=?, status=?, description=?, attachment=? WHERE id=?`,
+              [contractNo, contractName, partyA, partyB, contractType, amount || 0, startDate, endDate, signDate, status || 'pending', description, attachment, id]
+            );
+          } else {
+            // 新增
+            await conn.execute(
+              `INSERT INTO contracts (user_id, contract_no, contract_name, party_a, party_b, contract_type, amount, start_date, end_date, sign_date, status, description, attachment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [userId, contractNo, contractName, partyA, partyB, contractType, amount || 0, startDate, endDate, signDate, status || 'pending', description, attachment]
+            );
+          }
+          conn.release();
+        } else if (usersDb) {
+          usersDb.exec(`
+            CREATE TABLE IF NOT EXISTS contracts (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id TEXT,
+              contract_no TEXT,
+              contract_name TEXT NOT NULL,
+              party_a TEXT,
+              party_b TEXT,
+              contract_type TEXT,
+              amount REAL,
+              start_date TEXT,
+              end_date TEXT,
+              sign_date TEXT,
+              status TEXT DEFAULT 'pending',
+              description TEXT,
+              attachment TEXT,
+              create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+              update_time TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+
+          if (id) {
+            usersDb.prepare(`UPDATE contracts SET contract_no=?, contract_name=?, party_a=?, party_b=?, contract_type=?, amount=?, start_date=?, end_date=?, sign_date=?, status=?, description=?, attachment=? WHERE id=?`)
+              .run(contractNo, contractName, partyA, partyB, contractType, amount || 0, startDate, endDate, signDate, status || 'pending', description, attachment, id);
+          } else {
+            usersDb.prepare(`INSERT INTO contracts (user_id, contract_no, contract_name, party_a, party_b, contract_type, amount, start_date, end_date, sign_date, status, description, attachment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+              .run(userId, contractNo, contractName, partyA, partyB, contractType, amount || 0, startDate, endDate, signDate, status || 'pending', description, attachment);
+          }
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '合同保存成功' }));
+      } catch (err) {
+        console.error('保存合同失败:', err.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+
+  } else if (pathname.startsWith('/api/contracts/') && req.method === 'DELETE') {
+    // 删除合同
+    const contractId = pathname.split('/')[3];
+    try {
+      if (mysqlPool) {
+        const conn = await mysqlPool.getConnection();
+        await conn.execute('DELETE FROM contracts WHERE id = ?', [contractId]);
+        conn.release();
+      } else if (usersDb) {
+        usersDb.prepare('DELETE FROM contracts WHERE id = ?').run(contractId);
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, message: '合同删除成功' }));
+    } catch (err) {
+      console.error('删除合同失败:', err.message);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ error: err.message }));
+    }
+
+  // ==================== OCR 工具箱 API ====================
+
+  } else if (pathname === '/api/ocr/general' && req.method === 'POST') {
+    // 通用文字识别（图片转文字）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const imageBase64 = data.image;
+
+        if (!imageBase64) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const client = createOcrClient();
+        if (!client) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
+          return;
+        }
+
+        const OcrApi = require('@alicloud/ocr-api20210707');
+        const request = new OcrApi.RecognizeGeneralRequest({
+          body: imageBase64
+        });
+
+        const response = await client.recognizeGeneral(request);
+        const result = JSON.parse(response.body.data);
+
+        // 提取所有文字
+        let textContent = '';
+        if (result.wordBlocks && Array.isArray(result.wordBlocks)) {
+          textContent = result.wordBlocks.map(block => block.word || '').join('\n');
+        } else if (result.prism_wordsInfo && Array.isArray(result.prism_wordsInfo)) {
+          textContent = result.prism_wordsInfo.map(info => info.word || '').join('\n');
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          text: textContent,
+          raw: result
+        }));
+      } catch (e) {
+        console.error('OCR识别失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/ocr/table' && req.method === 'POST') {
+    // 表格识别（图片转Excel）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const imageBase64 = data.image;
+
+        if (!imageBase64) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const client = createOcrClient();
+        if (!client) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
+          return;
+        }
+
+        const OcrApi = require('@alicloud/ocr-api20210707');
+        const request = new OcrApi.RecognizeTableRequest({
+          body: imageBase64,
+          useFinance: false
+        });
+
+        const response = await client.recognizeTable(request);
+        const result = JSON.parse(response.body.data);
+
+        // 转换为表格数据
+        let tableData = [];
+        if (result.tableInfo && result.tableInfo.tableCells) {
+          // 按行列组织数据
+          const cells = result.tableInfo.tableCells;
+          const maxRow = Math.max(...cells.map(c => c.rowIndex || 0)) + 1;
+          const maxCol = Math.max(...cells.map(c => c.colIndex || 0)) + 1;
+
+          // 初始化表格
+          for (let i = 0; i < maxRow; i++) {
+            tableData[i] = new Array(maxCol).fill('');
+          }
+
+          // 填充数据
+          cells.forEach(cell => {
+            const row = cell.rowIndex || 0;
+            const col = cell.colIndex || 0;
+            if (row < maxRow && col < maxCol) {
+              tableData[row][col] = cell.text || '';
+            }
+          });
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          table: tableData,
+          raw: result
+        }));
+      } catch (e) {
+        console.error('表格识别失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '表格识别失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/ocr/excel' && req.method === 'POST') {
+    // 图片转Excel（生成可下载的Excel文件）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const imageBase64 = data.image;
+
+        if (!imageBase64) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const client = createOcrClient();
+        if (!client) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
+          return;
+        }
+
+        const OcrApi = require('@alicloud/ocr-api20210707');
+        const request = new OcrApi.RecognizeTableRequest({
+          body: imageBase64,
+          useFinance: false
+        });
+
+        const response = await client.recognizeTable(request);
+        const result = JSON.parse(response.body.data);
+
+        // 转换为CSV格式（简单Excel兼容）
+        let csvContent = '';
+        if (result.tableInfo && result.tableInfo.tableCells) {
+          const cells = result.tableInfo.tableCells;
+          const maxRow = Math.max(...cells.map(c => c.rowIndex || 0)) + 1;
+          const maxCol = Math.max(...cells.map(c => c.colIndex || 0)) + 1;
+
+          // 初始化表格
+          const tableData = [];
+          for (let i = 0; i < maxRow; i++) {
+            tableData[i] = new Array(maxCol).fill('');
+          }
+
+          // 填充数据
+          cells.forEach(cell => {
+            const row = cell.rowIndex || 0;
+            const col = cell.colIndex || 0;
+            if (row < maxRow && col < maxCol) {
+              tableData[row][col] = cell.text || '';
+            }
+          });
+
+          // 转换为CSV
+          csvContent = tableData.map(row =>
+            row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
+          ).join('\n');
+        }
+
+        // 返回CSV内容，前端可以下载
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          csv: csvContent,
+          filename: 'table_' + Date.now() + '.csv',
+          table: result.tableInfo ? parseTableData(result.tableInfo.tableCells) : []
+        }));
+      } catch (e) {
+        console.error('Excel转换失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'Excel转换失败: ' + e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/ocr/word' && req.method === 'POST') {
+    // 图片转Word（生成可下载的Word文档）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const imageBase64 = data.image;
+
+        if (!imageBase64) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          return;
+        }
+
+        const client = createOcrClient();
+        if (!client) {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
+          return;
+        }
+
+        const OcrApi = require('@alicloud/ocr-api20210707');
+        const request = new OcrApi.RecognizeGeneralRequest({
+          body: imageBase64
+        });
+
+        const response = await client.recognizeGeneral(request);
+        const result = JSON.parse(response.body.data);
+
+        // 提取所有文字
+        let textContent = '';
+        if (result.wordBlocks && Array.isArray(result.wordBlocks)) {
+          textContent = result.wordBlocks.map(block => block.word || '').join('\n');
+        } else if (result.prism_wordsInfo && Array.isArray(result.prism_wordsInfo)) {
+          textContent = result.prism_wordsInfo.map(info => info.word || '').join('\n');
+        }
+
+        // 返回文本内容，前端可以下载为 .txt 或生成 .docx
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          text: textContent,
+          filename: 'document_' + Date.now() + '.txt'
+        }));
+      } catch (e) {
+        console.error('Word转换失败:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: 'Word转换失败: ' + e.message }));
       }
     });
 
@@ -4705,82 +7881,1279 @@ if (!data.id) {
       }
     });
 
-  // ============================================================
-  // OCR API - 图片识别转文字/表格
-  // ============================================================
-  } else if (pathname === '/api/ocr/general' && req.method === 'POST') {
+  } else if (pathname === '/api/templates' && req.method === 'GET') {
+    // 获取模板列表
+    try {
+      let templates = [];
+      const category = query.category || 'all';
+      const industry = query.industry || null;
+
+      if (usersDb) {
+        let sql = 'SELECT * FROM templates WHERE status = ?';
+        const params = ['active'];
+
+        if (category !== 'all') {
+          sql += ' AND category = ?';
+          params.push(category);
+        }
+        if (industry) {
+          sql += ' AND (industry = ? OR industry IS NULL)';
+          params.push(industry);
+        }
+        sql += ' ORDER BY download_count DESC, create_time DESC';
+
+        templates = usersDb.prepare(sql).all(...params);
+      }
+
+      // 如果数据库为空，返回默认模板
+      if (templates.length === 0) {
+        templates = getDefaultTemplates();
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, templates }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/templates' && req.method === 'POST') {
+    // 添加模板
     let body = '';
-    req.on('data', chunk => body += chunk.toString('utf8'));
-    req.on('end', async () => {
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
       try {
-        const data = JSON.parse(body || '{}');
-        if (!data.image) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
-          return;
+        const data = JSON.parse(body);
+        const templateId = 'tpl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        if (usersDb) {
+          usersDb.prepare(`
+            INSERT INTO templates (template_id, title, description, category, industry, format, icon, file_path, create_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(templateId, data.title, data.description, data.category, data.industry || null, data.format || 'Excel', data.icon || '📄', data.file_path || null, new Date().toISOString());
         }
 
-        // 调用阿里云OCR API
-        const ocrResult = await callAliyunOcr(data.image, 'general');
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify(ocrResult));
+        res.end(JSON.stringify({ success: true, template_id: templateId }));
       } catch (e) {
-        console.error('OCR识别失败:', e);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+        res.end(JSON.stringify({ success: false, message: e.message }));
       }
     });
 
-  } else if (pathname === '/api/ocr/word' && req.method === 'POST') {
+  } else if (pathname === '/api/templates/download' && req.method === 'POST') {
+    // 增加下载次数
     let body = '';
-    req.on('data', chunk => body += chunk.toString('utf8'));
-    req.on('end', async () => {
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
       try {
-        const data = JSON.parse(body || '{}');
-        if (!data.image) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
-          return;
+        const data = JSON.parse(body);
+        if (usersDb) {
+          usersDb.prepare('UPDATE templates SET download_count = download_count + 1 WHERE template_id = ?').run(data.template_id);
         }
-
-        const ocrResult = await callAliyunOcr(data.image, 'general');
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify(ocrResult));
+        res.end(JSON.stringify({ success: true }));
       } catch (e) {
-        console.error('OCR识别失败:', e);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+        res.end(JSON.stringify({ success: false, message: e.message }));
       }
     });
 
-  } else if (pathname === '/api/ocr/excel' && req.method === 'POST') {
+  } else if (pathname === '/api/tools' && req.method === 'GET') {
+    // 获取工具列表
+    try {
+      let tools = [];
+      if (usersDb) {
+        tools = usersDb.prepare('SELECT * FROM tools WHERE status = ? ORDER BY create_time DESC').all('active');
+      }
+
+      // 如果数据库为空，返回默认工具
+      if (tools.length === 0) {
+        tools = getDefaultTools();
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, tools }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/membership/plans' && req.method === 'GET') {
+    // 获取会员套餐列表
+    try {
+      let plans = [];
+      if (usersDb) {
+        plans = usersDb.prepare('SELECT * FROM membership_plans WHERE status = ? ORDER BY price ASC').all('active');
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, plans }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/membership/status' && req.method === 'GET') {
+    // 获取用户会员状态
+    try {
+      const userId = parsedUrl.query.user_id;
+      if (!userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '缺少用户ID' }));
+        return;
+      }
+
+      let membership = null;
+      if (usersDb) {
+        membership = usersDb.prepare(`
+          SELECT um.*, mp.name as plan_name, mp.features
+          FROM user_memberships um
+          JOIN membership_plans mp ON um.plan_id = mp.plan_id
+          WHERE um.user_id = ? AND um.status = ? AND um.end_time > ?
+          ORDER BY um.end_time DESC
+          LIMIT 1
+        `).get(userId, 'active', new Date().toISOString());
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, membership }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/user/upgrade' && req.method === 'POST') {
+    // 用户升级（个人用户升级为企业/机构用户）
     let body = '';
     req.on('data', chunk => body += chunk.toString('utf8'));
     req.on('end', async () => {
       try {
         const data = JSON.parse(body || '{}');
-        if (!data.image) {
+        const { phone, newUsername, upgradeType, companyName, creditCode } = data;
+
+        if (!phone || !newUsername || !upgradeType) {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '请提供图片数据' }));
+          res.end(JSON.stringify({ success: false, message: '缺少必要参数' }));
           return;
         }
 
-        const ocrResult = await callAliyunOcr(data.image, 'table');
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify(ocrResult));
+        if (upgradeType !== 'enterprise' && upgradeType !== 'institution') {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '无效的升级类型' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          const conn = await mysqlPool.getConnection();
+
+          // 检查用户名是否已存在
+          const [existingUsers] = await conn.execute(
+            'SELECT id FROM users WHERE username = ? AND user_type = ?',
+            [newUsername, upgradeType]
+          );
+          if (existingUsers.length > 0) {
+            conn.release();
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '用户名已存在，请更换' }));
+            return;
+          }
+
+          // 获取原个人用户信息
+          const [personalUsers] = await conn.execute(
+            'SELECT * FROM users WHERE phone = ? AND user_type = ?',
+            [phone, 'personal']
+          );
+          if (personalUsers.length === 0) {
+            conn.release();
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '原个人账户不存在' }));
+            return;
+          }
+
+          const personalUser = personalUsers[0];
+          const newUserId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          const now = new Date();
+
+          // 创建新的企业/机构账户
+          await conn.execute(
+            `INSERT INTO users (id, username, phone, password, user_type, enterprise_name, credit_code, contact_person, industry, member_points, credit_score, account_balance, exclusive_services, create_time, update_time)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [newUserId, newUsername, phone, personalUser.password, upgradeType, companyName || null, creditCode || null, personalUser.username || null, personalUser.industry || null, personalUser.member_points || 0, personalUser.credit_score || 0, personalUser.account_balance || 0, personalUser.exclusive_services || 0, now, now]
+          );
+
+          conn.release();
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({
+            success: true,
+            message: '升级成功',
+            user: {
+              id: newUserId,
+              username: newUsername,
+              user_type: upgradeType,
+              enterprise_name: companyName
+            }
+          }));
+        } else if (usersDb) {
+          // 检查用户名是否已存在
+          const existingUser = usersDb.prepare('SELECT id FROM users WHERE username = ? AND user_type = ?').get(newUsername, upgradeType);
+          if (existingUser) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '用户名已存在，请更换' }));
+            return;
+          }
+
+          // 获取原个人用户信息
+          const personalUser = usersDb.prepare('SELECT * FROM users WHERE phone = ? AND user_type = ?').get(phone, 'personal');
+          if (!personalUser) {
+            res.statusCode = 404;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '原个人账户不存在' }));
+            return;
+          }
+
+          const newUserId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          const now = new Date().toISOString();
+
+          // 创建新的企业/机构账户
+          usersDb.prepare(
+            `INSERT INTO users (id, username, phone, password, user_type, enterprise_name, credit_code, contact_person, industry, member_points, credit_score, account_balance, exclusive_services, create_time, update_time)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).run(newUserId, newUsername, phone, personalUser.password, upgradeType, companyName || null, creditCode || null, personalUser.username || null, personalUser.industry || null, personalUser.member_points || 0, personalUser.credit_score || 0, personalUser.account_balance || 0, personalUser.exclusive_services || 0, now, now);
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({
+            success: true,
+            message: '升级成功',
+            user: {
+              id: newUserId,
+              username: newUsername,
+              user_type: upgradeType,
+              enterprise_name: companyName
+            }
+          }));
+        } else {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库不可用' }));
+        }
       } catch (e) {
-        console.error('OCR识别失败:', e);
+        console.error('用户升级失败:', e);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: 'OCR识别失败: ' + e.message }));
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/user/profile' && req.method === 'GET') {
+    // 获取用户资料（从数据库）
+    try {
+      const userId = parsedUrl.query.user_id || parsedUrl.query.phone;
+      if (!userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '缺少用户ID' }));
+        return;
+      }
+
+      let user = null;
+      if (mysqlPool) {
+        // 使用MySQL
+        const [rows] = await mysqlPool.execute(
+          'SELECT id, username, phone, user_type, institution_type, institution_name, enterprise_name, credit_code, contact_person, industry, member_points, member_expiry, credit_score, account_balance, exclusive_services, create_time FROM users WHERE phone = ? OR id = ?',
+          [userId, userId]
+        );
+        user = rows[0];
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        user = usersDb.prepare(
+          'SELECT id, username, phone, user_type, institution_type, institution_name, enterprise_name, credit_code, contact_person, industry, member_points, member_expiry, credit_score, account_balance, exclusive_services, create_time FROM users WHERE phone = ? OR id = ?'
+        ).get(userId, userId);
+      }
+
+      if (!user) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '用户不存在' }));
+        return;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, user }));
+    } catch (e) {
+      console.error('获取用户资料失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/user/wallet' && req.method === 'GET') {
+    // 获取用户钱包信息（从数据库）
+    try {
+      const userId = parsedUrl.query.user_id || parsedUrl.query.phone;
+      if (!userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '缺少用户ID' }));
+        return;
+      }
+
+      let user = null;
+      if (mysqlPool) {
+        // 使用MySQL
+        const [rows] = await mysqlPool.execute(
+          'SELECT account_balance, member_points, credit_score FROM users WHERE phone = ? OR id = ?',
+          [userId, userId]
+        );
+        user = rows[0];
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        user = usersDb.prepare(
+          'SELECT account_balance, member_points, credit_score FROM users WHERE phone = ? OR id = ?'
+        ).get(userId, userId);
+      }
+
+      if (!user) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '用户不存在' }));
+        return;
+      }
+
+      // 获取交易记录
+      let transactions = [];
+      if (mysqlPool) {
+        const [rows] = await mysqlPool.execute(
+          'SELECT * FROM user_transactions WHERE user_id = ? ORDER BY create_time DESC LIMIT 20',
+          [userId]
+        );
+        transactions = rows;
+      } else if (usersDb) {
+        transactions = usersDb.prepare(
+          'SELECT * FROM user_transactions WHERE user_id = ? ORDER BY create_time DESC LIMIT 20'
+        ).all(userId);
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        wallet: {
+          balance: user.account_balance || 0,
+          points: user.member_points || 0,
+          creditScore: user.credit_score || 0
+        },
+        transactions
+      }));
+    } catch (e) {
+      console.error('获取钱包信息失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/user/transactions' && req.method === 'GET') {
+    // 获取用户交易记录
+    try {
+      const userId = parsedUrl.query.user_id || parsedUrl.query.phone;
+      const page = parseInt(parsedUrl.query.page) || 1;
+      const pageSize = parseInt(parsedUrl.query.pageSize) || 20;
+      const offset = (page - 1) * pageSize;
+
+      if (!userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '缺少用户ID' }));
+        return;
+      }
+
+      let transactions = [];
+      let total = 0;
+
+      if (mysqlPool) {
+        const [rows] = await mysqlPool.execute(
+          'SELECT * FROM user_transactions WHERE user_id = ? ORDER BY create_time DESC LIMIT ? OFFSET ?',
+          [userId, pageSize, offset]
+        );
+        transactions = rows;
+        const [countRows] = await mysqlPool.execute(
+          'SELECT COUNT(*) as total FROM user_transactions WHERE user_id = ?',
+          [userId]
+        );
+        total = countRows[0].total;
+      } else if (usersDb) {
+        transactions = usersDb.prepare(
+          'SELECT * FROM user_transactions WHERE user_id = ? ORDER BY create_time DESC LIMIT ? OFFSET ?'
+        ).all(userId, pageSize, offset);
+        total = usersDb.prepare(
+          'SELECT COUNT(*) as total FROM user_transactions WHERE user_id = ?'
+        ).get(userId).total;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        transactions,
+        total,
+        page,
+        pageSize
+      }));
+    } catch (e) {
+      console.error('获取交易记录失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/membership/create-order' && req.method === 'POST') {
+    // 创建会员购买订单
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { user_id, plan_id, payment_method } = data;
+
+        if (!user_id || !plan_id || !payment_method) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        // 获取套餐信息
+        const plan = usersDb.prepare('SELECT * FROM membership_plans WHERE plan_id = ? AND status = ?').get(plan_id, 'active');
+        if (!plan) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '套餐不存在' }));
+          return;
+        }
+
+        const orderId = 'VIP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const description = `购买${plan.name}`;
+
+        // 创建支付订单
+        orders[orderId] = {
+          orderId,
+          amount: plan.price,
+          description,
+          paymentMethod: payment_method,
+          status: 'pending',
+          userId: user_id,
+          planId: plan_id,
+          planName: plan.name,
+          durationDays: plan.duration_days,
+          createTime: new Date().toISOString(),
+          updateTime: new Date().toISOString()
+        };
+        saveOrders();
+
+        // 生成支付参数
+        let payParams = {};
+        if (payment_method === 'wechat') {
+          // 微信支付 - Native模式
+          const wechatParams = {
+            appid: paymentConfig.wechat.appId,
+            mch_id: paymentConfig.wechat.mchId,
+            nonce_str: WechatPay.generateNonceStr(),
+            body: description,
+            out_trade_no: orderId,
+            total_fee: plan.price,
+            spbill_create_ip: '127.0.0.1',
+            notify_url: paymentConfig.wechat.notifyUrl,
+            trade_type: 'NATIVE'
+          };
+          wechatParams.sign = WechatPay.generateSign(wechatParams, paymentConfig.wechat.apiKey);
+
+          // 调用微信统一下单API
+          try {
+            const wechatResult = await WechatPay.unifiedOrder(wechatParams);
+            console.log('微信统一下单结果:', wechatResult);
+
+            if (wechatResult.return_code === 'SUCCESS' && wechatResult.result_code === 'SUCCESS') {
+              payParams = {
+                code_url: wechatResult.code_url,
+                orderId: orderId
+              };
+            } else {
+              // 如果调用失败，返回错误信息
+              const errorMsg = wechatResult.return_msg || wechatResult.err_code_des || '微信支付下单失败';
+              console.error('微信支付下单失败:', wechatResult);
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(JSON.stringify({ success: false, message: errorMsg }));
+              return;
+            }
+          } catch (wechatError) {
+            console.error('调用微信支付API失败:', wechatError);
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, message: '微信支付服务暂时不可用，请稍后重试' }));
+            return;
+          }
+        } else if (payment_method === 'alipay') {
+          const bizContent = {
+            out_trade_no: orderId,
+            product_code: 'FAST_INSTANT_TRADE_PAY',
+            total_amount: (plan.price / 100).toFixed(2),
+            subject: description
+          };
+
+          const host = req.headers.host || 'localhost:3000';
+          const protocol = host.includes('localhost') || host.match(/^\d+\.\d+\.\d+\.\d+/) ? 'http' : 'https';
+          const returnUrl = `${protocol}://${host}/member.html?tab=membership&payment=success`;
+
+          payParams = {
+            app_id: paymentConfig.alipay.appId,
+            method: 'alipay.trade.page.pay',
+            charset: 'UTF-8',
+            sign_type: 'RSA2',
+            timestamp: new Date().toISOString().replace(/T/, ' ').substr(0, 19),
+            version: '1.0',
+            notify_url: paymentConfig.alipay.notifyUrl,
+            return_url: returnUrl,
+            biz_content: JSON.stringify(bizContent)
+          };
+          payParams.sign = Alipay.generateSign(payParams, paymentConfig.alipay.privateKey);
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          orderId: orderId,
+          amount: plan.price,
+          planName: plan.name,
+          payParams: payParams
+        }));
+      } catch (e) {
+        console.error('创建会员订单失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/forum/posts' && req.method === 'GET') {
+    // 获取帖子列表
+    try {
+      const urlParts = url.parse(req.url, true);
+      const category = urlParts.query.category || 'all';
+      const search = urlParts.query.search || '';
+      const page = parseInt(urlParts.query.page) || 1;
+      const pageSize = parseInt(urlParts.query.pageSize) || 10;
+      const offset = (page - 1) * pageSize;
+
+      let whereClause = 'WHERE status = ?';
+      let params = ['published'];
+
+      if (category && category !== 'all') {
+        whereClause += ' AND category = ?';
+        params.push(category);
+      }
+
+      if (search) {
+        whereClause += ' AND (title LIKE ? OR content LIKE ?)';
+        params.push('%' + search + '%', '%' + search + '%');
+      }
+
+      if (mysqlPool) {
+        // 使用MySQL
+        const countSql = `SELECT COUNT(*) as total FROM forum_posts ${whereClause}`;
+        const [countRows] = await mysqlPool.execute(countSql, params);
+        const total = countRows[0].total;
+
+        const sql = `SELECT p.*,
+          (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+          (SELECT COUNT(*) FROM forum_likes WHERE post_id = p.id) as like_count
+          FROM forum_posts p ${whereClause} ORDER BY create_time DESC LIMIT ? OFFSET ?`;
+        const [posts] = await mysqlPool.execute(sql, [...params, pageSize, offset]);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          posts: posts.map(p => ({
+            ...p,
+            tags: p.tags ? (typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags) : []
+          })),
+          total,
+          page,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize)
+        }));
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        const countSql = `SELECT COUNT(*) as total FROM forum_posts ${whereClause}`;
+        const totalResult = usersDb.prepare(countSql).get(...params);
+        const total = totalResult.total;
+
+        const sql = `SELECT p.*,
+          (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+          (SELECT COUNT(*) FROM forum_likes WHERE post_id = p.id) as like_count
+          FROM forum_posts p ${whereClause} ORDER BY create_time DESC LIMIT ? OFFSET ?`;
+        params.push(pageSize, offset);
+
+        const posts = usersDb.prepare(sql).all(...params);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          posts: posts.map(p => ({
+            ...p,
+            tags: p.tags ? JSON.parse(p.tags) : []
+          })),
+          total,
+          page,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize)
+        }));
+      } else {
+        res.statusCode = 503;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      }
+    } catch (e) {
+      console.error('获取帖子列表失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/forum/post' && req.method === 'GET') {
+    // 获取单个帖子详情
+    try {
+      const urlParts = url.parse(req.url, true);
+      const postId = urlParts.query.id;
+
+      if (!postId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '帖子ID不能为空' }));
+        return;
+      }
+
+      if (mysqlPool) {
+        // 使用MySQL
+        await mysqlPool.execute('UPDATE forum_posts SET views = views + 1 WHERE id = ?', [postId]);
+
+        const [postRows] = await mysqlPool.execute(`
+          SELECT p.*,
+            (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+            (SELECT COUNT(*) FROM forum_likes WHERE post_id = p.id) as like_count
+          FROM forum_posts p WHERE p.id = ?
+        `, [postId]);
+
+        const post = postRows[0];
+
+        if (!post) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '帖子不存在' }));
+          return;
+        }
+
+        const [comments] = await mysqlPool.execute('SELECT * FROM forum_comments WHERE post_id = ? ORDER BY create_time ASC', [postId]);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          post: {
+            ...post,
+            tags: post.tags ? (typeof post.tags === 'string' ? JSON.parse(post.tags) : post.tags) : []
+          },
+          comments
+        }));
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        usersDb.prepare('UPDATE forum_posts SET views = views + 1 WHERE id = ?').run(postId);
+
+        const post = usersDb.prepare(`
+          SELECT p.*,
+            (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+            (SELECT COUNT(*) FROM forum_likes WHERE post_id = p.id) as like_count
+          FROM forum_posts p WHERE p.id = ?
+        `).get(postId);
+
+        if (!post) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '帖子不存在' }));
+          return;
+        }
+
+        const comments = usersDb.prepare('SELECT * FROM forum_comments WHERE post_id = ? ORDER BY create_time ASC').all(postId);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          post: {
+            ...post,
+            tags: post.tags ? JSON.parse(post.tags) : []
+          },
+          comments
+        }));
+      } else {
+        res.statusCode = 503;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      }
+    } catch (e) {
+      console.error('获取帖子详情失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/forum/post' && req.method === 'POST') {
+    // 创建新帖子
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { title, content, author_id, author_name, category, tags } = data;
+
+        if (!title || !content || !author_id || !author_name) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        if (mysqlPool) {
+          // 使用MySQL
+          const [result] = await mysqlPool.execute(`
+            INSERT INTO forum_posts (title, content, author_id, author_name, category, tags, create_time, update_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `, [title, content, author_id, author_name, category || 'other', JSON.stringify(tags || []), now, now]);
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, postId: result.insertId }));
+        } else if (usersDb) {
+          // 使用SQLite作为备用
+          const result = usersDb.prepare(`
+            INSERT INTO forum_posts (title, content, author_id, author_name, category, tags, create_time, update_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(title, content, author_id, author_name, category || 'other', JSON.stringify(tags || []), now, now);
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, postId: result.lastInsertRowid }));
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+        }
+      } catch (e) {
+        console.error('创建帖子失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/forum/comment' && req.method === 'POST') {
+    // 添加评论
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { post_id, author_id, author_name, content } = data;
+
+        if (!post_id || !author_id || !author_name || !content) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        if (mysqlPool) {
+          // 使用MySQL
+          const [result] = await mysqlPool.execute(`
+            INSERT INTO forum_comments (post_id, author_id, author_name, content, create_time)
+            VALUES (?, ?, ?, ?, ?)
+          `, [post_id, author_id, author_name, content, now]);
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, commentId: result.insertId }));
+        } else if (usersDb) {
+          // 使用SQLite作为备用
+          const result = usersDb.prepare(`
+            INSERT INTO forum_comments (post_id, author_id, author_name, content, create_time)
+            VALUES (?, ?, ?, ?, ?)
+          `).run(post_id, author_id, author_name, content, now);
+
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, commentId: result.lastInsertRowid }));
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+        }
+      } catch (e) {
+        console.error('添加评论失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/forum/like' && req.method === 'POST') {
+    // 点赞/取消点赞
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { post_id, user_id } = data;
+
+        if (!post_id || !user_id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        if (mysqlPool) {
+          // 使用MySQL
+          const [existingRows] = await mysqlPool.execute('SELECT * FROM forum_likes WHERE post_id = ? AND user_id = ?', [post_id, user_id]);
+
+          if (existingRows.length > 0) {
+            // 取消点赞
+            await mysqlPool.execute('DELETE FROM forum_likes WHERE post_id = ? AND user_id = ?', [post_id, user_id]);
+            await mysqlPool.execute('UPDATE forum_posts SET likes = GREATEST(0, likes - 1) WHERE id = ?', [post_id]);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, liked: false }));
+          } else {
+            // 添加点赞
+            await mysqlPool.execute('INSERT INTO forum_likes (post_id, user_id, create_time) VALUES (?, ?, ?)', [post_id, user_id, now]);
+            await mysqlPool.execute('UPDATE forum_posts SET likes = likes + 1 WHERE id = ?', [post_id]);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, liked: true }));
+          }
+        } else if (usersDb) {
+          // 使用SQLite作为备用
+          const existing = usersDb.prepare('SELECT * FROM forum_likes WHERE post_id = ? AND user_id = ?').get(post_id, user_id);
+
+          if (existing) {
+            // 取消点赞
+            usersDb.prepare('DELETE FROM forum_likes WHERE post_id = ? AND user_id = ?').run(post_id, user_id);
+            usersDb.prepare('UPDATE forum_posts SET likes = likes - 1 WHERE id = ?').run(post_id);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, liked: false }));
+          } else {
+            // 添加点赞
+            usersDb.prepare('INSERT INTO forum_likes (post_id, user_id, create_time) VALUES (?, ?, ?)').run(post_id, user_id, now);
+            usersDb.prepare('UPDATE forum_posts SET likes = likes + 1 WHERE id = ?').run(post_id);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, liked: true }));
+          }
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+        }
+      } catch (e) {
+        console.error('点赞操作失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/forum/bookmark' && req.method === 'POST') {
+    // 收藏/取消收藏
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { post_id, user_id } = data;
+
+        if (!post_id || !user_id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        if (mysqlPool) {
+          // 使用MySQL
+          const [existingRows] = await mysqlPool.execute('SELECT * FROM forum_bookmarks WHERE post_id = ? AND user_id = ?', [post_id, user_id]);
+
+          if (existingRows.length > 0) {
+            // 取消收藏
+            await mysqlPool.execute('DELETE FROM forum_bookmarks WHERE post_id = ? AND user_id = ?', [post_id, user_id]);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, bookmarked: false }));
+          } else {
+            // 添加收藏
+            await mysqlPool.execute('INSERT INTO forum_bookmarks (post_id, user_id, create_time) VALUES (?, ?, ?)', [post_id, user_id, now]);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, bookmarked: true }));
+          }
+        } else if (usersDb) {
+          // 使用SQLite作为备用
+          const existing = usersDb.prepare('SELECT * FROM forum_bookmarks WHERE post_id = ? AND user_id = ?').get(post_id, user_id);
+
+          if (existing) {
+            // 取消收藏
+            usersDb.prepare('DELETE FROM forum_bookmarks WHERE post_id = ? AND user_id = ?').run(post_id, user_id);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, bookmarked: false }));
+          } else {
+            // 添加收藏
+            usersDb.prepare('INSERT INTO forum_bookmarks (post_id, user_id, create_time) VALUES (?, ?, ?)').run(post_id, user_id, now);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: true, bookmarked: true }));
+          }
+        } else {
+          res.statusCode = 503;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+        }
+      } catch (e) {
+        console.error('收藏操作失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/forum/hot-posts' && req.method === 'GET') {
+    // 获取热门帖子
+    try {
+      const limit = parseInt(url.parse(req.url, true).query.limit) || 5;
+
+      if (mysqlPool) {
+        // 使用MySQL
+        const [posts] = await mysqlPool.execute(`
+          SELECT id, title, likes,
+            (SELECT COUNT(*) FROM forum_comments WHERE post_id = forum_posts.id) as comment_count
+          FROM forum_posts WHERE status = 'published'
+          ORDER BY likes DESC, comment_count DESC LIMIT ?
+        `, [limit]);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, posts }));
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        const posts = usersDb.prepare(`
+          SELECT id, title, likes,
+            (SELECT COUNT(*) FROM forum_comments WHERE post_id = forum_posts.id) as comment_count
+          FROM forum_posts WHERE status = 'published'
+          ORDER BY likes DESC, comment_count DESC LIMIT ?
+        `).all(limit);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, posts }));
+      } else {
+        res.statusCode = 503;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      }
+    } catch (e) {
+      console.error('获取热门帖子失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/knowledge/articles' && req.method === 'GET') {
+    // 获取知识库文章列表
+    try {
+      if (mysqlPool) {
+        // 使用MySQL
+        const [articles] = await mysqlPool.execute('SELECT * FROM knowledge_articles WHERE status = ? ORDER BY create_time DESC', ['published']);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, articles }));
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        const articles = usersDb.prepare('SELECT * FROM knowledge_articles WHERE status = ? ORDER BY create_time DESC').all('published');
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, articles }));
+      } else {
+        res.statusCode = 503;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      }
+    } catch (e) {
+      console.error('获取知识库文章失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/forum/user-status' && req.method === 'GET') {
+    // 获取用户对帖子的点赞/收藏状态
+    try {
+      const urlParts = url.parse(req.url, true);
+      const postId = urlParts.query.post_id;
+      const userId = urlParts.query.user_id;
+
+      if (!postId || !userId) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+        return;
+      }
+
+      if (mysqlPool) {
+        // 使用MySQL
+        const [likedRows] = await mysqlPool.execute('SELECT * FROM forum_likes WHERE post_id = ? AND user_id = ?', [postId, userId]);
+        const [bookmarkedRows] = await mysqlPool.execute('SELECT * FROM forum_bookmarks WHERE post_id = ? AND user_id = ?', [postId, userId]);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          liked: likedRows.length > 0,
+          bookmarked: bookmarkedRows.length > 0
+        }));
+      } else if (usersDb) {
+        // 使用SQLite作为备用
+        const liked = usersDb.prepare('SELECT * FROM forum_likes WHERE post_id = ? AND user_id = ?').get(postId, userId);
+        const bookmarked = usersDb.prepare('SELECT * FROM forum_bookmarks WHERE post_id = ? AND user_id = ?').get(postId, userId);
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          liked: !!liked,
+          bookmarked: !!bookmarked
+        }));
+      } else {
+        res.statusCode = 503;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      }
+    } catch (e) {
+      console.error('获取用户状态失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  // ==================== 云盘API ====================
+  } else if (pathname === '/api/cloud/files' && req.method === 'GET') {
+    // 获取文件列表
+    try {
+      const urlParts = url.parse(req.url, true);
+      const userId = urlParts.query.user_id || 'demo';
+      const category = urlParts.query.category || 'all';
+      const folderId = urlParts.query.folder_id || 0;
+
+      let sql = 'SELECT * FROM cloud_files WHERE user_id = ?';
+      let params = [userId];
+
+      if (category && category !== 'all') {
+        sql += ' AND category = ?';
+        params.push(category);
+      }
+
+      sql += ' AND folder_id = ? ORDER BY type DESC, create_time DESC';
+      params.push(folderId);
+
+      let files, totalSize;
+      if (mysqlPool) {
+        const [rows] = await mysqlPool.execute(sql, params);
+        files = rows;
+        const [sizeRows] = await mysqlPool.execute('SELECT COALESCE(SUM(size), 0) as total FROM cloud_files WHERE user_id = ?', [userId]);
+        totalSize = sizeRows[0].total;
+      } else if (usersDb) {
+        files = usersDb.prepare(sql).all(...params);
+        totalSize = usersDb.prepare('SELECT COALESCE(SUM(size), 0) as total FROM cloud_files WHERE user_id = ?').get(userId).total;
+      } else {
+        files = [];
+        totalSize = 0;
+      }
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({
+        success: true,
+        files: files,
+        storage: {
+          used: totalSize,
+          total: 10 * 1024 * 1024 * 1024 // 10GB
+        }
+      }));
+    } catch (e) {
+      console.error('获取云盘文件失败:', e);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/cloud/file' && req.method === 'POST') {
+    // 创建文件/文件夹
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { user_id, name, type, size, folder_id, category } = data;
+
+        if (!name || !type) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '参数不完整' }));
+          return;
+        }
+
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let insertId;
+
+        if (mysqlPool) {
+          const [result] = await mysqlPool.execute(
+            'INSERT INTO cloud_files (user_id, name, type, size, folder_id, category, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [user_id || 'demo', name, type, size || 0, folder_id || 0, category || 'all', now, now]
+          );
+          insertId = result.insertId;
+        } else if (usersDb) {
+          const result = usersDb.prepare(`
+            INSERT INTO cloud_files (user_id, name, type, size, folder_id, category, create_time, update_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(user_id || 'demo', name, type, size || 0, folder_id || 0, category || 'all', now, now);
+          insertId = result.lastInsertRowid;
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, fileId: insertId }));
+      } catch (e) {
+        console.error('创建文件失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/cloud/file' && req.method === 'DELETE') {
+    // 删除文件
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { id, user_id } = data;
+
+        if (!id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '文件ID不能为空' }));
+          return;
+        }
+
+        if (mysqlPool) {
+          await mysqlPool.execute('DELETE FROM cloud_files WHERE id = ? AND user_id = ?', [id, user_id || 'demo']);
+        } else if (usersDb) {
+          usersDb.prepare('DELETE FROM cloud_files WHERE id = ? AND user_id = ?').run(id, user_id || 'demo');
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true }));
+      } catch (e) {
+        console.error('删除文件失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/cloud/share' && req.method === 'POST') {
+    // 分享文件
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { id, password, expiry } = data;
+
+        if (!id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '文件ID不能为空' }));
+          return;
+        }
+
+        const shareLink = 'https://zonya.work/share/' + Date.now();
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        if (mysqlPool) {
+          await mysqlPool.execute(
+            'UPDATE cloud_files SET is_shared = 1, share_link = ?, share_password = ?, share_expiry = ?, update_time = ? WHERE id = ?',
+            [shareLink, password || null, expiry || null, now, id]
+          );
+        } else if (usersDb) {
+          usersDb.prepare(`
+            UPDATE cloud_files SET is_shared = 1, share_link = ?, share_password = ?, share_expiry = ?, update_time = ?
+            WHERE id = ?
+          `).run(shareLink, password || null, expiry || null, now, id);
+        }
+
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, shareLink: shareLink }));
+      } catch (e) {
+        console.error('分享文件失败:', e);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
       }
     });
 
@@ -4818,8 +9191,516 @@ if (!data.id) {
   }
 });
 
+// 开通会员
+function activateMembership(order) {
+  if (!order || !order.userId || !order.planId || !order.durationDays) {
+    console.error('激活会员失败: 订单信息不完整', order);
+    return false;
+  }
+
+  try {
+    // 检查是否有现有会员
+    const existingMembership = usersDb.prepare(`
+      SELECT * FROM user_memberships
+      WHERE user_id = ? AND status = ? AND end_time > ?
+      ORDER BY end_time DESC LIMIT 1
+    `).get(order.userId, 'active', new Date().toISOString());
+
+    let startTime;
+    if (existingMembership) {
+      // 在现有会员基础上续期
+      startTime = new Date(existingMembership.end_time);
+    } else {
+      // 新开通会员
+      startTime = new Date();
+    }
+
+    const endTime = new Date(startTime.getTime() + order.durationDays * 24 * 60 * 60 * 1000);
+
+    usersDb.prepare(`
+      INSERT INTO user_memberships (user_id, plan_id, order_id, start_time, end_time, status, payment_method, amount, create_time)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      order.userId,
+      order.planId,
+      order.orderId,
+      startTime.toISOString(),
+      endTime.toISOString(),
+      'active',
+      order.paymentMethod,
+      order.amount,
+      new Date().toISOString()
+    );
+
+    console.log(`会员开通成功: 用户 ${order.userId}, 套餐 ${order.planName}, 有效期至 ${endTime.toISOString()}`);
+    return true;
+  } catch (e) {
+    console.error('激活会员失败:', e);
+    return false;
+  }
+}
+
+// 默认模板数据
+function getDefaultTemplates() {
+  return [
+    // 行业模板 - 再生资源
+    { template_id: 'tpl_recycling_1', title: '♻️ 再生资源回收进货单模板', description: '适用于再生资源行业，包含废品分类、重量、单价、供应商信息等', category: 'industry', industry: 'recycling_resource', format: 'Excel', icon: '♻️', download_count: 156 },
+    { template_id: 'tpl_recycling_2', title: '♻️ 再生资源损耗核算表', description: '追踪回收物资的加工损耗、运输损耗，自动计算损耗率', category: 'industry', industry: 'recycling_resource', format: 'Excel', icon: '♻️', download_count: 98 },
+    { template_id: 'tpl_recycling_3', title: '♻️ 再生资源税负分析表', description: '分析回收行业增值税税负，包含进项抵扣、简易计税等项目', category: 'industry', industry: 'recycling_resource', format: 'Excel', icon: '♻️', download_count: 87 },
+    // 行业模板 - 商贸批发
+    { template_id: 'tpl_wholesale_1', title: '📦 商品进销存管理表', description: '商贸批发行业专用，包含商品编码、库存数量、进价、售价、毛利', category: 'industry', industry: 'commodity_wholesale', format: 'Excel', icon: '📦', download_count: 234 },
+    { template_id: 'tpl_wholesale_2', title: '📦 批发客户往来对账单', description: '管理批发客户应收账款，自动计算账龄和回款率', category: 'industry', industry: 'commodity_wholesale', format: 'Excel', icon: '📦', download_count: 178 },
+    { template_id: 'tpl_wholesale_3', title: '📦 毛利分析报表', description: '按商品类别分析毛利率，支持多维度毛利分析', category: 'industry', industry: 'commodity_wholesale', format: 'Excel', icon: '📦', download_count: 145 },
+    // 行业模板 - 制造业
+    { template_id: 'tpl_manufacturing_1', title: '🏭 生产成本核算表', description: '制造业专用，包含直接材料、直接人工、制造费用分摊', category: 'industry', industry: 'manufacturing_general', format: 'Excel', icon: '🏭', download_count: 189 },
+    { template_id: 'tpl_manufacturing_2', title: '🏭 材料领用明细表', description: '追踪生产车间材料领用，支持按订单、产品归集成本', category: 'industry', industry: 'manufacturing_general', format: 'Excel', icon: '🏭', download_count: 156 },
+    { template_id: 'tpl_manufacturing_3', title: '🏭 在制品盘点表', description: '月末盘点在制品，自动计算约当产量', category: 'industry', industry: 'manufacturing_general', format: 'Excel', icon: '🏭', download_count: 123 },
+    // 行业模板 - 商务服务
+    { template_id: 'tpl_service_1', title: '🏢 项目成本核算表', description: '服务业专用，按项目归集人工成本、外包费用、差旅费等', category: 'industry', industry: 'business_service', format: 'Excel', icon: '🏢', download_count: 167 },
+    { template_id: 'tpl_service_2', title: '🏢 服务项目回款跟踪表', description: '管理服务合同回款进度，自动提醒应收账款', category: 'industry', industry: 'business_service', format: 'Excel', icon: '🏢', download_count: 134 },
+    // 行业模板 - 软件开发
+    { template_id: 'tpl_software_1', title: '💻 研发费用归集表', description: '软件行业专用，归集研发人员工资、设备折旧、外包费用', category: 'industry', industry: 'software_dev', format: 'Excel', icon: '💻', download_count: 198 },
+    { template_id: 'tpl_software_2', title: '💻 研发费用加计扣除计算表', description: '自动计算研发费用加计扣除金额，支持税务申报', category: 'industry', industry: 'software_dev', format: 'Excel', icon: '💻', download_count: 176 },
+    { template_id: 'tpl_software_3', title: '💻 项目收入确认表', description: '按项目进度确认软件收入，支持里程碑法、完工百分比法', category: 'industry', industry: 'software_dev', format: 'Excel', icon: '💻', download_count: 145 },
+    // 财务报表模板
+    { template_id: 'tpl_finance_1', title: '资产负债表模板', description: '标准企业资产负债表模板，包含资产、负债和所有者权益三大类', category: 'finance', industry: null, format: 'Excel', icon: '📊', download_count: 1254 },
+    { template_id: 'tpl_finance_2', title: '利润表模板', description: '企业利润表模板，自动计算营业收入、成本和利润', category: 'finance', industry: null, format: 'Excel', icon: '📈', download_count: 987 },
+    { template_id: 'tpl_finance_3', title: '现金流量表模板', description: '企业现金流量表模板，包含经营、投资和筹资活动现金流', category: 'finance', industry: null, format: 'Excel', icon: '💵', download_count: 865 },
+    // 税务申报模板
+    { template_id: 'tpl_tax_1', title: '增值税申报表模板', description: '增值税一般纳税人申报表模板，自动计算应纳税额', category: 'tax', industry: null, format: 'Excel', icon: '🧾', download_count: 1567 },
+    { template_id: 'tpl_tax_2', title: '企业所得税申报表模板', description: '企业所得税年度申报表模板，包含收入、成本、费用等项目', category: 'tax', industry: null, format: 'Excel', icon: '📋', download_count: 1123 },
+    // 合同模板
+    { template_id: 'tpl_contract_1', title: '借款合同模板', description: '企业借款合同模板，包含借款金额、利率、还款方式等条款', category: 'contract', industry: null, format: 'Word', icon: '📝', download_count: 654 },
+    { template_id: 'tpl_contract_2', title: '采购合同模板', description: '企业采购合同模板，包含商品名称、数量、价格等条款', category: 'contract', industry: null, format: 'Word', icon: '📝', download_count: 892 },
+    // 财务制度模板
+    { template_id: 'tpl_system_1', title: '财务管理制度模板', description: '企业财务管理制度模板，包含会计核算、资金管理等内容', category: 'system', industry: null, format: 'Word', icon: '📑', download_count: 789 }
+  ];
+}
+
+// 演示发票数据
+function getDemoInvoices() {
+  const today = new Date();
+  const formatDate = (d) => d.toISOString().slice(0, 10);
+  return [
+    {
+      id: 1,
+      invoice_no: 'INV-2026-001',
+      customer_name: '北京科技有限公司',
+      amount: 15000.00,
+      tax_rate: 0.13,
+      tax_amount: 1950.00,
+      total_amount: 16950.00,
+      invoice_date: formatDate(new Date(today - 5 * 24 * 60 * 60 * 1000)),
+      status: 'paid',
+      invoice_type: 'sales',
+      description: '软件开发服务费'
+    },
+    {
+      id: 2,
+      invoice_no: 'INV-2026-002',
+      customer_name: '上海贸易公司',
+      amount: 10000.00,
+      tax_rate: 0.13,
+      tax_amount: 1300.00,
+      total_amount: 11300.00,
+      invoice_date: formatDate(new Date(today - 6 * 24 * 60 * 60 * 1000)),
+      status: 'unpaid',
+      invoice_type: 'sales',
+      description: '商品销售'
+    },
+    {
+      id: 3,
+      invoice_no: 'INV-2026-003',
+      customer_name: '广州制造企业',
+      amount: 8500.00,
+      tax_rate: 0.13,
+      tax_amount: 1105.00,
+      total_amount: 9605.00,
+      invoice_date: formatDate(new Date(today - 7 * 24 * 60 * 60 * 1000)),
+      status: 'pending',
+      invoice_type: 'sales',
+      description: '设备维护费'
+    },
+    {
+      id: 4,
+      invoice_no: 'INV-2026-004',
+      customer_name: '深圳科技公司',
+      amount: 12000.00,
+      tax_rate: 0.13,
+      tax_amount: 1560.00,
+      total_amount: 13560.00,
+      invoice_date: formatDate(new Date(today - 8 * 24 * 60 * 60 * 1000)),
+      status: 'paid',
+      invoice_type: 'sales',
+      description: '技术咨询费'
+    },
+    {
+      id: 5,
+      invoice_no: 'INV-2026-005',
+      customer_name: '杭州电商平台',
+      amount: 9500.00,
+      tax_rate: 0.13,
+      tax_amount: 1235.00,
+      total_amount: 10735.00,
+      invoice_date: formatDate(new Date(today - 9 * 24 * 60 * 60 * 1000)),
+      status: 'unpaid',
+      invoice_type: 'sales',
+      description: '平台服务费'
+    },
+    {
+      id: 6,
+      invoice_no: 'INV-2026-006',
+      customer_name: '成都物流公司',
+      amount: 6800.00,
+      tax_rate: 0.09,
+      tax_amount: 612.00,
+      total_amount: 7412.00,
+      invoice_date: formatDate(new Date(today - 10 * 24 * 60 * 60 * 1000)),
+      status: 'paid',
+      invoice_type: 'sales',
+      description: '运输服务费'
+    },
+    {
+      id: 7,
+      invoice_no: 'INV-2026-007',
+      customer_name: '武汉建筑公司',
+      amount: 25000.00,
+      tax_rate: 0.09,
+      tax_amount: 2250.00,
+      total_amount: 27250.00,
+      invoice_date: formatDate(new Date(today - 11 * 24 * 60 * 60 * 1000)),
+      status: 'pending',
+      invoice_type: 'sales',
+      description: '工程咨询服务'
+    },
+    {
+      id: 8,
+      invoice_no: 'INV-2026-008',
+      customer_name: '南京医药公司',
+      amount: 18000.00,
+      tax_rate: 0.13,
+      tax_amount: 2340.00,
+      total_amount: 20340.00,
+      invoice_date: formatDate(new Date(today - 12 * 24 * 60 * 60 * 1000)),
+      status: 'paid',
+      invoice_type: 'sales',
+      description: '药品销售'
+    }
+  ];
+}
+
+// 默认工具数据
+function getDefaultTools() {
+  return [
+    { tool_id: 'tool_1', title: '发票识别', description: '上传发票图片，自动识别发票信息并生成凭证', icon: '📄', category: 'finance' },
+    { tool_id: 'tool_2', title: '银行对账', description: '上传银行对账单，自动与企业账务进行对账', icon: '🏦', category: 'finance' },
+    { tool_id: 'tool_3', title: '财务计算', description: '提供各种财务计算功能，如现值、终值、年金等', icon: '🧮', category: 'calculate' },
+    { tool_id: 'tool_4', title: '汇率转换', description: '实时汇率查询和货币转换工具', icon: '💱', category: 'finance' },
+    { tool_id: 'tool_5', title: '票据管理', description: '管理企业各类票据，包括发票、收据、支票等', icon: '📋', category: 'manage' }
+  ];
+}
+
+// ============================================================
+// 新闻自动采集定时任务
+// ============================================================
+let newsCollectorInterval = null;
+
+async function collectNewsTask() {
+  console.log(`[${new Date().toISOString()}] 开始自动采集新闻...`);
+
+  // 模拟采集的新闻数据
+  const mockArticles = [
+    {
+      title: '财政部发布最新会计准则修订通知',
+      source: '财政部官网',
+      category: '财务政策',
+      content: '财政部近日发布通知，对现行会计准则进行部分修订，主要涉及收入确认、租赁会计等方面。企业需要在规定时间内完成相关调整，确保财务报表符合新准则要求。',
+      publishTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+    },
+    {
+      title: '增值税留抵退税政策延续实施',
+      source: '税务总局网站',
+      category: '税务政策',
+      content: '国家税务总局发布公告，增值税留抵退税政策将继续实施，符合条件的纳税人可按规定申请退还增量留抵税额。此举旨在进一步减轻企业负担，促进经济高质量发展。',
+      publishTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+    },
+    {
+      title: '企业所得税年度汇算清缴注意事项',
+      source: '税务研究',
+      category: '税务政策',
+      content: '随着企业所得税年度汇算清缴工作的开展，税务部门提醒纳税人注意申报时限、优惠政策适用条件等关键事项。建议企业提前准备相关资料，确保申报准确无误。',
+      publishTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+    },
+    {
+      title: '数字化转型助力企业财务管理升级',
+      source: '中国会计报',
+      category: '行业动态',
+      content: '越来越多的企业开始推进财务数字化转型，通过引入智能财务系统、RPA机器人等技术手段，提升财务工作效率和准确性。专家表示，数字化转型已成为企业财务管理的必然趋势。',
+      publishTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+    },
+    {
+      title: '电子发票全面推广应用进展顺利',
+      source: '财务与会计',
+      category: '技术应用',
+      content: '国家税务总局持续推进电子发票应用，目前已在多个行业和地区实现全覆盖。电子发票的推广有效降低了企业开票成本，提高了发票管理效率，受到纳税人普遍欢迎。',
+      publishTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+    }
+  ];
+
+  try {
+    let inserted = 0;
+
+    if (mysqlPool) {
+      const conn = await mysqlPool.getConnection();
+      try {
+        // 确保表存在
+        await conn.execute(`
+          CREATE TABLE IF NOT EXISTS news_articles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(500) NOT NULL,
+            source VARCHAR(100) NOT NULL,
+            category VARCHAR(50) NOT NULL,
+            content TEXT NOT NULL,
+            summary TEXT,
+            author VARCHAR(100),
+            publish_time DATETIME,
+            view_count INT DEFAULT 0,
+            like_count INT DEFAULT 0,
+            source_url VARCHAR(500),
+            status VARCHAR(20) DEFAULT 'published',
+            create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_category (category),
+            INDEX idx_status (status),
+            INDEX idx_publish_time (publish_time)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+
+        for (const article of mockArticles) {
+          try {
+            await conn.execute(`
+              INSERT INTO news_articles (title, source, category, content, summary, publish_time, status)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+            `, [
+              article.title,
+              article.source,
+              article.category,
+              article.content,
+              article.content.substring(0, 200),
+              article.publishTime,
+              'published'
+            ]);
+            inserted++;
+          } catch (insertErr) {
+            // 忽略重复等错误
+          }
+        }
+      } finally {
+        conn.release();
+      }
+    } else if (usersDb) {
+      usersDb.exec(`
+        CREATE TABLE IF NOT EXISTS news_articles (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          source TEXT NOT NULL,
+          category TEXT NOT NULL,
+          content TEXT NOT NULL,
+          summary TEXT,
+          author TEXT,
+          publish_time TEXT,
+          view_count INTEGER DEFAULT 0,
+          like_count INTEGER DEFAULT 0,
+          source_url TEXT,
+          status TEXT DEFAULT 'published',
+          create_time TEXT NOT NULL,
+          update_time TEXT
+        )
+      `);
+
+      const insertStmt = usersDb.prepare(`
+        INSERT INTO news_articles (title, source, category, content, summary, publish_time, status, create_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const article of mockArticles) {
+        try {
+          insertStmt.run(
+            article.title,
+            article.source,
+            article.category,
+            article.content,
+            article.content.substring(0, 200),
+            article.publishTime,
+            'published',
+            new Date().toISOString()
+          );
+          inserted++;
+        } catch (insertErr) {
+          // 忽略错误
+        }
+      }
+    }
+
+    console.log(`[${new Date().toISOString()}] 新闻采集完成，新增 ${inserted} 条`);
+  } catch (e) {
+    console.error('新闻采集失败:', e.message);
+  }
+}
+
+// 启动新闻采集定时任务（每24小时）
+function startNewsCollector() {
+  // 立即执行一次
+  setTimeout(collectNewsTask, 60000); // 服务器启动1分钟后首次执行
+
+  // 每24小时执行一次
+  newsCollectorInterval = setInterval(collectNewsTask, 24 * 60 * 60 * 1000);
+
+  console.log('新闻自动采集任务已启动，每24小时采集一次');
+}
+
+// ========== 在线商城API ==========
+
+// 商城商品表初始化
+async function initStoreTables() {
+  if (mysqlPool) {
+    try {
+      const conn = await mysqlPool.getConnection();
+      await conn.execute(`
+        CREATE TABLE IF NOT EXISTS store_products (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          price DECIMAL(10, 2) NOT NULL,
+          icon VARCHAR(50),
+          sales INT DEFAULT 0,
+          rating DECIMAL(2, 1) DEFAULT 5.0,
+          category VARCHAR(50),
+          status VARCHAR(20) DEFAULT 'active',
+          create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+      `);
+
+      await conn.execute(`
+        CREATE TABLE IF NOT EXISTS store_cart (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          user_id INT NOT NULL,
+          product_id INT NOT NULL,
+          quantity INT DEFAULT 1,
+          create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY unique_user_product (user_id, product_id)
+        )
+      `);
+
+      await conn.execute(`
+        CREATE TABLE IF NOT EXISTS store_orders (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          order_no VARCHAR(50) NOT NULL,
+          user_id INT NOT NULL,
+          items JSON,
+          total DECIMAL(10, 2) NOT NULL,
+          status VARCHAR(20) DEFAULT 'pending',
+          payment_method VARCHAR(50),
+          payment_time TIMESTAMP NULL,
+          create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+      `);
+
+      // 插入默认商品
+      const [products] = await conn.execute('SELECT COUNT(*) as count FROM store_products');
+      if (products[0].count === 0) {
+        const defaultProducts = [
+          ['金蝶KIS专业版', '企业级财务管理软件，提供会计核算、进销存、工资管理等功能', 8800.00, '💾', 1254, 4.9, 'software'],
+          ['用友U8', '大型企业管理软件，涵盖财务、供应链、生产制造等多个模块', 15800.00, '📊', 987, 4.8, 'software'],
+          ['财务分析与决策课程', '掌握财务分析的核心方法，提升企业决策能力', 299.00, '📈', 2345, 4.9, 'course'],
+          ['财务计算器专业版', '提供各种财务计算功能，如现值、终值、年金等', 199.00, '🧮', 1567, 4.7, 'tool'],
+          ['财务办公套装', '包含财务专用计算器、印章、文件夹等办公用品', 299.00, '🏢', 892, 4.6, 'office'],
+          ['财务模板大全', '包含财务报表、税务申报、合同等各类模板', 149.00, '📄', 1123, 4.8, 'template']
+        ];
+
+        for (const product of defaultProducts) {
+          await conn.execute(
+            'INSERT INTO store_products (name, description, price, icon, sales, rating, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            product
+          );
+        }
+        console.log('默认商品数据已插入');
+      }
+
+      conn.release();
+      console.log('商城数据表初始化完成');
+    } catch (err) {
+      console.error('商城数据表初始化失败:', err.message);
+    }
+  } else if (usersDb) {
+    usersDb.exec(`
+      CREATE TABLE IF NOT EXISTS store_products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        icon TEXT,
+        sales INTEGER DEFAULT 0,
+        rating REAL DEFAULT 5.0,
+        category TEXT,
+        status TEXT DEFAULT 'active',
+        create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+        update_time TEXT
+      )
+    `);
+
+    usersDb.exec(`
+      CREATE TABLE IF NOT EXISTS store_cart (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+        update_time TEXT
+      )
+    `);
+
+    usersDb.exec(`
+      CREATE TABLE IF NOT EXISTS store_orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no TEXT NOT NULL,
+        user_id INTEGER NOT NULL,
+        items TEXT,
+        total REAL NOT NULL,
+        status TEXT DEFAULT 'pending',
+        payment_method TEXT,
+        payment_time TEXT,
+        create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+        update_time TEXT
+      )
+    `);
+
+    // 插入默认商品
+    const count = usersDb.prepare('SELECT COUNT(*) as count FROM store_products').get();
+    if (count.count === 0) {
+      const insertStmt = usersDb.prepare('INSERT INTO store_products (name, description, price, icon, sales, rating, category) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      const defaultProducts = [
+        ['金蝶KIS专业版', '企业级财务管理软件，提供会计核算、进销存、工资管理等功能', 8800.00, '💾', 1254, 4.9, 'software'],
+        ['用友U8', '大型企业管理软件，涵盖财务、供应链、生产制造等多个模块', 15800.00, '📊', 987, 4.8, 'software'],
+        ['财务分析与决策课程', '掌握财务分析的核心方法，提升企业决策能力', 299.00, '📈', 2345, 4.9, 'course'],
+        ['财务计算器专业版', '提供各种财务计算功能，如现值、终值、年金等', 199.00, '🧮', 1567, 4.7, 'tool'],
+        ['财务办公套装', '包含财务专用计算器、印章、文件夹等办公用品', 299.00, '🏢', 892, 4.6, 'office'],
+        ['财务模板大全', '包含财务报表、税务申报、合同等各类模板', 149.00, '📄', 1123, 4.8, 'template']
+      ];
+      for (const product of defaultProducts) {
+        insertStmt.run(product);
+      }
+      console.log('默认商品数据已插入(SQLite)');
+    }
+  }
+}
+
 // 初始化数据库
 initMainDb();
+initStoreTables();
 
 const PORT = process.env.PORT || 5098;
 server.listen(PORT, '0.0.0.0', () => {
@@ -4843,5 +9724,11 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`  POST /api/accounts/:id/backup  - 手动触发云备份`);
   console.log(`  GET  /api/accounts/:id/backups - 获取备份列表`);
   console.log(`  POST /api/accounts/:id/restore - 恢复备份`);
+  console.log(`  GET  /api/news                 - 获取新闻列表`);
+  console.log(`  POST /api/admin/news           - 添加新闻(管理员)`);
+  console.log(`  POST /api/admin/news/batch     - 批量添加新闻`);
   console.log(`========================================\n`);
+
+  // 启动新闻自动采集
+  startNewsCollector();
 });

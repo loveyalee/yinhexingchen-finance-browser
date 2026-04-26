@@ -11,14 +11,46 @@ function initXiaoyaService() {
   // 创建小雅客服HTML
   const xiaoyaHTML = `
     <!-- 悬浮客服助手 -->
-    <div class="customer-service" id="xiaoya-service" style="position: fixed; bottom: auto; top: 80px; right: 12px; z-index: 9998;">
-      <div class="service-icon" id="service-icon" style="width: 50px; height: 50px; background-color: #3498db; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); transition: all 0.3s;">
-        <div class="icon" style="font-size: 20px; color: white;">💬</div>
-        <div class="name" style="font-size: 10px; color: white; margin-top: 1px;">客服</div>
+    <div class="customer-service" id="xiaoya-service" style="position: fixed; bottom: 135px; right: 30px; z-index: 9998;">
+      <div class="service-icon" id="service-icon" onclick="toggleServicePanel()" style="width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4); transition: all 0.3s; overflow: hidden; padding: 0; border: 2px solid white;">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <defs>
+            <clipPath id="circleClip">
+              <circle cx="50" cy="50" r="50"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#circleClip)">
+            <rect width="100" height="100" fill="url(#bgGradient)"/>
+            <defs>
+              <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#f5f0ff"/>
+                <stop offset="100%" style="stop-color:#e8e0f0"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="50" cy="42" rx="32" ry="30" fill="#2c1810"/>
+            <ellipse cx="50" cy="38" rx="28" ry="22" fill="#3d2517"/>
+            <ellipse cx="50" cy="48" rx="24" ry="26" fill="#f5d0b5"/>
+            <ellipse cx="40" cy="46" rx="4" ry="3" fill="#2c1810"/>
+            <ellipse cx="60" cy="46" rx="4" ry="3" fill="#2c1810"/>
+            <circle cx="41" cy="45" r="1.5" fill="white"/>
+            <circle cx="61" cy="45" r="1.5" fill="white"/>
+            <path d="M35 40 Q40 38 45 40" stroke="#3d2517" stroke-width="1.5" fill="none"/>
+            <path d="M55 40 Q60 38 65 40" stroke="#3d2517" stroke-width="1.5" fill="none"/>
+            <path d="M50 48 L50 54 L48 56" stroke="#e0b090" stroke-width="1" fill="none"/>
+            <path d="M42 62 Q50 68 58 62" stroke="#c76b6b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <ellipse cx="36" cy="55" rx="5" ry="3" fill="#f5c0c0" opacity="0.5"/>
+            <ellipse cx="64" cy="55" rx="5" ry="3" fill="#f5c0c0" opacity="0.5"/>
+            <circle cx="25" cy="52" r="3" fill="#ffd700"/>
+            <circle cx="75" cy="52" r="3" fill="#ffd700"/>
+            <rect x="44" y="70" width="12" height="10" fill="#f5d0b5"/>
+            <path d="M30 80 L44 75 L50 78 L56 75 L70 80 L70 100 L30 100 Z" fill="#4a5899"/>
+            <path d="M44 75 L50 82 L56 75" fill="white"/>
+          </g>
+        </svg>
       </div>
-      <div class="service-panel" id="service-panel" style="position: absolute; bottom: 70px; right: 0; width: 300px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); display: none; flex-direction: column; overflow: hidden;">
-        <div class="service-header" style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: bold;">小雅客服</h3>
+      <div class="service-panel" id="service-panel" style="position: fixed; bottom: auto; top: 50%; right: 30px; transform: translateY(-50%); width: 300px; background-color: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); display: none; flex-direction: column; overflow: hidden; z-index: 10002;">
+        <div class="service-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 16px; font-weight: bold;">🤖 小雅客服</h3>
           <button class="service-close" id="service-close" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">×</button>
         </div>
         <div class="service-content" style="padding: 20px;">
@@ -43,18 +75,55 @@ function initXiaoyaService() {
     </div>
     
     <!-- 聊天窗口 -->
-    <div id="chat-window" style="display: none; position: fixed; bottom: 120px; right: 30px; width: 350px; height: 500px; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); z-index: 10001; flex-direction: column; overflow: hidden;">
-      <div style="background-color: #3498db; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: bold;">在线客服</h3>
-          <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">小雅为您服务</p>
+    <div id="chat-window" style="display: none; position: fixed; bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 350px; max-width: 90%; height: 500px; max-height: 80vh; background-color: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); z-index: 10003; flex-direction: column; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid white;">
+            <defs>
+              <clipPath id="chatCircle">
+                <circle cx="20" cy="20" r="20"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#chatCircle)">
+              <rect width="40" height="40" fill="#f0e8f8"/>
+              <ellipse cx="20" cy="17" rx="12" ry="11" fill="#3d2517"/>
+              <ellipse cx="20" cy="16" rx="10" ry="8" fill="#4a3020"/>
+              <ellipse cx="20" cy="20" rx="9" ry="10" fill="#f5d0b5"/>
+              <ellipse cx="16" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+              <ellipse cx="24" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+              <path d="M16 25 Q20 28 24 25" stroke="#c76b6b" stroke-width="1.2" fill="none"/>
+              <rect x="17" y="28" width="6" height="5" fill="#f5d0b5"/>
+              <path d="M10 32 L17 30 L20 32 L23 30 L30 32 L30 40 L10 40 Z" fill="#4a5899"/>
+            </g>
+          </svg>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: bold;">在线客服</h3>
+            <p style="margin: 3px 0 0 0; font-size: 12px; opacity: 0.9;">小雅为您服务</p>
+          </div>
         </div>
         <button id="chat-close" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">×</button>
       </div>
       <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; background-color: #f8f9fa;">
         <div style="text-align: center; color: #95a5a6; font-size: 12px; margin-bottom: 15px;">今天</div>
         <div style="display: flex; margin-bottom: 15px;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 10px; flex-shrink: 0;">雅</div>
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; margin-right: 10px; overflow: hidden; border: 1px solid #e0e0e0;">
+            <defs>
+              <clipPath id="msgCircle">
+                <circle cx="20" cy="20" r="20"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#msgCircle)">
+              <rect width="40" height="40" fill="#f0e8f8"/>
+              <ellipse cx="20" cy="17" rx="12" ry="11" fill="#3d2517"/>
+              <ellipse cx="20" cy="16" rx="10" ry="8" fill="#4a3020"/>
+              <ellipse cx="20" cy="20" rx="9" ry="10" fill="#f5d0b5"/>
+              <ellipse cx="16" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+              <ellipse cx="24" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+              <path d="M16 25 Q20 28 24 25" stroke="#c76b6b" stroke-width="1.2" fill="none"/>
+              <rect x="17" y="28" width="6" height="5" fill="#f5d0b5"/>
+              <path d="M10 32 L17 30 L20 32 L23 30 L30 32 L30 40 L10 40 Z" fill="#4a5899"/>
+            </g>
+          </svg>
           <div style="background-color: white; padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); max-width: 70%;">
             <p style="margin: 0; font-size: 14px; color: #333;">您好！我是小雅，请问有什么可以帮您？</p>
           </div>
@@ -79,20 +148,46 @@ function initXiaoyaService() {
         <button id="support-close" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">×</button>
       </div>
       <div style="padding: 20px; overflow-y: auto; flex: 1;">
+        <!-- 搜索框 -->
         <div style="margin-bottom: 20px;">
-          <h4 style="color: #2c3e50; margin-bottom: 10px;">📖 常见问题</h4>
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-            <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何登录系统？</h5>
-            <p style="margin: 0; font-size: 13px; color: #666;">A: 在登录页面输入您的账号和密码，点击登录按钮即可。</p>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="support-search-input" placeholder="搜索问题..." style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; outline: none;" oninput="searchSupportDocs()">
+            <button onclick="searchSupportDocs()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px;">搜索</button>
           </div>
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-            <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 忘记密码怎么办？</h5>
-            <p style="margin: 0; font-size: 13px; color: #666;">A: 点击登录页面的"忘记密码"链接，按照提示重置密码。</p>
+        </div>
+        <div id="support-questions-container">
+          <div style="margin-bottom: 20px;">
+            <h4 style="color: #2c3e50; margin-bottom: 10px;">📖 常见问题</h4>
+            <div class="support-question-item" data-keywords="登录 账号 密码" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何登录系统？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 在登录页面输入您的账号和密码，点击登录按钮即可。</p>
+            </div>
+            <div class="support-question-item" data-keywords="忘记密码 密码 重置" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 忘记密码怎么办？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 点击登录页面的"忘记密码"链接，按照提示重置密码。</p>
+            </div>
+            <div class="support-question-item" data-keywords="客服 联系 咨询" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何联系客服？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 点击页面右下角的小雅客服图标，选择在线咨询即可。</p>
+            </div>
+            <div class="support-question-item" data-keywords="注册 账号 创建" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何注册新账号？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 点击登录页面的"注册"按钮，填写手机号、密码等信息完成注册。</p>
+            </div>
+            <div class="support-question-item" data-keywords="发票 开票 税务" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何开具发票？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 进入发票管理模块，填写发票信息后提交申请即可。</p>
+            </div>
+            <div class="support-question-item" data-keywords="数据 备份 恢复" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+              <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 数据如何备份和恢复？</h5>
+              <p style="margin: 0; font-size: 13px; color: #666;">A: 系统会自动备份您的数据，也可在设置中手动导出数据。</p>
+            </div>
           </div>
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-            <h5 style="margin: 0 0 5px 0; color: #34495e;">Q: 如何联系客服？</h5>
-            <p style="margin: 0; font-size: 13px; color: #666;">A: 点击页面右下角的小雅客服图标，选择在线咨询即可。</p>
-          </div>
+        </div>
+        <div id="support-no-results" style="display: none; text-align: center; padding: 40px; color: #999;">
+          <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
+          <p>未找到相关问题</p>
+          <p style="font-size: 12px; margin-top: 10px;">请尝试其他关键词或联系在线客服</p>
         </div>
         <div>
           <h4 style="color: #2c3e50; margin-bottom: 10px;">📞 联系方式</h4>
@@ -181,6 +276,15 @@ function initXiaoyaService() {
   // 将小雅客服添加到页面底部
   document.body.insertAdjacentHTML('beforeend', xiaoyaHTML);
   console.log('小雅客服HTML已添加');
+  
+  // 切换服务面板显示/隐藏
+  window.toggleServicePanel = function() {
+    const servicePanel = document.getElementById('service-panel');
+    if (servicePanel) {
+      const isVisible = servicePanel.style.display === 'flex';
+      servicePanel.style.display = isVisible ? 'none' : 'flex';
+    }
+  };
   
   // 绑定事件
   const serviceIcon = document.getElementById('service-icon');
@@ -455,7 +559,24 @@ function sendChatMessage() {
     const csMsgDiv = document.createElement('div');
     csMsgDiv.style.cssText = 'display: flex; margin-bottom: 15px;';
     csMsgDiv.innerHTML = `
-      <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 10px; flex-shrink: 0;">🤖</div>
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; margin-right: 10px; overflow: hidden; border: 1px solid #e0e0e0;">
+        <defs>
+          <clipPath id="aiMsgCircle">
+            <circle cx="20" cy="20" r="20"/>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#aiMsgCircle)">
+          <rect width="40" height="40" fill="#f0e8f8"/>
+          <ellipse cx="20" cy="17" rx="12" ry="11" fill="#3d2517"/>
+          <ellipse cx="20" cy="16" rx="10" ry="8" fill="#4a3020"/>
+          <ellipse cx="20" cy="20" rx="9" ry="10" fill="#f5d0b5"/>
+          <ellipse cx="16" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+          <ellipse cx="24" cy="19" rx="1.5" ry="1.2" fill="#2c1810"/>
+          <path d="M16 25 Q20 28 24 25" stroke="#c76b6b" stroke-width="1.2" fill="none"/>
+          <rect x="17" y="28" width="6" height="5" fill="#f5d0b5"/>
+          <path d="M10 32 L17 30 L20 32 L23 30 L30 32 L30 40 L10 40 Z" fill="#4a5899"/>
+        </g>
+      </svg>
       <div style="background-color: white; padding: 10px 15px; border-radius: 18px; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); max-width: 70%;">
         <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">${aiResponse}</p>
       </div>
@@ -472,6 +593,47 @@ function openSupportWindow() {
   if (supportWindow) {
     supportWindow.style.display = 'flex';
     if (overlay) overlay.style.display = 'block';
+  }
+}
+
+// 搜索技术支持文档
+function searchSupportDocs() {
+  const searchInput = document.getElementById('support-search-input');
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const questionItems = document.querySelectorAll('.support-question-item');
+  const noResults = document.getElementById('support-no-results');
+  let foundCount = 0;
+
+  questionItems.forEach(function(item) {
+    const keywords = item.getAttribute('data-keywords') || '';
+    const questionText = item.querySelector('h5') ? item.querySelector('h5').textContent.toLowerCase() : '';
+    const answerText = item.querySelector('p') ? item.querySelector('p').textContent.toLowerCase() : '';
+
+    // 搜索关键词、问题和答案
+    const isMatch = keyword === '' ||
+                    keywords.toLowerCase().includes(keyword) ||
+                    questionText.includes(keyword) ||
+                    answerText.includes(keyword);
+
+    if (isMatch) {
+      item.style.display = 'block';
+      // 高亮匹配的文字
+      if (keyword !== '') {
+        item.style.backgroundColor = '#e8f4fd';
+        item.style.border = '1px solid #3498db';
+      } else {
+        item.style.backgroundColor = '#f8f9fa';
+        item.style.border = 'none';
+      }
+      foundCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  // 显示/隐藏无结果提示
+  if (noResults) {
+    noResults.style.display = foundCount === 0 && keyword !== '' ? 'block' : 'none';
   }
 }
 

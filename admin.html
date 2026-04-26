@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>管理后台 - 银河星辰财务专用浏览器</title>
+  <title>管理后台 - 银河星辰财务专用办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -404,6 +404,8 @@
       <ul class="nav-menu">
         <li class="nav-item"><a href="#" class="active" data-module="overview">管理概览</a></li>
         <li class="nav-item"><a href="#" data-module="users">用户管理</a></li>
+        <li class="nav-item"><a href="#" data-module="monitor">访问监控</a></li>
+        <li class="nav-item"><a href="#" data-module="marketing">营销活动</a></li>
         <li class="nav-item"><a href="#" data-module="messages">站内消息</a></li>
         <li class="nav-item"><a href="#" data-module="sms">短信管理</a></li>
         <li class="nav-item"><a href="#" data-module="servers">服务器管理</a></li>
@@ -427,7 +429,9 @@
             <span style="font-size: 20px; color: #666;">🔔</span>
             <span id="notification-badge" class="notification-badge" style="position: absolute; top: -5px; right: -5px; background-color: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; display: flex; align-items: center; justify-content: center; display: none;">0</span>
           </div>
-          <button class="btn btn-primary">登录</button>
+          <span id="admin-user-info" style="color:#666;font-size:14px;"></span>
+          <button class="btn btn-primary" id="admin-login-btn">登录</button>
+          <button class="btn btn-danger" id="admin-logout-btn" style="display:none;">退出</button>
         </div>
       </div>
       
@@ -444,6 +448,16 @@
                 <button class="btn btn-primary" data-open-module="users">进入</button>
               </div>
               <div class="module-card">
+                <h3>访问监控</h3>
+                <p>网站访问统计、页面浏览量追踪</p>
+                <button class="btn btn-primary" data-open-module="monitor">进入</button>
+              </div>
+              <div class="module-card">
+                <h3>站内消息</h3>
+                <p>系统通知、用户消息管理</p>
+                <button class="btn btn-primary" data-open-module="messages">进入</button>
+              </div>
+              <div class="module-card">
                 <h3>短信管理</h3>
                 <p>查看短信通道、验证码缓存和发送限制</p>
                 <button class="btn btn-primary" data-open-module="sms">进入</button>
@@ -452,6 +466,11 @@
                 <h3>服务器管理</h3>
                 <p>预留服务器监控与运维入口</p>
                 <button class="btn btn-primary" data-open-module="servers">进入</button>
+              </div>
+              <div class="module-card">
+                <h3>营销活动</h3>
+                <p>优惠券、促销活动、会员权益管理</p>
+                <button class="btn btn-primary" data-open-module="marketing">进入</button>
               </div>
             </div>
           </div>
@@ -491,6 +510,67 @@
                     <tr><td colspan="12">正在加载...</td></tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="module-monitor" class="module-section" style="display:none;">
+          <div class="card">
+            <h3>网站访问监控 <span id="monitor-live-status" style="font-size:12px;color:#27ae60;margin-left:10px;">● 实时更新中</span></h3>
+            <div class="card-content">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <span>时间范围：</span>
+                  <select id="monitor-time-range" onchange="loadMonitorData()">
+                    <option value="today">今天</option>
+                    <option value="week">最近7天</option>
+                    <option value="month">最近30天</option>
+                    <option value="all">全部</option>
+                  </select>
+                  <button class="btn btn-secondary" onclick="loadMonitorData()">刷新</button>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                    <input type="checkbox" id="monitor-auto-refresh" checked onchange="toggleMonitorAutoRefresh()">
+                    <span style="font-size:13px;">自动刷新</span>
+                  </label>
+                </div>
+                <div id="monitor-stats" style="display:flex;gap:20px;">
+                  <span>访问总数: <strong id="monitor-total">0</strong></span>
+                  <span>独立访客: <strong id="monitor-unique">0</strong></span>
+                  <span>最后更新: <strong id="monitor-last-update">-</strong></span>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>时间</th>
+                      <th>IP地址</th>
+                      <th>城市</th>
+                      <th>用户</th>
+                      <th>页面</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="monitor-tbody">
+                    <tr><td colspan="6">正在加载...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px;">
+            <h3>用户活动详情</h3>
+            <div class="card-content">
+              <div style="margin-bottom:15px;">
+                <input type="text" id="monitor-user-filter" placeholder="输入用户手机号或用户名搜索" style="padding:8px 12px;border-radius:4px;border:1px solid #ddd;width:250px;">
+                <button class="btn btn-primary" onclick="filterMonitorByUser()">搜索</button>
+              </div>
+              <div id="user-activity-detail" style="display:none;">
+                <h4 id="user-activity-title"></h4>
+                <div id="user-activity-content"></div>
               </div>
             </div>
           </div>
@@ -591,6 +671,89 @@
                 </thead>
                 <tbody id="sms-logs-tbody">
                   <tr><td colspan="5">正在加载...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="module-marketing" class="module-section" style="display:none;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div>
+                <h3>营销活动管理</h3>
+                <p style="color:#666;font-size:14px;">管理优惠券、促销活动、会员权益等营销工具。</p>
+              </div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="showCreateCouponModal()">创建优惠券</button>
+                <button class="btn btn-success" onclick="showCreateActivityModal()">创建活动</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 营销统计卡片 -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0;">
+            <div class="card" style="text-align:center;padding:20px;">
+              <div style="font-size:28px;font-weight:bold;color:#3498db;" id="marketing-total-coupons">0</div>
+              <div style="color:#666;font-size:14px;margin-top:5px;">优惠券总数</div>
+            </div>
+            <div class="card" style="text-align:center;padding:20px;">
+              <div style="font-size:28px;font-weight:bold;color:#27ae60;" id="marketing-used-coupons">0</div>
+              <div style="color:#666;font-size:14px;margin-top:5px;">已使用</div>
+            </div>
+            <div class="card" style="text-align:center;padding:20px;">
+              <div style="font-size:28px;font-weight:bold;color:#f39c12;" id="marketing-active-activities">0</div>
+              <div style="color:#666;font-size:14px;margin-top:5px;">进行中活动</div>
+            </div>
+            <div class="card" style="text-align:center;padding:20px;">
+              <div style="font-size:28px;font-weight:bold;color:#e74c3c;" id="marketing-participants">0</div>
+              <div style="color:#666;font-size:14px;margin-top:5px;">活动参与人数</div>
+            </div>
+          </div>
+
+          <!-- 优惠券列表 -->
+          <div class="card">
+            <h3>优惠券管理</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>优惠券名称</th>
+                    <th>类型</th>
+                    <th>优惠金额/折扣</th>
+                    <th>使用条件</th>
+                    <th>有效期</th>
+                    <th>发放数量</th>
+                    <th>已使用</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="coupons-tbody">
+                  <tr><td colspan="9" style="text-align:center;color:#888;">暂无优惠券数据</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 营销活动列表 -->
+          <div class="card" style="margin-top:20px;">
+            <h3>营销活动列表</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>活动名称</th>
+                    <th>活动类型</th>
+                    <th>开始时间</th>
+                    <th>结束时间</th>
+                    <th>参与人数</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="activities-tbody">
+                  <tr><td colspan="7" style="text-align:center;color:#888;">暂无活动数据</td></tr>
                 </tbody>
               </table>
             </div>
@@ -733,6 +896,12 @@
       if (moduleKey === 'users') {
         loadAdminUsers();
       }
+      if (moduleKey === 'monitor') {
+        loadMonitorData();
+      }
+      if (moduleKey === 'marketing') {
+        loadMarketingData();
+      }
       if (moduleKey === 'sms') {
         loadSmsAdminData();
       }
@@ -819,6 +988,160 @@
         .catch(function(err) {
           alert('删除失败：' + err.message);
         });
+    }
+
+    // ========== 访问监控功能 ==========
+    function loadMonitorData() {
+      var tbody = document.getElementById('monitor-tbody');
+      var timeRange = document.getElementById('monitor-time-range').value;
+
+      tbody.innerHTML = '<tr><td colspan="6">正在加载...</td></tr>';
+
+      fetch('/api/admin/monitor?range=' + encodeURIComponent(timeRange))
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            tbody.innerHTML = '<tr><td colspan="6">加载失败：' + (result.message || '未知错误') + '</td></tr>';
+            return;
+          }
+
+          var logs = result.data.logs || [];
+          document.getElementById('monitor-total').textContent = result.data.total || logs.length;
+          document.getElementById('monitor-unique').textContent = result.data.uniqueVisitors || 0;
+
+          if (!logs.length) {
+            tbody.innerHTML = '<tr><td colspan="6">暂无访问记录</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = logs.map(function(log) {
+            return '<tr>' +
+              '<td>' + (log.visit_time || log.timestamp || '-') + '</td>' +
+              '<td>' + (log.ip || '-') + '</td>' +
+              '<td>' + (log.city || log.location || '-') + '</td>' +
+              '<td>' + (log.username || log.phone || '游客') + '</td>' +
+              '<td>' + (log.page || log.url || '-') + '</td>' +
+              '<td><button class="btn btn-sm btn-secondary" onclick="viewUserActivity(\'' + (log.user_id || log.ip) + '\')">查看详情</button></td>' +
+            '</tr>';
+          }).join('');
+
+          // 更新最后更新时间
+          document.getElementById('monitor-last-update').textContent = new Date().toLocaleTimeString();
+        })
+        .catch(function(err) {
+          console.error('Load monitor error:', err);
+          tbody.innerHTML = '<tr><td colspan="6">加载失败：' + err.message + '</td></tr>';
+        });
+    }
+
+    // 监控自动刷新
+    var monitorRefreshTimer = null;
+    function toggleMonitorAutoRefresh() {
+      var checkbox = document.getElementById('monitor-auto-refresh');
+      var status = document.getElementById('monitor-live-status');
+      if (checkbox.checked) {
+        status.textContent = '● 实时更新中';
+        status.style.color = '#27ae60';
+        startMonitorAutoRefresh();
+      } else {
+        status.textContent = '○ 已暂停';
+        status.style.color = '#888';
+        stopMonitorAutoRefresh();
+      }
+    }
+
+    function startMonitorAutoRefresh() {
+      if (monitorRefreshTimer) clearInterval(monitorRefreshTimer);
+      monitorRefreshTimer = setInterval(function() {
+        // 检查监控模块是否可见
+        var monitorModule = document.getElementById('module-monitor');
+        if (monitorModule && monitorModule.style.display !== 'none') {
+          loadMonitorData();
+        }
+      }, 5000); // 每5秒刷新一次
+    }
+
+    function stopMonitorAutoRefresh() {
+      if (monitorRefreshTimer) {
+        clearInterval(monitorRefreshTimer);
+        monitorRefreshTimer = null;
+      }
+    }
+
+    // 页面加载时启动自动刷新
+    setTimeout(function() {
+      startMonitorAutoRefresh();
+    }, 1000);
+
+    function viewUserActivity(identifier) {
+      var detailDiv = document.getElementById('user-activity-detail');
+      var titleDiv = document.getElementById('user-activity-title');
+      var contentDiv = document.getElementById('user-activity-content');
+
+      titleDiv.textContent = '正在加载用户活动...';
+      contentDiv.innerHTML = '';
+      detailDiv.style.display = 'block';
+
+      fetch('/api/admin/monitor/user?identifier=' + encodeURIComponent(identifier))
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            titleDiv.textContent = '加载失败';
+            contentDiv.innerHTML = '<p>' + (result.message || '未知错误') + '</p>';
+            return;
+          }
+
+          var user = result.data.user || {};
+          var activities = result.data.activities || [];
+
+          titleDiv.textContent = (user.username || user.phone || identifier) + ' 的活动记录';
+
+          var html = '<div style="margin-bottom:15px;">' +
+            '<p><strong>IP地址：</strong>' + (user.ip || '-') + '</p>' +
+            '<p><strong>城市：</strong>' + (user.city || '-') + '</p>' +
+            '<p><strong>访问次数：</strong>' + (user.visit_count || activities.length) + '</p>' +
+            '<p><strong>最后访问：</strong>' + (user.last_visit || '-') + '</p>' +
+          '</div>';
+
+          if (activities.length) {
+            html += '<h4 style="margin:15px 0 10px;">浏览记录</h4><ul style="list-style:none;padding:0;">';
+            activities.forEach(function(a) {
+              html += '<li style="padding:8px 0;border-bottom:1px solid #eee;">' +
+                '<span style="color:#666;">' + (a.time || a.timestamp || '') + '</span> - ' +
+                '<span>' + (a.page || a.url || '-') + '</span>' +
+              '</li>';
+            });
+            html += '</ul>';
+          }
+
+          // 发布内容
+          var posts = result.data.posts || [];
+          if (posts.length) {
+            html += '<h4 style="margin:15px 0 10px;">发布内容</h4><ul style="list-style:none;padding:0;">';
+            posts.forEach(function(p) {
+              html += '<li style="padding:8px 0;border-bottom:1px solid #eee;">' +
+                '<span style="color:#666;">' + (p.time || '') + '</span> - ' +
+                '<strong>' + (p.type || '内容') + ':</strong> ' + (p.title || p.content || '').substring(0, 50) +
+              '</li>';
+            });
+            html += '</ul>';
+          }
+
+          contentDiv.innerHTML = html;
+        })
+        .catch(function(err) {
+          titleDiv.textContent = '加载失败';
+          contentDiv.innerHTML = '<p>' + err.message + '</p>';
+        });
+    }
+
+    function filterMonitorByUser() {
+      var filter = document.getElementById('monitor-user-filter').value.trim();
+      if (!filter) {
+        loadMonitorData();
+        return;
+      }
+      viewUserActivity(filter);
     }
 
     function toggleSelectAll() {
@@ -1035,10 +1358,542 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      if (!isLoggedIn()) {
-        window.location.href = 'admin_login.html';
+    // ========== 营销活动管理功能 ==========
+    function loadMarketingData() {
+      // 加载优惠券列表
+      fetch('/api/admin/coupons')
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          var tbody = document.getElementById('coupons-tbody');
+          if (result.success && result.data && result.data.length > 0) {
+            var totalCoupons = 0;
+            var usedCoupons = 0;
+            tbody.innerHTML = result.data.map(function(coupon) {
+              totalCoupons += coupon.total_count || 0;
+              usedCoupons += coupon.used_count || 0;
+              var statusText = coupon.status === 'active' ? '进行中' : coupon.status === 'expired' ? '已过期' : '已停用';
+              var statusClass = coupon.status === 'active' ? 'status-active' : coupon.status === 'expired' ? 'status-inactive' : 'status-pending';
+              return '<tr>' +
+                '<td>' + (coupon.name || '-') + '</td>' +
+                '<td>' + (coupon.type === 'discount' ? '折扣券' : coupon.type === 'cash' ? '现金券' : '满减券') + '</td>' +
+                '<td>' + (coupon.type === 'discount' ? (coupon.discount * 10) + '折' : '¥' + (coupon.amount || 0)) + '</td>' +
+                '<td>' + (coupon.min_amount ? '满¥' + coupon.min_amount : '无门槛') + '</td>' +
+                '<td>' + (coupon.start_date || '-') + ' 至 ' + (coupon.end_date || '-') + '</td>' +
+                '<td>' + (coupon.total_count || 0) + '</td>' +
+                '<td>' + (coupon.used_count || 0) + '</td>' +
+                '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+                '<td>' +
+                  '<button class="btn btn-sm btn-warning" onclick="editCoupon(' + coupon.id + ')">编辑</button> ' +
+                  '<button class="btn btn-sm btn-danger" onclick="deleteCoupon(' + coupon.id + ')">删除</button>' +
+                '</td>' +
+              '</tr>';
+            }).join('');
+            document.getElementById('marketing-total-coupons').textContent = totalCoupons;
+            document.getElementById('marketing-used-coupons').textContent = usedCoupons;
+          } else {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#888;">暂无优惠券数据</td></tr>';
+          }
+        })
+        .catch(function(err) {
+          console.error('加载优惠券失败:', err);
+        });
+
+      // 加载活动列表
+      fetch('/api/admin/activities')
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          var tbody = document.getElementById('activities-tbody');
+          if (result.success && result.data && result.data.length > 0) {
+            var activeCount = 0;
+            var totalParticipants = 0;
+            tbody.innerHTML = result.data.map(function(activity) {
+              if (activity.status === 'active') activeCount++;
+              totalParticipants += activity.participants || 0;
+              var statusText = activity.status === 'active' ? '进行中' : activity.status === 'ended' ? '已结束' : '未开始';
+              var statusClass = activity.status === 'active' ? 'status-active' : activity.status === 'ended' ? 'status-inactive' : 'status-pending';
+              return '<tr>' +
+                '<td>' + (activity.name || '-') + '</td>' +
+                '<td>' + (activity.type === 'promotion' ? '促销活动' : activity.type === 'member' ? '会员活动' : '节日活动') + '</td>' +
+                '<td>' + (activity.start_time || '-') + '</td>' +
+                '<td>' + (activity.end_time || '-') + '</td>' +
+                '<td>' + (activity.participants || 0) + '</td>' +
+                '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+                '<td>' +
+                  '<button class="btn btn-sm btn-warning" onclick="editActivity(' + activity.id + ')">编辑</button> ' +
+                  '<button class="btn btn-sm btn-danger" onclick="deleteActivity(' + activity.id + ')">删除</button>' +
+                '</td>' +
+              '</tr>';
+            }).join('');
+            document.getElementById('marketing-active-activities').textContent = activeCount;
+            document.getElementById('marketing-participants').textContent = totalParticipants;
+          } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">暂无活动数据</td></tr>';
+          }
+        })
+        .catch(function(err) {
+          console.error('加载活动失败:', err);
+        });
+    }
+
+    function showCreateCouponModal() {
+      var modal = document.createElement('div');
+      modal.id = 'coupon-modal';
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = '<div class="modal-content" style="max-width:500px;">' +
+        '<div class="modal-header">' +
+          '<h3>创建优惠券</h3>' +
+          '<span class="modal-close" onclick="closeCouponModal()">&times;</span>' +
+        '</div>' +
+        '<div style="padding:20px 0;">' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>优惠券名称</label>' +
+            '<input type="text" id="coupon-name" placeholder="请输入优惠券名称" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>优惠券类型</label>' +
+            '<select id="coupon-type" style="width:100%;padding:8px;margin-top:5px;" onchange="toggleCouponFields()">' +
+              '<option value="cash">现金券</option>' +
+              '<option value="discount">折扣券</option>' +
+              '<option value="full_reduction">满减券</option>' +
+            '</select>' +
+          '</div>' +
+          '<div id="coupon-amount-field" class="form-group" style="margin-bottom:15px;">' +
+            '<label>优惠金额（元）</label>' +
+            '<input type="number" id="coupon-amount" placeholder="请输入优惠金额" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+          '<div id="coupon-discount-field" class="form-group" style="margin-bottom:15px;display:none;">' +
+            '<label>折扣比例（如8.5表示8.5折）</label>' +
+            '<input type="number" id="coupon-discount" placeholder="请输入折扣" step="0.1" min="0.1" max="10" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+          '<div id="coupon-min-amount-field" class="form-group" style="margin-bottom:15px;">' +
+            '<label>最低消费金额（元，0表示无门槛）</label>' +
+            '<input type="number" id="coupon-min-amount" placeholder="请输入最低消费金额" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+          '<div style="display:flex;gap:15px;margin-bottom:15px;">' +
+            '<div class="form-group" style="flex:1;">' +
+              '<label>开始日期</label>' +
+              '<input type="date" id="coupon-start-date" style="width:100%;padding:8px;margin-top:5px;">' +
+            '</div>' +
+            '<div class="form-group" style="flex:1;">' +
+              '<label>结束日期</label>' +
+              '<input type="date" id="coupon-end-date" style="width:100%;padding:8px;margin-top:5px;">' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>发放数量</label>' +
+            '<input type="number" id="coupon-total-count" placeholder="请输入发放数量" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<button class="btn btn-secondary" onclick="closeCouponModal()">取消</button> ' +
+          '<button class="btn btn-primary" onclick="saveCoupon()">保存</button>' +
+        '</div>' +
+      '</div>';
+      document.body.appendChild(modal);
+    }
+
+    function toggleCouponFields() {
+      var type = document.getElementById('coupon-type').value;
+      document.getElementById('coupon-amount-field').style.display = (type === 'cash' || type === 'full_reduction') ? 'block' : 'none';
+      document.getElementById('coupon-discount-field').style.display = type === 'discount' ? 'block' : 'none';
+      document.getElementById('coupon-min-amount-field').style.display = type === 'full_reduction' ? 'block' : 'none';
+    }
+
+    function closeCouponModal() {
+      var modal = document.getElementById('coupon-modal');
+      if (modal) modal.remove();
+    }
+
+    function saveCoupon() {
+      var data = {
+        name: document.getElementById('coupon-name').value,
+        type: document.getElementById('coupon-type').value,
+        amount: parseFloat(document.getElementById('coupon-amount').value) || 0,
+        discount: parseFloat(document.getElementById('coupon-discount').value) || 1,
+        min_amount: parseFloat(document.getElementById('coupon-min-amount').value) || 0,
+        start_date: document.getElementById('coupon-start-date').value,
+        end_date: document.getElementById('coupon-end-date').value,
+        total_count: parseInt(document.getElementById('coupon-total-count').value) || 0
+      };
+
+      if (!data.name) {
+        alert('请输入优惠券名称');
         return;
+      }
+
+      fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (result.success) {
+            alert('优惠券创建成功');
+            closeCouponModal();
+            loadMarketingData();
+          } else {
+            alert('创建失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(function(err) {
+          alert('创建失败：' + err.message);
+        });
+    }
+
+    function editCoupon(id) {
+      // 先获取优惠券数据
+      fetch('/api/admin/coupons/' + id)
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            alert('获取优惠券信息失败');
+            return;
+          }
+          var coupon = result.data;
+          var modal = document.createElement('div');
+          modal.id = 'coupon-modal';
+          modal.className = 'modal';
+          modal.style.display = 'flex';
+          modal.innerHTML = '<div class="modal-content" style="max-width:500px;">' +
+            '<div class="modal-header">' +
+              '<h3>编辑优惠券</h3>' +
+              '<span class="modal-close" onclick="closeCouponModal()">&times;</span>' +
+            '</div>' +
+            '<div style="padding:20px 0;">' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>优惠券名称</label>' +
+                '<input type="text" id="coupon-name" value="' + (coupon.name || '') + '" style="width:100%;padding:8px;margin-top:5px;">' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>优惠券类型</label>' +
+                '<select id="coupon-type" style="width:100%;padding:8px;margin-top:5px;" onchange="toggleCouponFields()">' +
+                  '<option value="cash" ' + (coupon.type === 'cash' ? 'selected' : '') + '>现金券</option>' +
+                  '<option value="discount" ' + (coupon.type === 'discount' ? 'selected' : '') + '>折扣券</option>' +
+                  '<option value="full_reduction" ' + (coupon.type === 'full_reduction' ? 'selected' : '') + '>满减券</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>金额/折扣</label>' +
+                '<input type="number" id="coupon-amount" value="' + (coupon.amount || coupon.discount || '') + '" step="0.01" style="width:100%;padding:8px;margin-top:5px;">' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>最低消费金额</label>' +
+                '<input type="number" id="coupon-min-amount" value="' + (coupon.min_amount || '') + '" style="width:100%;padding:8px;margin-top:5px;">' +
+              '</div>' +
+              '<div style="display:flex;gap:15px;margin-bottom:15px;">' +
+                '<div class="form-group" style="flex:1;">' +
+                  '<label>开始日期</label>' +
+                  '<input type="date" id="coupon-start-date" value="' + (coupon.start_date || '').split(' ')[0] + '" style="width:100%;padding:8px;margin-top:5px;">' +
+                '</div>' +
+                '<div class="form-group" style="flex:1;">' +
+                  '<label>结束日期</label>' +
+                  '<input type="date" id="coupon-end-date" value="' + (coupon.end_date || '').split(' ')[0] + '" style="width:100%;padding:8px;margin-top:5px;">' +
+                '</div>' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>发放数量</label>' +
+                '<input type="number" id="coupon-total" value="' + (coupon.total_count || 0) + '" style="width:100%;padding:8px;margin-top:5px;">' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>状态</label>' +
+                '<select id="coupon-status" style="width:100%;padding:8px;margin-top:5px;">' +
+                  '<option value="active" ' + (coupon.status === 'active' ? 'selected' : '') + '>进行中</option>' +
+                  '<option value="inactive" ' + (coupon.status === 'inactive' ? 'selected' : '') + '>已停用</option>' +
+                '</select>' +
+              '</div>' +
+              '<div style="text-align:right;margin-top:20px;">' +
+                '<button class="btn btn-secondary" onclick="closeCouponModal()">取消</button> ' +
+                '<button class="btn btn-primary" onclick="updateCoupon(' + id + ')">保存</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+          document.body.appendChild(modal);
+        });
+    }
+
+    function updateCoupon(id) {
+      var data = {
+        name: document.getElementById('coupon-name').value,
+        type: document.getElementById('coupon-type').value,
+        amount: parseFloat(document.getElementById('coupon-amount').value) || 0,
+        min_amount: parseFloat(document.getElementById('coupon-min-amount').value) || 0,
+        start_date: document.getElementById('coupon-start-date').value,
+        end_date: document.getElementById('coupon-end-date').value,
+        total_count: parseInt(document.getElementById('coupon-total').value) || 0,
+        status: document.getElementById('coupon-status').value
+      };
+      fetch('/api/admin/coupons/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (result.success) {
+            closeCouponModal();
+            loadMarketingData();
+          } else {
+            alert('更新失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(function(err) {
+          alert('更新失败：' + err.message);
+        });
+    }
+
+    function deleteCoupon(id) {
+      if (confirm('确定要删除这张优惠券吗？')) {
+        fetch('/api/admin/coupons/' + id, { method: 'DELETE' })
+          .then(function(resp) { return resp.json(); })
+          .then(function(result) {
+            if (result.success) {
+              loadMarketingData();
+            } else {
+              alert('删除失败');
+            }
+          });
+      }
+    }
+
+    function showCreateActivityModal() {
+      var modal = document.createElement('div');
+      modal.id = 'activity-modal';
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = '<div class="modal-content" style="max-width:500px;">' +
+        '<div class="modal-header">' +
+          '<h3>创建营销活动</h3>' +
+          '<span class="modal-close" onclick="closeActivityModal()">&times;</span>' +
+        '</div>' +
+        '<div style="padding:20px 0;">' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>活动名称</label>' +
+            '<input type="text" id="activity-name" placeholder="请输入活动名称" style="width:100%;padding:8px;margin-top:5px;">' +
+          '</div>' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>活动类型</label>' +
+            '<select id="activity-type" style="width:100%;padding:8px;margin-top:5px;">' +
+              '<option value="promotion">促销活动</option>' +
+              '<option value="member">会员活动</option>' +
+              '<option value="festival">节日活动</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="form-group" style="margin-bottom:15px;">' +
+            '<label>活动描述</label>' +
+            '<textarea id="activity-description" placeholder="请输入活动描述" style="width:100%;padding:8px;margin-top:5px;height:80px;"></textarea>' +
+          '</div>' +
+          '<div style="display:flex;gap:15px;margin-bottom:15px;">' +
+            '<div class="form-group" style="flex:1;">' +
+              '<label>开始时间</label>' +
+              '<input type="datetime-local" id="activity-start-time" style="width:100%;padding:8px;margin-top:5px;">' +
+            '</div>' +
+            '<div class="form-group" style="flex:1;">' +
+              '<label>结束时间</label>' +
+              '<input type="datetime-local" id="activity-end-time" style="width:100%;padding:8px;margin-top:5px;">' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<button class="btn btn-secondary" onclick="closeActivityModal()">取消</button> ' +
+          '<button class="btn btn-primary" onclick="saveActivity()">保存</button>' +
+        '</div>' +
+      '</div>';
+      document.body.appendChild(modal);
+    }
+
+    function closeActivityModal() {
+      var modal = document.getElementById('activity-modal');
+      if (modal) modal.remove();
+    }
+
+    function saveActivity() {
+      var data = {
+        name: document.getElementById('activity-name').value,
+        type: document.getElementById('activity-type').value,
+        description: document.getElementById('activity-description').value,
+        start_time: document.getElementById('activity-start-time').value,
+        end_time: document.getElementById('activity-end-time').value
+      };
+
+      if (!data.name) {
+        alert('请输入活动名称');
+        return;
+      }
+
+      fetch('/api/admin/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (result.success) {
+            alert('活动创建成功');
+            closeActivityModal();
+            loadMarketingData();
+          } else {
+            alert('创建失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(function(err) {
+          alert('创建失败：' + err.message);
+        });
+    }
+
+    function editActivity(id) {
+      // 先获取活动数据
+      fetch('/api/admin/activities/' + id)
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (!result.success) {
+            alert('获取活动信息失败');
+            return;
+          }
+          var activity = result.data;
+          var modal = document.createElement('div');
+          modal.id = 'activity-modal';
+          modal.className = 'modal';
+          modal.style.display = 'flex';
+          modal.innerHTML = '<div class="modal-content" style="max-width:500px;">' +
+            '<div class="modal-header">' +
+              '<h3>编辑营销活动</h3>' +
+              '<span class="modal-close" onclick="closeActivityModal()">&times;</span>' +
+            '</div>' +
+            '<div style="padding:20px 0;">' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>活动名称</label>' +
+                '<input type="text" id="activity-name" value="' + (activity.name || '') + '" style="width:100%;padding:8px;margin-top:5px;">' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>活动类型</label>' +
+                '<select id="activity-type" style="width:100%;padding:8px;margin-top:5px;">' +
+                  '<option value="promotion" ' + (activity.type === 'promotion' ? 'selected' : '') + '>促销活动</option>' +
+                  '<option value="member" ' + (activity.type === 'member' ? 'selected' : '') + '>会员活动</option>' +
+                  '<option value="festival" ' + (activity.type === 'festival' ? 'selected' : '') + '>节日活动</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>活动描述</label>' +
+                '<textarea id="activity-description" style="width:100%;padding:8px;margin-top:5px;height:80px;">' + (activity.description || '') + '</textarea>' +
+              '</div>' +
+              '<div style="display:flex;gap:15px;margin-bottom:15px;">' +
+                '<div class="form-group" style="flex:1;">' +
+                  '<label>开始时间</label>' +
+                  '<input type="datetime-local" id="activity-start-time" value="' + (activity.start_time || '') + '" style="width:100%;padding:8px;margin-top:5px;">' +
+                '</div>' +
+                '<div class="form-group" style="flex:1;">' +
+                  '<label>结束时间</label>' +
+                  '<input type="datetime-local" id="activity-end-time" value="' + (activity.end_time || '') + '" style="width:100%;padding:8px;margin-top:5px;">' +
+                '</div>' +
+              '</div>' +
+              '<div class="form-group" style="margin-bottom:15px;">' +
+                '<label>状态</label>' +
+                '<select id="activity-status" style="width:100%;padding:8px;margin-top:5px;">' +
+                  '<option value="pending" ' + (activity.status === 'pending' ? 'selected' : '') + '>未开始</option>' +
+                  '<option value="active" ' + (activity.status === 'active' ? 'selected' : '') + '>进行中</option>' +
+                  '<option value="ended" ' + (activity.status === 'ended' ? 'selected' : '') + '>已结束</option>' +
+                '</select>' +
+              '</div>' +
+              '<div style="text-align:right;margin-top:20px;">' +
+                '<button class="btn btn-secondary" onclick="closeActivityModal()">取消</button> ' +
+                '<button class="btn btn-primary" onclick="updateActivity(' + id + ')">保存</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+          document.body.appendChild(modal);
+        });
+    }
+
+    function updateActivity(id) {
+      var data = {
+        name: document.getElementById('activity-name').value,
+        type: document.getElementById('activity-type').value,
+        description: document.getElementById('activity-description').value,
+        start_time: document.getElementById('activity-start-time').value,
+        end_time: document.getElementById('activity-end-time').value,
+        status: document.getElementById('activity-status').value
+      };
+      fetch('/api/admin/activities/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function(resp) { return resp.json(); })
+        .then(function(result) {
+          if (result.success) {
+            closeActivityModal();
+            loadMarketingData();
+          } else {
+            alert('更新失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(function(err) {
+          alert('更新失败：' + err.message);
+        });
+    }
+
+    function deleteActivity(id) {
+      if (confirm('确定要删除这个活动吗？')) {
+        fetch('/api/admin/activities/' + id, { method: 'DELETE' })
+          .then(function(resp) { return resp.json(); })
+          .then(function(result) {
+            if (result.success) {
+              loadMarketingData();
+            } else {
+              alert('删除失败');
+            }
+          });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 检查登录状态并更新UI
+      function updateLoginUI() {
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const loggedIn = userProfile.isLoggedIn && userProfile.phone;
+        const loginBtn = document.getElementById('admin-login-btn');
+        const logoutBtn = document.getElementById('admin-logout-btn');
+        const userInfo = document.getElementById('admin-user-info');
+
+        if (loggedIn) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (logoutBtn) logoutBtn.style.display = 'inline-block';
+          if (userInfo) userInfo.textContent = '欢迎, ' + userProfile.phone;
+        } else {
+          if (loginBtn) loginBtn.style.display = 'inline-block';
+          if (logoutBtn) logoutBtn.style.display = 'none';
+          if (userInfo) userInfo.textContent = '';
+        }
+      }
+
+      updateLoginUI();
+
+      // 登录按钮点击
+      const loginBtn = document.getElementById('admin-login-btn');
+      if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+          window.location.href = 'login.html';
+        });
+      }
+
+      // 退出按钮点击
+      const logoutBtn = document.getElementById('admin-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          if (confirm('确定要退出登录吗？')) {
+            localStorage.removeItem('userProfile');
+            localStorage.removeItem('userInfo');
+            window.location.href = 'login.html';
+          }
+        });
+      }
+
+      if (!isLoggedIn()) {
+        // 不再强制跳转，允许查看部分内容
+        // window.location.href = 'admin_login.html';
+        // return;
       }
 
       document.querySelectorAll('.nav-item a').forEach(function(item) {
@@ -1113,8 +1968,46 @@
 
       // 初始化加载消息
       loadMessages();
-      
+
       showModule('overview');
+
+      // ========== 访问追踪 ==========
+      (function trackVisit() {
+        var userInfo = null;
+        try {
+          userInfo = JSON.parse(localStorage.getItem('userInfo') || localStorage.getItem('userProfile') || 'null');
+        } catch(e) {}
+
+        var trackData = {
+          page: window.location.pathname + window.location.hash,
+          title: document.title,
+          user_id: userInfo ? userInfo.id : null,
+          username: userInfo ? userInfo.username : null,
+          phone: userInfo ? userInfo.phone : null,
+          timestamp: new Date().toISOString()
+        };
+
+        // 使用 sendBeacon 确保页面关闭时也能发送
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/track', JSON.stringify(trackData));
+        } else {
+          fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(trackData),
+            keepalive: true
+          }).catch(function() {});
+        }
+
+        // 监听 hash 变化，追踪页面切换
+        window.addEventListener('hashchange', function() {
+          trackData.page = window.location.pathname + window.location.hash;
+          trackData.timestamp = new Date().toISOString();
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('/api/track', JSON.stringify(trackData));
+          }
+        });
+      })();
     });
   </script>
   </body>

@@ -289,10 +289,15 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .quick-feature-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-    }
+      .quick-feature-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .quick-feature-item:active {
+        transform: scale(0.96);
+        box-shadow: 0 2px 8px rgba(26, 95, 168, 0.15);
+      }
 
     .quick-feature-item .feature-icon {
       font-size: 40px;
@@ -662,6 +667,16 @@
         box-shadow: 0 2px 8px rgba(26, 95, 168, 0.1);
       }
 
+      /* 触摸反馈 - 确保手机端点击有视觉反馈 */
+      @media (hover: none) and (pointer: coarse) {
+        .quick-feature-item {
+          -webkit-tap-highlight-color: rgba(26, 95, 168, 0.1);
+        }
+        .quick-feature-item:active {
+          background-color: #f0f7ff;
+        }
+      }
+
       .quick-feature-item .feature-icon {
         font-size: 32px;
         margin-bottom: 8px;
@@ -744,6 +759,10 @@
       #register-button {
         padding: 8px 12px !important;
         font-size: 12px !important;
+      }
+
+      #download-client-btn {
+        display: none !important;
       }
 
       /* 手机端浮窗优化 */
@@ -983,7 +1002,10 @@
           <input type="text" placeholder="输入网址或搜索财务相关内容...">
           <button class="btn btn-primary">搜索</button>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a href="download.html" class="btn btn-secondary" id="download-client-btn" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; text-align: center; line-height: 1.5;">
+            <span style="font-size: 16px;">⬇</span>下载客户端
+          </a>
           <a href="login.html" class="btn btn-primary" id="login-button" style="display: inline-block; text-decoration: none; color: white; text-align: center; line-height: 1.5;">登录</a>
           <a href="register.html" class="btn btn-primary" id="register-button" style="display: inline-block; text-decoration: none; color: white; text-align: center; line-height: 1.5; background-color: #27ae60;">注册</a>
         </div>
@@ -1291,13 +1313,25 @@
           const usageBadge = count > 0 ? `<span style="position: absolute; top: 5px; right: 5px; background: #e74c3c; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;">${count}</span>` : '';
           
           return `
-            <div class="quick-feature-item" onclick="handleFeatureClick('${feature.id}', '${feature.url}')" style="position: relative;">
+            <div class="quick-feature-item" data-feature-id="${feature.id}" data-feature-url="${feature.url}" style="position: relative;">
               ${usageBadge}
               <div class="feature-icon">${feature.icon}</div>
               <div class="feature-name">${feature.name}</div>
             </div>
           `;
         }).join('');
+
+        // 使用事件委托，兼容移动端
+        container.addEventListener('click', function(e) {
+          const card = e.target.closest('.quick-feature-item');
+          if (card) {
+            const featureId = card.dataset.featureId;
+            const featureUrl = card.dataset.featureUrl;
+            if (featureId && featureUrl) {
+              handleFeatureClick(featureId, featureUrl);
+            }
+          }
+        });
       }
 
       // 处理功能点击
@@ -1368,17 +1402,16 @@
       // 功能卡片点击事件（更多功能区域）
       const featureItems = document.querySelectorAll('.feature-item');
       featureItems.forEach(item => {
-        // 检查是否包含链接，如果包含则让链接自己处理跳转
         const link = item.querySelector('a');
-        if (link) {
-          // 有链接的项，点击整个区域时模拟点击链接
-          item.addEventListener('click', function(e) {
-            // 如果点击的不是链接本身，则触发链接跳转
-            if (e.target !== link && !link.contains(e.target)) {
-              window.location.href = link.href;
-            }
-          });
-        }
+        
+        // 点击整个区域时触发链接跳转
+        item.addEventListener('click', function(e) {
+          // 如果点击的不是链接本身，也不是链接的子元素
+          if (link && !e.target.closest('a')) {
+            e.preventDefault();
+            window.location.href = link.href;
+          }
+        });
         
         // 添加鼠标悬停效果
         item.style.cursor = 'pointer';
@@ -1388,6 +1421,17 @@
         item.addEventListener('mouseleave', function() {
           this.style.backgroundColor = '#f9f9f9';
         });
+
+        // 移动端触摸反馈
+        item.addEventListener('touchstart', function() {
+          this.style.backgroundColor = '#e3f2fd';
+          this.style.transform = 'scale(0.98)';
+        }, { passive: true });
+        
+        item.addEventListener('touchend', function() {
+          this.style.backgroundColor = '#f9f9f9';
+          this.style.transform = 'scale(1)';
+        }, { passive: true });
       });
       
       // 退出登录按钮点击事件

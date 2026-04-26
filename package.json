@@ -61,7 +61,7 @@
     "artifactName": "yinhexingchen-${version}.${ext}",
     "npmRebuild": false,
     "directories": {
-      "output": "release"
+      "output": "release-new"
     },
     "files": [
       "**/*",
@@ -69,7 +69,43 @@
       "!release/**",
       "!server/**",
       "!node_modules/.cache/**",
-      "!*.log"
+      "!*.log",
+      "!_*.py",
+      "!_*.html",
+      "!.env",
+      "!.env.example",
+      "!.sync-watch.pid",
+      "!.vscode/**",
+      "!deploy*.ps1",
+      "!deploy*.bat",
+      "!sync*.ps1",
+      "!sync*.bat",
+      "!check*.ps1",
+      "!check*.bat",
+      "!fix*.ps1",
+      "!auto-*.ps1",
+      "!auto-*.sh",
+      "!upload*.ps1",
+      "!upload*.bat",
+      "!install*.bat",
+      "!start-server.bat",
+      "!CHECK_*.txt",
+      "!INSTALL_*.txt",
+      "!FIX_*.txt",
+      "!START_*.txt",
+      "!NEXT_*.txt",
+      "!UPLOAD_*.txt",
+      "!DEPLOY_*.txt",
+      "!*_server*.py",
+      "!*_remote*.py",
+      "!test_encode.db",
+      "!*.backup-*.html",
+      "!hermes-agent-test/**",
+      "!openclaw/**",
+      "!tmp_*",
+      "!*.md",
+      "!README*",
+      "!LICENSE*"
     ],
     "publish": [
       {

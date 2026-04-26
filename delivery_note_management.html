@@ -311,27 +311,27 @@
       background: #fecaca;
     }
 
-    /* A4打印预览样式 */
+    /* 241mm x 139.5mm 打印纸样式 */
     .a4-preview {
-      width: 210mm;
-      min-height: 297mm;
-      padding: 10mm;
+      width: 241mm;
+      min-height: 139.5mm;
+      padding: 5mm 8mm;
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      font-size: 12px;
-      line-height: 1.5;
+      font-size: 10px;
+      line-height: 1.4;
       background: white;
       box-sizing: border-box;
     }
 
     .a4-preview .header {
       text-align: center;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #333;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #333;
     }
 
     .a4-preview .header h1 {
-      font-size: 18px;
+      font-size: 14px;
       color: #333;
       margin: 0;
     }
@@ -339,30 +339,30 @@
     .a4-preview .info-section {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
     }
 
     .a4-preview .info-section .info {
-      font-size: 11px;
+      font-size: 9px;
     }
 
     .a4-preview .info-section .info p {
-      margin: 2px 0;
+      margin: 1px 0;
     }
 
     .a4-preview .items-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 10px 0;
+      margin: 4px 0;
       table-layout: fixed;
     }
 
     .a4-preview .items-table th,
     .a4-preview .items-table td {
       border: 1px solid #333;
-      padding: 3px 2px;
+      padding: 2px 1px;
       text-align: center;
-      font-size: 10px;
+      font-size: 8px;
     }
 
     .a4-preview .items-table th {
@@ -372,8 +372,8 @@
 
     .a4-preview .total-section {
       text-align: right;
-      margin-top: 8px;
-      font-size: 13px;
+      margin-top: 4px;
+      font-size: 11px;
       font-weight: 600;
     }
 
@@ -382,27 +382,27 @@
     }
 
     .a4-preview .remark-section {
-      margin-top: 8px;
-      font-size: 10px;
+      margin-top: 4px;
+      font-size: 8px;
     }
 
     .a4-preview .footer {
-      margin-top: 30px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
 
     .a4-preview .signature-box {
-      width: 120px;
+      width: 80px;
       text-align: center;
-      font-size: 10px;
+      font-size: 8px;
     }
 
     .a4-preview .signature-box .line {
       border-top: 1px solid #333;
-      margin-top: 30px;
-      padding-top: 3px;
+      margin-top: 15px;
+      padding-top: 2px;
     }
 
     @media print {
@@ -412,8 +412,8 @@
         position: absolute;
         left: 0;
         top: 0;
-        width: 210mm;
-        height: 297mm;
+        width: 241mm;
+        height: 139.5mm;
       }
     }
   </style>

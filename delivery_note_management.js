@@ -771,47 +771,47 @@ window.exportSingleDeliveryNote = function(index) {
   <meta charset="UTF-8">
   <title>送货单 - ${note.no || ''}</title>
   <style>
-    @page { size: A4 portrait; margin: 10mm; }
-    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; line-height: 1.5; font-size: 12px; }
-    .header { text-align: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #333; }
-    .header h1 { font-size: 18px; color: #333; margin: 0; }
-    .info-section { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .info-section .info { font-size: 11px; }
-    .info-section .info p { margin: 2px 0; }
-    .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; table-layout: fixed; }
-    .items-table th, .items-table td { border: 1px solid #333; padding: 3px 2px; text-align: center; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    @page { size: 241mm 139.5mm; margin: 0; }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; line-height: 1.4; font-size: 10px; }
+    .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .header h1 { font-size: 14px; color: #333; margin: 0; }
+    .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .info-section .info { font-size: 9px; }
+    .info-section .info p { margin: 1px 0; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 2px 1px; text-align: center; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .items-table .col-no { width: 22px; }
-    .items-table .col-name { width: 70px; }
-    .items-table .col-model { width: 40px; }
-    .items-table .col-length { width: 30px; }
-    .items-table .col-wattage { width: 30px; }
-    .items-table .col-brightness { width: 40px; }
-    .items-table .col-sensor { width: 50px; }
-    .items-table .col-qty { width: 25px; }
-    .items-table .col-unit { width: 25px; }
-    .items-table .col-price { width: 45px; }
-    .items-table .col-subtotal { width: 50px; }
-    .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
+    .items-table .col-no { width: 18px; }
+    .items-table .col-name { width: 55px; }
+    .items-table .col-model { width: 35px; }
+    .items-table .col-length { width: 25px; }
+    .items-table .col-wattage { width: 25px; }
+    .items-table .col-brightness { width: 35px; }
+    .items-table .col-sensor { width: 40px; }
+    .items-table .col-qty { width: 22px; }
+    .items-table .col-unit { width: 22px; }
+    .items-table .col-price { width: 40px; }
+    .items-table .col-subtotal { width: 45px; }
+    .total-section { text-align: right; margin-top: 4px; font-size: 11px; font-weight: 600; }
     .total-section .amount { color: #e74c3c; }
-    .remark-section { margin-top: 8px; font-size: 10px; }
-    .footer { margin-top: 25px; display: flex; justify-content: space-between; }
-    .signature-box { width: 100px; text-align: center; font-size: 10px; }
-    .signature-box .line { border-top: 1px solid #333; margin-top: 25px; padding-top: 2px; }
+    .remark-section { margin-top: 4px; font-size: 8px; }
+    .footer { margin-top: 10px; display: flex; justify-content: space-between; }
+    .signature-box { width: 80px; text-align: center; font-size: 8px; }
+    .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
   </style>
 </head>
 <body>
   <div class="header"><h1>送 货 单</h1></div>
   <div class="info-section">
     <div class="info">
-      <p><strong>送货单号：</strong>${note.no || ''}</p>
-      <p><strong>客户名称：</strong>${note.customer || ''}</p>
-      <p><strong>联系人：</strong>${note.contact || '-'}</p>
-      ${note.contactPhone ? '<p><strong>联系电话：</strong>' + note.contactPhone + '</p>' : ''}
+      <p><strong>单号：</strong>${note.no || ''}</p>
+      <p><strong>客户：</strong>${note.customer || ''}</p>
+      <p><strong>项目：</strong>${note.project || '-'}</p>
+      <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
     </div>
-    <div class="info">
-      <p><strong>制单日期：</strong>${note.date || ''}</p>
-      <p><strong>送货地址：</strong>${note.address || '-'}</p>
+    <div class="info" style="text-align:right;">
+      <p><strong>日期：</strong>${note.date || ''}</p>
+      <p><strong>地址：</strong>${note.address || '-'}</p>
     </div>
   </div>
   <table class="items-table">
@@ -823,7 +823,7 @@ window.exportSingleDeliveryNote = function(index) {
         <th class="col-length">长度</th>
         <th class="col-wattage">瓦数</th>
         <th class="col-brightness">单/双亮</th>
-        <th class="col-sensor">感应模式</th>
+        <th class="col-sensor">感应</th>
         <th class="col-qty">数量</th>
         <th class="col-unit">单位</th>
         <th class="col-price">单价</th>
@@ -837,13 +837,13 @@ window.exportSingleDeliveryNote = function(index) {
       }).join('')}
     </tbody>
   </table>
-  <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
+  <div class="total-section">合计：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
   ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
   <div class="footer">
-    <div class="signature-box"><div class="line">收货人签字</div></div>
-    <div class="signature-box"><div class="line">送货人签字</div></div>
+    <div class="signature-box"><div class="line">收货人</div></div>
+    <div class="signature-box"><div class="line">送货人</div></div>
+    <div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>
   </div>
-  <div style="text-align:right;margin-top:20px;font-size:10px;">送货日期：____年____月____日</div>
 </body>
 </html>
   `;
@@ -877,30 +877,30 @@ window.printDeliveryNote = function(index) {
       <div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>
       <div class="info-section">
         <div class="info">
-          <p><strong>送货单号：</strong>${note.no || ''}</p>
-          <p><strong>客户名称：</strong>${note.customer || ''}</p>
-          <p><strong>项目楼盘：</strong>${note.project || '-'}</p>
+          <p><strong>单号：</strong>${note.no || ''}</p>
+          <p><strong>客户：</strong>${note.customer || ''}</p>
+          <p><strong>项目：</strong>${note.project || '-'}</p>
           <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
         </div>
-        <div class="info">
-          <p><strong>制单日期：</strong>${note.date || ''}</p>
-          <p><strong>送货地址：</strong>${note.address || '-'}</p>
+        <div class="info" style="text-align:right;">
+          <p><strong>日期：</strong>${note.date || ''}</p>
+          <p><strong>地址：</strong>${note.address || '-'}</p>
         </div>
       </div>
       <table class="items-table">
         <thead>
           <tr>
-            <th style="width:22px;">序号</th>
-            <th style="width:70px;">商品名称</th>
-            <th style="width:40px;">型号</th>
-            <th style="width:30px;">长度</th>
-            <th style="width:30px;">瓦数</th>
-            <th style="width:40px;">单/双亮</th>
-            <th style="width:50px;">感应模式</th>
-            <th style="width:25px;">数量</th>
-            <th style="width:25px;">单位</th>
-            <th style="width:45px;">单价</th>
-            <th style="width:50px;">小计</th>
+            <th style="width:18px;">序号</th>
+            <th style="width:55px;">商品名称</th>
+            <th style="width:35px;">型号</th>
+            <th style="width:25px;">长度</th>
+            <th style="width:25px;">瓦数</th>
+            <th style="width:35px;">单/双亮</th>
+            <th style="width:40px;">感应</th>
+            <th style="width:22px;">数量</th>
+            <th style="width:22px;">单位</th>
+            <th style="width:40px;">单价</th>
+            <th style="width:45px;">小计</th>
           </tr>
         </thead>
         <tbody>
@@ -910,14 +910,13 @@ window.printDeliveryNote = function(index) {
           }).join('')}
         </tbody>
       </table>
-      <div class="total-section">合计金额：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
+      <div class="total-section">合计：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
       ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
       <div class="footer" style="justify-content:space-between;">
-        <div class="signature-box" style="text-align:center;"><div class="line">收货人签字</div></div>
-        <div class="signature-box" style="text-align:center;"><div class="line">送货人签字</div></div>
-        <div style="width:120px;"></div>
+        <div class="signature-box"><div class="line">收货人</div></div>
+        <div class="signature-box"><div class="line">送货人</div></div>
+        <div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>
       </div>
-      <div style="text-align:right;margin-top:20px;font-size:10px;white-space:nowrap;">送货日期：____年____月____日</div>
     </div>
   `;
 
@@ -941,31 +940,31 @@ window.doPrint = function() {
   <meta charset="UTF-8">
   <title>送货单打印</title>
   <style>
-    @page { size: A4 portrait; margin: 10mm; }
+    @page { size: 241mm 139.5mm; margin: 0; }
     body { margin: 0; padding: 0; }
     .a4-preview {
-      width: 210mm;
-      min-height: 297mm;
-      padding: 10mm;
+      width: 241mm;
+      min-height: 139.5mm;
+      padding: 5mm 8mm;
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      font-size: 12px;
-      line-height: 1.5;
+      font-size: 10px;
+      line-height: 1.4;
       box-sizing: border-box;
     }
-    .a4-preview .header { text-align: center; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #333; }
-    .a4-preview .header h1 { font-size: 18px; color: #333; margin: 0; }
-    .a4-preview .info-section { display: flex; justify-content: space-between; margin-bottom: 12px; }
-    .a4-preview .info-section .info { font-size: 11px; }
-    .a4-preview .info-section .info p { margin: 2px 0; }
-    .a4-preview .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; table-layout: fixed; }
-    .a4-preview .items-table th, .a4-preview .items-table td { border: 1px solid #333; padding: 3px 2px; text-align: center; font-size: 10px; }
+    .a4-preview .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .a4-preview .header h1 { font-size: 14px; color: #333; margin: 0; }
+    .a4-preview .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .a4-preview .info-section .info { font-size: 9px; }
+    .a4-preview .info-section .info p { margin: 1px 0; }
+    .a4-preview .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
+    .a4-preview .items-table th, .a4-preview .items-table td { border: 1px solid #333; padding: 2px 1px; text-align: center; font-size: 8px; }
     .a4-preview .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .a4-preview .total-section { text-align: right; margin-top: 8px; font-size: 13px; font-weight: 600; }
+    .a4-preview .total-section { text-align: right; margin-top: 4px; font-size: 11px; font-weight: 600; }
     .a4-preview .total-section .amount { color: #e74c3c; }
-    .a4-preview .remark-section { margin-top: 8px; font-size: 10px; }
-    .a4-preview .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .a4-preview .signature-box { width: 120px; text-align: center; font-size: 10px; }
-    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 30px; padding-top: 3px; }
+    .a4-preview .remark-section { margin-top: 4px; font-size: 8px; }
+    .a4-preview .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .a4-preview .signature-box { width: 80px; text-align: center; font-size: 8px; }
+    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
   </style>
 </head>
 <body>

@@ -4581,7 +4581,7 @@ if (!data.id) {
         });
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts, repairedDbFiles: repairedDbFiles }));
+        res.end(JSON.stringify({ success: true, data: accounts, repairedDbFiles: repairedDbFiles, isDemo: !userId || userId === 'guest' || userId === 'demo' }));
       } catch (e) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

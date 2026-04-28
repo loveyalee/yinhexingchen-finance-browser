@@ -8,6 +8,56 @@ function initXiaoyaService() {
     return;
   }
   
+  // 添加手机端响应式样式
+  const mobileStyles = document.createElement('style');
+  mobileStyles.id = 'xiaoya-mobile-styles';
+  mobileStyles.textContent = `
+    @media (max-width: 768px) {
+      #xiaoya-service {
+        bottom: 100px !important;
+        right: 15px !important;
+      }
+      #xiaoya-service .service-icon,
+      #xiaoya-service #service-icon {
+        width: 38px !important;
+        height: 38px !important;
+      }
+      #xiaoya-service #service-panel {
+        right: 10px !important;
+        width: 280px !important;
+      }
+      #xiaoya-service #chat-window {
+        width: 320px !important;
+        max-width: 95% !important;
+        height: 450px !important;
+        max-height: 85vh !important;
+      }
+    }
+    @media (max-width: 480px) {
+      #xiaoya-service {
+        bottom: 80px !important;
+        right: 10px !important;
+      }
+      #xiaoya-service .service-icon,
+      #xiaoya-service #service-icon {
+        width: 36px !important;
+        height: 36px !important;
+      }
+      #xiaoya-service #service-panel {
+        right: 5px !important;
+        width: 260px !important;
+        max-width: 90vw !important;
+      }
+      #xiaoya-service #chat-window {
+        width: 300px !important;
+        max-width: 95vw !important;
+        height: 400px !important;
+        max-height: 80vh !important;
+      }
+    }
+  `;
+  document.head.appendChild(mobileStyles);
+  
   // 创建小雅客服HTML
   const xiaoyaHTML = `
     <!-- 悬浮客服助手 -->

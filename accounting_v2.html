@@ -367,6 +367,66 @@
       }
       .ve-account-opt:hover { background: #eef5ff; color: #1a5fa8; }
       .ve-account-opt .opt-code { color: #8a9db0; font-size: 11px; margin-left: 6px; }
+
+      /* 移动端适配 */
+      @media screen and (max-width: 768px) {
+        .app {
+          grid-template-columns: 1fr !important;
+          grid-template-rows: auto auto 1fr !important;
+          grid-template-areas: "t" "s" "m" !important;
+        }
+        
+        .side, .brand, .nav {
+          padding: 10px !important;
+        }
+        
+        .brand {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        
+        .brand img {
+          width: 36px !important;
+          height: 36px !important;
+        }
+        
+        .nav div {
+          padding: 8px 10px !important;
+          font-size: 12px !important;
+        }
+        
+        .top, .toolbar, .panel {
+          padding: 10px !important;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        
+        .main {
+          padding: 10px !important;
+        }
+        
+        .card, .box {
+          padding: 12px !important;
+          margin-bottom: 12px !important;
+        }
+        
+        table {
+          font-size: 11px !important;
+        }
+        
+        th, td {
+          padding: 6px 4px !important;
+        }
+        
+        .btn {
+          padding: 6px 10px !important;
+          font-size: 12px !important;
+        }
+        
+        input, select, textarea {
+          font-size: 14px !important;
+        }
+      }
     </style>
   </head>
   <body>

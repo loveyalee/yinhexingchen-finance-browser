@@ -6,12 +6,6 @@ var deliveryNoteStorageKey = 'deliveryNotes';
 var deliveryNotesCache = null;
 var deliveryNotesLoaded = false;
 
-// 页面加载时强制刷新缓存
-function forceRefreshDeliveryNotes() {
-  deliveryNotesCache = null;
-  deliveryNotesLoaded = false;
-}
-
 // ==================== 检查登录状态 ====================
 function checkLoginStatus() {
   try {
@@ -169,7 +163,7 @@ function renderDeliveryNotesTable() {
         '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>' +
         '<td class="delivery-note-no" onclick="openEditDeliveryNoteModal(' + noteIndex + ')">' + (note.no || '') + '</td>' +
         '<td style="max-width:80px;word-wrap:break-word;word-break:break-all;">' + (note.customer || '') + '</td>' +
-        '<td>' + (note.project || '') + '</td>' +
+        '<td>' + (note.project || note.project_name || '') + '</td>' +
         '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>' +
         '<td style="max-width:100px;word-wrap:break-word;word-break:break-all;white-space:normal;">' + (note.address || '') + '</td>' +
         '<td>' + (note.date || '') + '</td>' +
@@ -201,12 +195,12 @@ function renderDeliveryNotesTable() {
         }
 
         // 商品明细列
-        html += '<td>' + (item.product || item.product_name || item.name || '') + '</td>';
+        html += '<td>' + (item.product || item.name || '') + '</td>';
         html += '<td>' + (item.model || '') + '</td>';
         html += '<td>' + (item.length || '') + '</td>';
         html += '<td>' + (item.wattage || '') + '</td>';
         html += '<td>' + (item.brightness || '') + '</td>';
-        html += '<td>' + (item.sensor || item.sensorMode || '') + '</td>';
+        html += '<td>' + (item.sensorMode || '') + '</td>';
         html += '<td>' + (item.quantity || 0) + '</td>';
         html += '<td>' + (item.unit || '') + '</td>';
         html += '<td>' + (item.price ? '¥' + parseFloat(item.price).toFixed(2) : '') + '</td>';
@@ -812,7 +806,7 @@ window.exportSingleDeliveryNote = function(index) {
     <div class="info">
       <p><strong>单号：</strong>${note.no || ''}</p>
       <p><strong>客户：</strong>${note.customer || ''}</p>
-      <p><strong>项目：</strong>${note.project || '-'}</p>
+      <p><strong>项目：</strong>${note.project || note.project_name || '-'}</p>
       <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
     </div>
     <div class="info" style="text-align:right;">
@@ -863,7 +857,7 @@ window.exportSingleDeliveryNote = function(index) {
   document.body.removeChild(link);
 };
 
-// 打印送货单 - 模态框预览，支持自动分页
+// 打印送货单 - 模态框预览
 window.printDeliveryNote = function(index) {
   var notes = getAllDeliveryNotes();
   var note = notes[index];
@@ -878,62 +872,57 @@ window.printDeliveryNote = function(index) {
   var today = new Date();
   var printDate = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
 
-  // 每页最多显示的商品行数（根据纸张高度估算）
-  var itemsPerPage = 8;
-  var allItems = note.items || [];
-  var pages = [];
-  for (var i = 0; i < allItems.length; i += itemsPerPage) {
-    pages.push(allItems.slice(i, i + itemsPerPage));
-  }
-
-  var previewHtml = '';
-
-  pages.forEach(function(pageItems, pageIndex) {
-    var isFirstPage = pageIndex === 0;
-    var isLastPage = pageIndex === pages.length - 1;
-    var pageTotal = pageItems.reduce(function(sum, item) {
-      return sum + (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-    }, 0);
-
-    var itemsHtml = pageItems.map(function(item, i) {
-      var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-      return '<tr><td>' + ((pageIndex * itemsPerPage) + i + 1) + '</td><td>' + (item.product || item.name || item.product_name || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
-    }).join('');
-
-    previewHtml += '<div class="print-page">';
-    previewHtml += '<div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>';
-    previewHtml += '<div class="info-section">';
-    previewHtml += '<div class="info">';
-    previewHtml += '<p><strong>单号：</strong>' + (note.no || '') + (pages.length > 1 ? ' (第' + (pageIndex + 1) + '/' + pages.length + '页)' : '') + '</p>';
-    previewHtml += '<p><strong>客户：</strong>' + (note.customer || '') + '</p>';
-    previewHtml += '<p><strong>项目：</strong>' + (note.project || '-') + '</p>';
-    previewHtml += '<p><strong>联系人：</strong>' + (note.contact || '-') + ((note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : '') + '</p>';
-    previewHtml += '</div>';
-    previewHtml += '<div class="info" style="text-align:right;">';
-    previewHtml += '<p><strong>日期：</strong>' + (note.date || '') + '</p>';
-    previewHtml += '<p><strong>地址：</strong>' + (note.address || '-') + '</p>';
-    previewHtml += '</div>';
-    previewHtml += '</div>';
-    previewHtml += '<table class="items-table">';
-    previewHtml += '<thead><tr><th style="width:18px;">序号</th><th style="width:120px;">商品名称</th><th style="width:30px;">数量</th><th style="width:30px;">单位</th><th style="width:50px;">单价</th><th style="width:50px;">小计</th></tr></thead>';
-    previewHtml += '<tbody>' + itemsHtml + '</tbody></table>';
-
-    if (isLastPage) {
-      previewHtml += '<div class="total-section">合计：<span class="amount">¥' + totalAmount.toFixed(2) + '</span></div>';
-      if (note.remark) {
-        previewHtml += '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>';
-      }
-      previewHtml += '<div class="footer">';
-      previewHtml += '<div class="signature-box"><div class="line">收货人</div></div>';
-      previewHtml += '<div class="signature-box"><div class="line">送货人</div></div>';
-      previewHtml += '<div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>';
-      previewHtml += '</div>';
-    }
-
-    previewHtml += '</div>';
-  });
+  var previewHtml = `
+    <div class="a4-preview">
+      <div class="company-name">银河星辰</div>
+      <div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>
+      <div class="info-section">
+        <div class="info">
+          <p><strong>单号：</strong>${note.no || ''}</p>
+          <p><strong>客户：</strong>${note.customer || ''}</p>
+          <p><strong>项目：</strong>${note.project || note.project_name || '-'}</p>
+          <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
+        </div>
+        <div class="info" style="text-align:right;">
+          <p><strong>日期：</strong>${note.date || ''}</p>
+          <p><strong>地址：</strong>${note.address || '-'}</p>
+        </div>
+      </div>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:18px;">序号</th>
+            <th style="width:55px;">商品名称</th>
+            <th style="width:35px;">型号</th>
+            <th style="width:25px;">长度</th>
+            <th style="width:25px;">瓦数</th>
+            <th style="width:35px;">单/双亮</th>
+            <th style="width:40px;">感应</th>
+            <th style="width:22px;">数量</th>
+            <th style="width:22px;">单位</th>
+            <th style="width:40px;">单价</th>
+            <th style="width:45px;">小计</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(note.items || []).map(function(item, i) {
+            var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+            return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+          }).join('')}
+        </tbody>
+      </table>
+      <div class="total-section">合计：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
+      ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
+      <div class="footer" style="justify-content:space-between;">
+        <div class="signature-box"><div class="line">收货人</div></div>
+        <div class="signature-box"><div class="line">送货人</div></div>
+        <div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>
+      </div>
+    </div>
+  `;
 
   document.getElementById('print-preview-content').innerHTML = previewHtml;
+  currentPreviewNote = note;
   document.getElementById('print-preview-modal').classList.add('show');
 };
 
@@ -951,48 +940,186 @@ window.doPrint = function() {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>送货单打印</title>
+  <title>送货单</title>
   <style>
     @page { size: 241mm 139.5mm; margin: 0; }
     body { margin: 0; padding: 0; }
-    .print-page {
+    .a4-preview {
       width: 241mm;
       min-height: 139.5mm;
       padding: 5mm 8mm;
-      page-break-after: always;
-      box-sizing: border-box;
       font-family: 'Microsoft YaHei', Arial, sans-serif;
-      font-size: 10px;
+      font-size: 12px;
       line-height: 1.4;
-      background: white;
-      overflow: visible;
+      box-sizing: border-box;
     }
-    .print-page:last-child {
-      page-break-after: auto;
-    }
-    .print-page .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
-    .print-page .header h1 { font-size: 14px; color: #333; margin: 0; }
-    .print-page .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .print-page .info-section .info { font-size: 9px; }
-    .print-page .info-section .info p { margin: 1px 0; }
-    .print-page .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; page-break-inside: avoid; }
-    .print-page .items-table th, .print-page .items-table td { border: 1px solid #333; padding: 2px 1px; text-align: center; font-size: 8px; page-break-inside: avoid; }
-    .print-page .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .print-page .total-section { text-align: right; margin-top: 4px; font-size: 11px; font-weight: 600; }
-    .print-page .total-section .amount { color: #e74c3c; }
-    .print-page .remark-section { margin-top: 4px; font-size: 8px; }
-    .print-page .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .print-page .signature-box { width: 80px; text-align: center; font-size: 8px; }
-    .print-page .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
+    .a4-preview .company-name { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #333; }
+    .a4-preview .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .a4-preview .header h1 { font-size: 16px; color: #333; margin: 0; }
+    .a4-preview .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .a4-preview .info-section .info { font-size: 11px; }
+    .a4-preview .info-section .info p { margin: 1px 0; }
+    .a4-preview .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
+    .a4-preview .items-table th, .a4-preview .items-table td { border: 1px solid #333; padding: 3px 2px; text-align: center; font-size: 10px; }
+    .a4-preview .items-table th { background-color: #f5f5f5; font-weight: 600; }
+    .a4-preview .total-section { text-align: right; margin-top: 4px; font-size: 13px; font-weight: 600; }
+    .a4-preview .total-section .amount { color: #e74c3c; }
+    .a4-preview .remark-section { margin-top: 4px; font-size: 10px; }
+    .a4-preview .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .a4-preview .signature-box { width: 80px; text-align: center; font-size: 10px; }
+    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
   </style>
 </head>
 <body>
 ${content}
-<script>window.onload = function() { window.print(); window.close(); }<\/script>
+<script>window.onload = function() { window.print(); window.close(); }</script>
 </body>
 </html>
   `);
   printWindow.document.close();
+};
+
+// ==================== 自定义打印格式 ====================
+// 当前预览的送货单数据
+var currentPreviewNote = null;
+
+// 打开自定义打印格式弹窗
+window.openCustomPrintFormat = function() {
+  if (!currentPreviewNote) {
+    alert('没有可打印的送货单');
+    return;
+  }
+  document.getElementById('custom-print-modal').classList.add('show');
+  renderCustomPrintPreview();
+};
+
+// 关闭自定义打印格式弹窗
+window.closeCustomPrintFormat = function() {
+  document.getElementById('custom-print-modal').classList.remove('show');
+};
+
+// 渲染自定义打印预览
+window.renderCustomPrintPreview = function() {
+  if (!currentPreviewNote) return;
+  
+  var note = currentPreviewNote;
+  var showCustomer = document.getElementById('show-customer').checked;
+  var showProject = document.getElementById('show-project').checked;
+  var showContact = document.getElementById('show-contact').checked;
+  var showPhone = document.getElementById('show-phone').checked;
+  var showAddress = document.getElementById('show-address').checked;
+  var showRemark = document.getElementById('show-remark').checked;
+  var showHeader = document.getElementById('show-header').checked;
+  var showFooter = document.getElementById('show-footer').checked;
+  var companyName = document.getElementById('company-name').value;
+  var titleText = document.getElementById('title-text').value;
+  
+  var totalAmount = calcNoteTotal(note.items);
+  var previewContent = document.getElementById('custom-preview-content');
+  
+  var html = '<div class="custom-print-page">';
+  
+  if (showHeader) {
+    html += '<div class="print-header">';
+    if (companyName) html += '<div class="company-name">' + companyName + '</div>';
+    html += '<h1>' + (titleText || '送 货 单') + '</h1></div>';
+  }
+  
+  html += '<div class="print-info">';
+  html += '<div class="info-left">';
+  if (showCustomer) html += '<p><strong>客户：</strong>' + (note.customer || '-') + '</p>';
+  if (showProject) html += '<p><strong>项目：</strong>' + (note.project || note.project_name || '-') + '</p>';
+  if (showContact) {
+    var contactText = note.contact || '-';
+    if (showPhone && (note.contact_phone || note.contactPhone)) {
+      contactText += ' ' + (note.contact_phone || note.contactPhone);
+    }
+    html += '<p><strong>联系人：</strong>' + contactText + '</p>';
+  }
+  if (showAddress) html += '<p><strong>地址：</strong>' + (note.address || '-') + '</p>';
+  html += '</div>';
+  html += '<div class="info-right">';
+  html += '<p><strong>单号：</strong>' + (note.no || '') + '</p>';
+  html += '<p><strong>日期：</strong>' + (note.date || '') + '</p>';
+  html += '</div>';
+  html += '</div>';
+  
+  html += '<table class="print-table"><thead><tr>';
+  html += '<th>序号</th><th>商品名称</th><th>型号</th><th>长度</th>';
+  html += '<th>瓦数</th><th>单/双亮</th><th>感应</th>';
+  html += '<th>数量</th><th>单位</th><th>单价</th><th>小计</th>';
+  html += '</tr></thead><tbody>';
+  
+  (note.items || []).forEach(function(item, i) {
+    var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+    html += '<tr>';
+    html += '<td>' + (i + 1) + '</td>';
+    html += '<td>' + (item.product || item.name || '') + '</td>';
+    html += '<td>' + (item.model || '') + '</td>';
+    html += '<td>' + (item.length || '') + '</td>';
+    html += '<td>' + (item.wattage || '') + '</td>';
+    html += '<td>' + (item.brightness || '') + '</td>';
+    html += '<td>' + (item.sensorMode || item.sensor || '') + '</td>';
+    html += '<td>' + (item.quantity || 0) + '</td>';
+    html += '<td>' + (item.unit || '个') + '</td>';
+    html += '<td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td>';
+    html += '<td>¥' + subtotal.toFixed(2) + '</td>';
+    html += '</tr>';
+  });
+  
+  html += '</tbody></table>';
+  html += '<div class="print-total">合计：¥<span>' + totalAmount.toFixed(2) + '</span></div>';
+  
+  if (showRemark && note.remark) {
+    html += '<div class="print-remark"><strong>备注：</strong>' + note.remark + '</div>';
+  }
+  
+  if (showFooter) {
+    html += '<div class="print-footer">';
+    html += '<div class="signature"><div class="sig-line">收货人签字：</div></div>';
+    html += '<div class="signature"><div class="sig-line">送货人签字：</div></div>';
+    html += '</div>';
+  }
+  
+  html += '</div>';
+  previewContent.innerHTML = html;
+};
+
+// 打印自定义格式
+window.printCustomFormat = function() {
+  var content = document.getElementById('custom-preview-content').innerHTML;
+  var printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>送货单</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+    body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', Arial, sans-serif; }
+    .custom-print-page { padding: 10px; }
+    .print-header { text-align: center; margin-bottom: 15px; }
+    .print-header h1 { font-size: 20px; margin: 5px 0; }
+    .company-name { font-size: 14px; color: #666; }
+    .print-info { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; }
+    .print-info p { margin: 3px 0; }
+    .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .print-table th, .print-table td { border: 1px solid #333; padding: 4px; text-align: center; }
+    .print-table th { background: #f0f0f0; }
+    .print-total { text-align: right; font-size: 14px; font-weight: bold; margin-top: 10px; }
+    .print-total span { color: #c00; }
+    .print-remark { margin-top: 10px; font-size: 11px; }
+    .print-footer { display: flex; justify-content: space-between; margin-top: 30px; }
+    .signature { width: 40%; }
+    .sig-line { border-bottom: 1px solid #333; height: 30px; line-height: 30px; }
+  </style>
+</head>
+<body>${content}</body>
+</html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
 };
 
 // 页面初始化
@@ -1002,8 +1129,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!checkLoginStatus()) {
       return;
     }
-    // 强制刷新缓存，确保从API获取最新数据
-    forceRefreshDeliveryNotes();
     await getAllDeliveryNotesAsync();
     renderDeliveryNotesTable();
   } catch (e) {

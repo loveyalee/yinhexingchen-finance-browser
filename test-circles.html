@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>圈子系统测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .test-section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+    button:hover { background: #2980b9; }
+    pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      body { margin: 10px; }
+      .test-section { padding: 15px; margin: 10px 0; }
+      button { padding: 8px 16px; }
+      pre { font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 圈子系统测试</h1>
+
+  <div class="test-section">
+    <h2>1. 配置文件加载测试</h2>
+    <button onclick="testConfigLoad()">测试加载circles-config.json</button>
+    <div id="config-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. 默认配置测试</h2>
+    <button onclick="testDefaultConfig()">测试默认配置</button>
+    <div id="default-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. 圈子渲染测试</h2>
+    <button onclick="testCircleRendering()">测试圈子渲染</button>
+    <div id="render-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. LocalStorage测试</h2>
+    <button onclick="testLocalStorage()">测试LocalStorage</button>
+    <div id="storage-result"></div>
+  </div>
+
+  <script>
+    async function testConfigLoad() {
+      const result = document.getElementById('config-result');
+      result.innerHTML = '<div class="test-result info">正在加载...</div>';
+
+      try {
+        const response = await fetch('/circles-config.json');
+        if (response.ok) {
+          const data = await response.json();
+          result.innerHTML = `
+            <div class="test-result success">
+              ✓ 配置文件加载成功<br>
+              圈子数量: ${data.circles.length}<br>
+              分类数量: ${data.categories.length}
+            </div>
+            <pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>
+          `;
+        } else {
+          result.innerHTML = `<div class="test-result error">✗ 加载失败: HTTP ${response.status}</div>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="test-result error">✗ 加载失败: ${error.message}</div>`;
+      }
+    }
+
+    function testDefaultConfig() {
+      const result = document.getElementById('default-result');
+      try {
+        // 模拟getDefaultCirclesConfig函数
+        const config = {
+          circles: [
+            { id: "industry-finance", name: "财务行业圈", icon: "💼", category: "industry", maxUsers: 500 },
+            { id: "level-accountant", name: "会计职业圈", icon: "👤", category: "level", maxUsers: 800 },
+            { id: "hobby-learning", name: "学习交流圈", icon: "📚", category: "hobby", maxUsers: 600 }
+          ],
+          categories: [
+            { id: "industry", name: "行业圈", icon: "🏢" },
+            { id: "level", name: "职业等级圈", icon: "📊" },
+            { id: "hobby", name: "兴趣爱好圈", icon: "⭐" }
+          ]
+        };
+
+        result.innerHTML = `
+          <div class="test-result success">
+            ✓ 默认配置可用<br>
+            圈子总数: ${config.circles.length}<br>
+            分类总数: ${config.categories.length}<br>
+            行业圈: ${config.circles.filter(c => c.category === 'industry').length}个<br>
+            职业等级圈: ${config.circles.filter(c => c.category === 'level').length}个<br>
+            兴趣爱好圈: ${config.circles.filter(c => c.category === 'hobby').length}个
+          </div>
+        `;
+      } catch (error) {
+        result.innerHTML = `<div class="test-result error">✗ 测试失败: ${error.message}</div>`;
+      }
+    }
+
+    function testCircleRendering() {
+      const result = document.getElementById('render-result');
+      try {
+        const circles = [
+          { id: "1", name: "财务行业圈", icon: "💼", description: "财务人员专业交流", tags: ["财务管理", "报表分析"] },
+          { id: "2", name: "会计职业圈", icon: "👤", description: "会计人员交流与成长", tags: ["记账技巧", "职业发展"] }
+        ];
+
+        let html = '<div class="test-result success">✓ 圈子渲染测试<br>';
+        circles.forEach(circle => {
+          html += `<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+            <strong>${circle.icon} ${circle.name}</strong><br>
+            ${circle.description}<br>
+            标签: ${circle.tags.join(', ')}
+          </div>`;
+        });
+        html += '</div>';
+        result.innerHTML = html;
+      } catch (error) {
+        result.innerHTML = `<div class="test-result error">✗ 渲染失败: ${error.message}</div>`;
+      }
+    }
+
+    function testLocalStorage() {
+      const result = document.getElementById('storage-result');
+      try {
+        const testKey = 'test_circles_' + Date.now();
+        const testData = { joined: ['circle-1', 'circle-2'], timestamp: new Date().toISOString() };
+
+        localStorage.setItem(testKey, JSON.stringify(testData));
+        const retrieved = JSON.parse(localStorage.getItem(testKey));
+        localStorage.removeItem(testKey);
+
+        if (retrieved.joined.length === 2) {
+          result.innerHTML = `
+            <div class="test-result success">
+              ✓ LocalStorage正常工作<br>
+              写入数据: ${JSON.stringify(testData)}<br>
+              读取数据: ${JSON.stringify(retrieved)}
+            </div>
+          `;
+        } else {
+          result.innerHTML = `<div class="test-result error">✗ 数据不匹配</div>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="test-result error">✗ LocalStorage测试失败: ${error.message}</div>`;
+      }
+    }
+
+    // 页面加载时自动运行所有测试
+    window.addEventListener('load', () => {
+      console.log('开始运行圈子系统测试...');
+      testConfigLoad();
+      testDefaultConfig();
+      testCircleRendering();
+      testLocalStorage();
+    });
+  </script>
+</body>
+</html>

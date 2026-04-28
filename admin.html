@@ -395,12 +395,96 @@
     .module-card .btn {
       width: 100%;
     }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+        max-height: none;
+      }
+      
+      .sidebar .logo {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      
+      .header {
+        height: auto;
+        padding: 10px;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .browser-bar {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .browser-controls {
+        margin-right: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .content-area {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .module-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务浏览器管理后台</div>
+      <div class="logo">银河星辰财务办公智能体</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="#" class="active" data-module="overview">管理概览</a></li>
         <li class="nav-item"><a href="#" data-module="users">用户管理</a></li>

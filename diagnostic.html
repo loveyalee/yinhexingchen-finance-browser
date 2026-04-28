@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端问题诊断</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .test-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .test-section h2 {
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            pre {
+                font-size: 11px;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>前端问题诊断工具</h1>
+    
+    <div class="test-section">
+        <h2>1. 检查localStorage</h2>
+        <button onclick="checkLocalStorage()">检查localStorage</button>
+        <div id="localStorageResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 测试API调用</h2>
+        <button onclick="testApi()">测试API</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 检查用户登录状态</h2>
+        <button onclick="checkLoginStatus()">检查登录状态</button>
+        <div id="loginStatusResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 测试数据结构转换</h2>
+        <button onclick="testDataConversion()">测试数据转换</button>
+        <div id="dataConversionResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 强制刷新数据</h2>
+        <button onclick="forceRefresh()">强制刷新数据</button>
+        <div id="refreshResult"></div>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('localStorageResult');
+            
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                const deliveryNotes = JSON.parse(localStorage.getItem('delivery-notes') || '{}');
+                
+                let html = '<h3>LocalStorage内容：</h3>';
+                html += '<strong>userInfo:</strong><br><pre>' + JSON.stringify(userInfo, null, 2) + '</pre><br>';
+                html += '<strong>delivery-notes:</strong><br><pre>' + JSON.stringify(deliveryNotes, null, 2) + '</pre>';
+                
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function getCurrentUserId() {
+            try {
+                var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                if (userInfo.id) {
+                    return userInfo.id;
+                }
+                var profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                return profile.id || '';
+            } catch (e) {
+                return '';
+            }
+        }
+        
+        function checkLoginStatus() {
+            const resultDiv = document.getElementById('loginStatusResult');
+            
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                const isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+                const userId = getCurrentUserId();
+                
+                let html = '<h3>登录状态：</h3>';
+                html += '<strong>isLoggedIn:</strong> ' + isLoggedIn + '<br>';
+                html += '<strong>userId:</strong> ' + userId + '<br>';
+                html += '<strong>userInfo:</strong><br><pre>' + JSON.stringify(userInfo, null, 2) + '</pre>';
+                
+                if (isLoggedIn && userId) {
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">' + html + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        async function testApi() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                const userId = getCurrentUserId();
+                const response = await fetch('/api/delivery-notes?userId=' + encodeURIComponent(userId));
+                const data = await response.json();
+                
+                let html = '<h3>API响应：</h3>';
+                html += '<strong>状态码:</strong> ' + response.status + '<br>';
+                html += '<strong>响应数据:</strong><br><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success && data.data) {
+                    html += '<br><strong>送货单数量:</strong> ' + data.data.length;
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">' + html + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function testDataConversion() {
+            const resultDiv = document.getElementById('dataConversionResult');
+            
+            // 模拟API返回的数据
+            const apiData = [
+                {
+                    "id": 3,
+                    "no": "SHD20260414514",
+                    "customer": "长沙市长腾物业管理有限公司望城分公司",
+                    "contact": "游葵",
+                    "contact_phone": "18975152694",
+                    "date": "2026-04-14",
+                    "status": "待送达",
+                    "address": "长沙市望城经济技术开发区同心路与马桥河路交汇处东北角金星珑湾",
+                    "remark": "",
+                    "items": "[{\"productName\":\"灯管\",\"model\":\"T8\",\"length\":\"1.2m\",\"wattage\":\"5W\",\"singleDouble\":\"单亮\",\"induction\":\"雷达感应\",\"quantity\":120,\"unit\":\"支\",\"unitPrice\":17.05,\"amount\":2046}]",
+                    "user_id": "USER_1776900041357"
+                }
+            ];
+            
+            // 测试数据转换
+            try {
+                const convertedData = apiData.map(note => {
+                    let items = [];
+                    try {
+                        items = JSON.parse(note.items || '[]').map(item => ({
+                            product: item.productName || item.product || '商品',
+                            quantity: item.quantity || 0,
+                            price: item.unitPrice || item.price || 0
+                        }));
+                    } catch (e) {
+                        console.warn('解析items失败:', e);
+                        items = [];
+                    }
+                    return {
+                        id: note.id,
+                        no: note.no,
+                        customer: note.customer,
+                        contact: note.contact,
+                        date: note.date,
+                        status: note.status,
+                        address: note.address,
+                        remark: note.remark,
+                        items: items
+                    };
+                });
+                
+                let html = '<h3>数据转换测试：</h3>';
+                html += '<strong>API原始数据:</strong><br><pre>' + JSON.stringify(apiData, null, 2) + '</pre><br>';
+                html += '<strong>转换后数据:</strong><br><pre>' + JSON.stringify(convertedData, null, 2) + '</pre>';
+                
+                resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        async function forceRefresh() {
+            const resultDiv = document.getElementById('refreshResult');
+            resultDiv.innerHTML = '刷新中...';
+            
+            try {
+                // 清除缓存
+                if (typeof deliveryNotesCache !== 'undefined') {
+                    deliveryNotesCache = null;
+                    deliveryNotesLoaded = false;
+                }
+                
+                // 强制重新获取数据
+                const notes = await getDeliveryNotesAsync();
+                
+                let html = '<h3>刷新结果：</h3>';
+                html += '<strong>获取的送货单数量:</strong> ' + notes.length + '<br>';
+                html += '<strong>送货单数据:</strong><br><pre>' + JSON.stringify(notes, null, 2) + '</pre>';
+                
+                if (notes.length > 0) {
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                    // 触发重新渲染
+                    if (typeof renderDeliveryNotes === 'function') {
+                        renderDeliveryNotes();
+                        html += '<br><strong>已触发重新渲染</strong>';
+                    }
+                } else {
+                    resultDiv.innerHTML = '<div class="error">' + html + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            checkLocalStorage();
+            checkLoginStatus();
+        };
+    </script>
+</body>
+</html>

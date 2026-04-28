@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>客服工作台 - 银河星辰财务浏览器</title>
+  <title>客服工作台 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -365,6 +365,46 @@
     .empty-state-icon {
       font-size: 48px;
       margin-bottom: 15px;
+    }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+      }
+      
+      .sidebar .logo {
+        font-size: 14px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .conversation-list {
+        height: 200px;
+      }
+      
+      .main-content {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
     }
   </style>
 </head>

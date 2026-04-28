@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $server = "root@111.230.36.222"
 $projectDir = "/var/www/yinhexingchen"
-$excludeDirectories = @(".git", "node_modules", "db", ".idea", ".vscode")
+$excludeDirectories = @(".git", "node_modules", "db", ".idea", ".vscode", "hermes-agent-test", ".claude", "openclaw")
 $excludeFiles = @(
     "id_rsa_zonya",
     "server_log.txt"

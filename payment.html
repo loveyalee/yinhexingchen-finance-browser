@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>支付 - 银河星辰财务专用浏览器</title>
+  <title>支付 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -381,12 +381,84 @@
       color: #666;
       margin-bottom: 30px;
     }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+        max-height: none;
+      }
+      
+      .sidebar .logo {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      
+      .submenu {
+        position: static;
+        width: 100%;
+        margin-top: 5px;
+      }
+      
+      .main-content {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-group {
+        margin-bottom: 12px;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务办公智能体</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item has-submenu">
@@ -397,6 +469,7 @@
             <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
             <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html" onclick="event.stopPropagation();">费用报销</a></li>
             <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
             <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>

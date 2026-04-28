@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>进销存管理 - 银河星辰财务专用浏览器</title>
+  <title>进销存管理 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -791,6 +791,15 @@
     .print-preview-doc {
       font-family: 'Microsoft YaHei', Arial, sans-serif;
       color: #333;
+      font-size: 16px;
+    }
+
+    .print-preview-doc .company-name {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
     }
 
     .print-preview-doc .doc-header {
@@ -801,12 +810,12 @@
     }
 
     .print-preview-doc .doc-header h2 {
-      font-size: 24px;
+      font-size: 28px;
       margin: 0 0 10px 0;
     }
 
     .print-preview-doc .doc-header .doc-no {
-      font-size: 14px;
+      font-size: 16px;
       color: #666;
     }
 
@@ -814,7 +823,7 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 20px;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .print-preview-doc .doc-info .info-item {
@@ -830,18 +839,24 @@
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 20px;
+      font-size: 15px;
     }
 
     .print-preview-doc .items-table th,
     .print-preview-doc .items-table td {
       border: 1px solid #333;
-      padding: 8px 10px;
+      padding: 10px 12px;
       text-align: center;
     }
 
     .print-preview-doc .items-table th {
       background: #f5f5f5;
       font-weight: 600;
+      font-size: 15px;
+    }
+
+    .print-preview-doc .items-table td {
+      font-size: 14px;
     }
 
     .print-preview-doc .items-table .product-name {
@@ -852,7 +867,7 @@
       margin-top: 30px;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .print-preview-doc .doc-footer .sign-area {
@@ -890,15 +905,18 @@
         width: 100%;
         max-width: 210mm;
         margin: 0 auto;
-        font-size: 12px;
+        font-size: 14px;
+      }
+      .print-preview-doc .company-name {
+        font-size: 20px;
       }
       .print-preview-doc .doc-header h2 {
-        font-size: 20px;
+        font-size: 24px;
       }
       .print-preview-doc .items-table th,
       .print-preview-doc .items-table td {
-        padding: 5px 6px;
-        font-size: 11px;
+        padding: 6px 8px;
+        font-size: 12px;
       }
       .no-print,
       #print-preview-modal .modal-header,
@@ -912,7 +930,7 @@
 
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务办公智能体</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item has-submenu">
@@ -922,6 +940,7 @@
             <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
             <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
             <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html" onclick="event.stopPropagation();">费用报销</a></li>
             <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
             <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
@@ -931,6 +950,9 @@
           <ul class="submenu">
             <li class="submenu-item"><a href="inventory_management.html" onclick="event.stopPropagation();" class="active">进销存</a></li>
             <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();">商品管理</a></li>
+            <li class="submenu-item"><a href="customer_management.html" onclick="event.stopPropagation();">客户管理</a></li>
+            <li class="submenu-item"><a href="purchase_order.html" onclick="event.stopPropagation();">进货单</a></li>
+            <li class="submenu-item"><a href="delivery_note_management.html" onclick="event.stopPropagation();">送货单</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -1077,17 +1099,28 @@
                   <th><input type="checkbox" id="select-all-delivery-notes" onclick="toggleSelectAllDeliveryNotes()"></th>
                   <th>送货单号</th>
                   <th>客户名称</th>
-                  <th>商品明细</th>
-                  <th>送货日期</th>
+                  <th>项目名称</th>
+                  <th>商品名称</th>
+                  <th style="width:50px;">型号</th>
+                  <th style="width:40px;">长度</th>
+                  <th style="width:40px;">瓦数</th>
+                  <th style="width:60px;">单/双亮</th>
+                  <th style="width:60px;">感应</th>
+                  <th style="width:40px;">数量</th>
+                  <th style="width:40px;">单位</th>
+                  <th style="width:70px;">单价</th>
+                  <th style="width:70px;">小计</th>
+                  <th>送货地址</th>
+                  <th>制单日期</th>
                   <th>联系人</th>
+                  <th>联系电话</th>
                   <th>状态</th>
-                  <th>金额</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody id="delivery-note-tbody">
                 <tr>
-                  <td colspan="9" class="empty-text">加载中...</td>
+                  <td colspan="20" class="empty-text">加载中...</td>
                 </tr>
               </tbody>
             </table>
@@ -1783,10 +1816,29 @@
       deliveryNotesLoaded = true;
       
       try {
-        // 先保存到localStorage
         localStorage.setItem(deliveryNoteStorageKey, JSON.stringify(notes));
+        
+        var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+        
+        if (isLoggedIn) {
+          for (var i = 0; i < notes.length; i++) {
+            var note = notes[i];
+            try {
+              if (note._saved) {
+                await apiUpdateDeliveryNote(note);
+              } else {
+                await apiAddDeliveryNote(note);
+                note._saved = true;
+              }
+            } catch (e) {
+              console.warn('保存送货单到服务器失败:', e);
+            }
+          }
+          localStorage.setItem(deliveryNoteStorageKey, JSON.stringify(notes));
+        }
       } catch (e) {
-        console.warn('API保存送货单失败，已保存到localStorage:', e);
+        console.warn('保存送货单失败:', e);
       }
     }
 
@@ -1794,6 +1846,15 @@
       deliveryNotesCache = notes;
       deliveryNotesLoaded = true;
       localStorage.setItem(deliveryNoteStorageKey, JSON.stringify(notes));
+      
+      var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      var isLoggedIn = userInfo.isLoggedIn || userInfo.id;
+      
+      if (isLoggedIn) {
+        saveDeliveryNotesAsync(notes).catch(function(e) {
+          console.warn('异步保存送货单到服务器失败:', e);
+        });
+      }
     }
 
     function getDeliveryStatusClass(status) {
@@ -1839,34 +1900,52 @@
       console.log('Got delivery notes:', notes);
       if (notes.length > 0) {
         console.log('Rendering delivery notes:', notes);
-        var html = notes.map(function(note, index) {
-          var total = calcNoteTotal(note.items);
-          console.log('Rendering delivery note:', note);
-          return '<tr>' +
-            '<td><input type="checkbox" class="delivery-note-checkbox" data-index="' + index + '" data-id="' + (note.id || '') + '"></td>' +
-            '<td class="delivery-note-no" onclick="editDeliveryNote(' + index + ')">' + note.no + '</td>' +
-            '<td>' + note.customer + '</td>' +
-            '<td>' + renderProductTags(note.items) + '</td>' +
-            '<td>' + note.date + '</td>' +
-            '<td>' + (note.contact || '--') + '</td>' +
-            '<td><span class="status-badge ' + getDeliveryStatusClass(note.status) + '" onclick="toggleDeliveryStatus(' + index + ')">' + note.status + '</span></td>' +
-            '<td>' + (total > 0 ? '¥' + total.toLocaleString() : '--') + '</td>' +
-            '<td>' +
-              '<div class="action-buttons">' +
-                '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + index + ')">导出</button>' +
-                '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + index + ')">复制</button>' +
-                '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNote(' + index + ')">删除</button>' +
-              '</div>' +
-            '</td>' +
-          '</tr>';
-        }).join('');
-        console.log('Generated HTML:', html);
-        tbody.innerHTML = html;
+        var html = [];
+        notes.forEach(function(note, noteIndex) {
+          var items = note.items || [];
+          if (items.length === 0) {
+            items = [{ product: '--', model: '', length: '', wattage: '', brightness: '', sensor: '', quantity: 0, unit: '', price: 0, subtotal: 0 }];
+          }
+          items.forEach(function(item, itemIndex) {
+            var subtotal = (item.quantity || 0) * (item.price || 0);
+            var rowHtml = '<tr>' +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '"><input type="checkbox" class="delivery-note-checkbox" data-index="' + noteIndex + '" data-id="' + (note.id || '') + '"></td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '" class="delivery-note-no" onclick="editDeliveryNote(' + noteIndex + ')">' + note.no + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + (note.customer || '--') + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + (note.project_name || note.project || '--') + '</td>' : '') +
+              '<td>' + (item.product || item.product_name || '--') + '</td>' +
+              '<td>' + (item.model || '--') + '</td>' +
+              '<td>' + (item.length || '--') + '</td>' +
+              '<td>' + (item.wattage || '--') + '</td>' +
+              '<td>' + (item.brightness || '--') + '</td>' +
+              '<td>' + (item.sensor || item.sensorMode || '--') + '</td>' +
+              '<td>' + (item.quantity || 0) + '</td>' +
+              '<td>' + (item.unit || '个') + '</td>' +
+              '<td>¥' + (item.price || 0).toFixed(2) + '</td>' +
+              '<td>¥' + subtotal.toFixed(2) + '</td>' +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + (note.address || '--') + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + note.date + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + (note.contact || '--') + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' + (note.contactPhone || '--') + '</td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '"><span class="status-badge ' + getDeliveryStatusClass(note.status) + '" onclick="toggleDeliveryStatus(' + noteIndex + ')">' + note.status + '</span></td>' : '') +
+              (itemIndex === 0 ? '<td rowspan="' + items.length + '">' +
+                '<div class="action-buttons">' +
+                  '<button class="btn btn-sm btn-success" onclick="exportSingleDeliveryNote(' + noteIndex + ')">导出</button>' +
+                  '<button class="btn btn-sm btn-primary" onclick="copyDeliveryNote(' + noteIndex + ')">复制</button>' +
+                  '<button class="btn btn-sm btn-danger" onclick="deleteDeliveryNote(' + noteIndex + ')">删除</button>' +
+                '</div>' +
+              '</td>' : '') +
+            '</tr>';
+            html.push(rowHtml);
+          });
+        });
+        console.log('Generated HTML:', html.join(''));
+        tbody.innerHTML = html.join('');
         console.log('Updated delivery-note-tbody innerHTML');
         console.log('delivery-note-tbody innerHTML:', tbody.innerHTML);
       } else {
         console.log('No delivery notes found, showing empty state');
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-text">暂无送货单数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="20" class="empty-text">暂无送货单数据</td></tr>';
       }
     }
 
@@ -1975,6 +2054,7 @@
       font-family: 'Microsoft YaHei', Arial, sans-serif;
       margin: 20px;
       line-height: 1.6;
+      font-size: 16px;
     }
     .header {
       text-align: center;
@@ -1982,8 +2062,15 @@
       padding-bottom: 15px;
       border-bottom: 2px solid #333;
     }
+    .company-name {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
     .header h1 {
-      font-size: 24px;
+      font-size: 28px;
       color: #333;
     }
     .info-section {
@@ -1992,7 +2079,7 @@
       margin-bottom: 20px;
     }
     .info-section .info {
-      font-size: 14px;
+      font-size: 16px;
     }
     .info-section .info p {
       margin: 5px 0;
@@ -2005,8 +2092,9 @@
     .items-table th,
     .items-table td {
       border: 1px solid #333;
-      padding: 8px 12px;
+      padding: 10px 12px;
       text-align: center;
+      font-size: 15px;
     }
     .items-table th {
       background-color: #f5f5f5;
@@ -2018,7 +2106,7 @@
     .total-section {
       text-align: right;
       margin-top: 15px;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
     }
     .total-section .amount {
@@ -2032,6 +2120,7 @@
     .signature-box {
       width: 150px;
       text-align: center;
+      font-size: 16px;
     }
     .signature-box .line {
       border-top: 1px solid #333;
@@ -2042,6 +2131,7 @@
 </head>
 <body>
   <div class="header">
+    <div class="company-name">银河星辰</div>
     <h1>送 货 单</h1>
   </div>
 
@@ -3175,6 +3265,7 @@
       }).join('');
 
       var previewHtml = '<div class="print-preview-doc">' +
+        '<div class="company-name">银河星辰</div>' +
         '<div class="doc-header">' +
           '<h2>送货单</h2>' +
           '<div class="doc-no">单号：' + noteNo + '</div>' +

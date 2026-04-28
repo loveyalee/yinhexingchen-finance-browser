@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>财务管理 - 银河星辰财务专用浏览器</title>
+  <title>财务管理 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -19,112 +19,7 @@
       color: #333;
     }
     
-    /* 悬浮客服助手 */
-    .customer-service {
-      position: fixed;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 9999;
-    }
-    
-    .service-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s ease;
-      border: 2px solid white;
-    }
-    
-    .service-icon:hover {
-      transform: scale(1.1) translateY(0);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    .service-icon .icon {
-      font-size: 24px;
-      color: white;
-      margin-bottom: 2px;
-    }
-    
-    .service-icon .name {
-      font-size: 10px;
-      color: white;
-      font-weight: bold;
-    }
-    
-    .service-panel {
-      position: absolute;
-      right: 70px;
-      bottom: 0;
-      width: 300px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 20px;
-      display: none;
-    }
-    
-    .service-panel.active {
-      display: block;
-    }
-    
-    .service-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .service-header h3 {
-      margin: 0;
-      color: #1a2d42;
-    }
-    
-    .service-close {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: #95a5a6;
-    }
-    
-    .service-content {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .service-item {
-      padding: 12px;
-      border: 1px solid rgba(26, 95, 168, 0.10);
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    
-    .service-item:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .service-item h4 {
-      margin: 0 0 5px 0;
-      font-size: 14px;
-      color: #34495e;
-    }
-    
-    .service-item p {
-      margin: 0;
-      font-size: 12px;
-      color: #666;
-    }
+    /* 悬浮客服助手 - 由 xiaoya_service.js 动态创建 */
     
     .container {
       display: flex;
@@ -432,112 +327,132 @@
     .module-content.active {
       display: block;
     }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+      }
+      
+      .sidebar .logo {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      
+      .main-content {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      
+      .customer-service {
+        right: 10px;
+        bottom: 10px;
+      }
+      
+      .service-icon {
+        width: 50px;
+        height: 50px;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- 悬浮客服助手 -->
-  <div class="customer-service">
-    <div class="service-icon" onclick="toggleServicePanel()">
-      <div class="icon">💬</div>
-      <div class="name">小雅客服</div>
-    </div>
-    <div class="service-panel" id="servicePanel">
-      <div class="service-header">
-        <h3>在线客服</h3>
-        <button class="service-close" onclick="toggleServicePanel()">×</button>
-      </div>
-      <div class="service-content">
-        <div class="service-item" onclick="showHelp('billing')">
-          <h4>账单问题</h4>
-          <p>查询账单、退款、发票等问题</p>
-        </div>
-        <div class="service-item" onclick="showHelp('technical')">
-          <h4>技术支持</h4>
-          <p>软件使用、故障排查等问题</p>
-        </div>
-        <div class="service-item" onclick="showHelp('account')">
-          <h4>账户管理</h4>
-          <p>密码修改、账号安全等问题</p>
-        </div>
-        <div class="service-item" onclick="showHelp('other')">
-          <h4>其他问题</h4>
-          <p>其他相关问题咨询</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务办公智能体</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;">税务专区</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
-            <li class="submenu-item"><a href="tax_planning.html" onclick="event.stopPropagation();">税务筹划</a></li>
-            <li class="submenu-item"><a href="tax_consultation.html" onclick="event.stopPropagation();">税务咨询</a></li>
-            <li class="submenu-item"><a href="tax_risk.html" onclick="event.stopPropagation();">税务风险</a></li>
-            <li class="submenu-item"><a href="credit_print_points.html" onclick="event.stopPropagation();">征信打印点</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html" onclick="event.stopPropagation();">费用报销</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="data_analysis.html">数据分析</a></li>
-        <li class="nav-item"><a href="finance_academy.html">财务学堂</a></li>
-        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
-        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
-        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
-        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
-        <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
         <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;" class="active">财务管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
           <ul class="submenu">
-            
-            
-            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">个人求职</a></li>
-                <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">企业招聘</a></li>
-              </ul>
-            </li>
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">供应链管理</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="inventory_management.html" onclick="event.stopPropagation();">进销存</a></li>
             <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();">商品管理</a></li>
+            <li class="submenu-item"><a href="customer_management.html" onclick="event.stopPropagation();">客户管理</a></li>
+            <li class="submenu-item"><a href="purchase_order.html" onclick="event.stopPropagation();">进货单</a></li>
+            <li class="submenu-item"><a href="delivery_note_management.html" onclick="event.stopPropagation();">送货单</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
-          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
-            <li class="submenu-item"><a href="contract_management.html" onclick="event.stopPropagation();">合同管理</a></li>
-            <li class="submenu-item"><a href="seal_management.html" onclick="event.stopPropagation();">电子印章管理</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('finance-management'); return false;" class="active">财务管理</a></li>
-            <li class="submenu-item has-submenu">
-              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
-              <ul class="submenu">
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
-                <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
-              </ul>
-            </li>
-            <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">企业招聘</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
-        <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>
+        <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
         <li class="nav-item"><a href="forum.html">会计论坛</a></li>
         <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
-        <li class="nav-item"><a href="news.html" onclick="event.stopPropagation();">行业头条</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">特色功能</a>
           <ul class="submenu">
@@ -547,11 +462,29 @@
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
           <ul class="submenu">
-            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
+            <li class="submenu-item enterprise-menu" style="display:none;"><a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="showModule('company-management'); return false;">公司管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('contract-management'); return false;">合同管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="showModule('seal-management'); return false;">电子印章管理</a></li>
+                <li class="submenu-item has-submenu">
+                  <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+                  <ul class="submenu">
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-bank'); return false;">银行贷款</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-equity'); return false;">股权融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-bond'); return false;">债券融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-lease'); return false;">融资租赁</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-government'); return false;">政府扶持</a></li>
+                    <li class="submenu-item"><a href="#" onclick="showModule('financing-selfservice'); return false;">自助服务</a></li>
+                  </ul>
+                </li>
+                <li class="submenu-item"><a href="#" onclick="showModule('bidding'); return false;">招投标管理</a></li>
+              </ul>
+            </li>
             <li class="submenu-item"><a href="#" onclick="handleLogout(); return false;">退出登陆</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" onclick="showRealNameAuth(); return false;">实名认证</a></li>
       </ul>
     </div>
 
@@ -989,16 +922,6 @@
       const parentItem = element.parentElement;
       parentItem.classList.toggle('active');
     };
-
-    // 客服助手功能
-    function toggleServicePanel() {
-      const panel = document.getElementById('servicePanel');
-      panel.classList.toggle('active');
-    }
-
-    function showHelp(type) {
-      alert(`正在为您连接${type === 'billing' ? '账单' : type === 'technical' ? '技术' : type === 'account' ? '账户' : '其他'}客服，请稍候...`);
-    }
 
     // 处理退出登录
     window.handleLogout = function() {

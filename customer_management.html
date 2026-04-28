@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>客户管理 - 银河星辰财务专用浏览器</title>
+  <title>客户管理 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -196,6 +196,61 @@
 
     .modal-header h3 {
       margin: 0;
+    }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+      }
+      
+      .header h1 {
+        font-size: 18px;
+      }
+      
+      .content-area {
+        padding: 10px 15px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      
+      .form-group {
+        margin-bottom: 12px;
+      }
+      
+      .form-group label {
+        font-size: 13px;
+      }
+      
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 8px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>直播功能 - 银河星辰财务专用浏览器</title>
+  <title>直播功能 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -271,12 +271,74 @@
       margin-bottom: 5px;
       font-size: 14px;
     }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+      }
+      
+      .sidebar .logo {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      
+      .main-content {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器</div>
+      <div class="logo">银河星辰财务办公智能体</div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
@@ -289,6 +351,7 @@
         <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
         <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item"><a href="expense_reimbursement.html">费用报销</a></li>
         <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
         <li class="nav-item"><a href="audit_zone.html">审计专区</a></li>
         <li class="nav-item"><a href="finance_bp.html">财务BP</a></li>

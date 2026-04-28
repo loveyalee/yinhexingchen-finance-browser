@@ -1,0 +1,52 @@
+appId: com.yinhexingchen.desktop
+productName: 银河星辰财务智能体
+artifactName: 银河星辰财务智能体-${version}.${ext}
+npmRebuild: false
+
+directories:
+  output: release-clean
+
+files:
+  - main.js
+  - preload.js
+  - package.json
+  - login.html
+  - index.html
+  - download.html
+  - accounting_v2.html
+  - accounting_v2.js
+  - accounting_v2.css
+  - admin.html
+  - xiaoya_service.js
+  - chat_float.js
+  - server.js
+  - payment.js
+  - payment.html
+  - payment-config.js
+  - user_menu.js
+  - login.js
+  - logo.png
+  - yinhelogo.png
+  - assets/**/*
+  - images/**/*
+  - node_modules/**/*
+  - "!node_modules/.cache/**"
+  - "!node_modules/electron/**"
+  - "!node_modules/electron-builder/**"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+publish:
+  - provider: generic
+    url: https://zonya.work/releases/

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>送货单诊断工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .debug-info {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .test-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            pre {
+                font-size: 11px;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>送货单诊断工具</h1>
+        <p>此工具帮助诊断前端页面无法显示送货单的问题</p>
+        
+        <div class="test-section info">
+            <h2>1. 环境信息</h2>
+            <button onclick="checkEnvironment()">检查环境</button>
+            <div id="environmentResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>2. 登录状态</h2>
+            <button onclick="checkLoginStatus()">检查登录状态</button>
+            <div id="loginStatusResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>3. 直接API测试</h2>
+            <button onclick="testApiDirect()">测试API</button>
+            <div id="apiResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>4. 前端缓存检查</h2>
+            <button onclick="checkCache()">检查缓存</button>
+            <button onclick="clearCache()">清除缓存</button>
+            <div id="cacheResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>5. 前端函数测试</h2>
+            <button onclick="testFrontendFunctions()">测试前端函数</button>
+            <div id="frontendResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>6. 强制刷新数据</h2>
+            <button onclick="forceRefreshData()">强制刷新数据</button>
+            <div id="refreshResult"></div>
+        </div>
+        
+        <div class="test-section info">
+            <h2>7. 浏览器控制台日志</h2>
+            <p>请打开浏览器控制台（F12）查看详细日志</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. 检查环境信息
+        function checkEnvironment() {
+            const resultDiv = document.getElementById('environmentResult');
+            
+            const info = {
+                userAgent: navigator.userAgent,
+                location: window.location.href,
+                localStorageLength: localStorage.length,
+                sessionStorageLength: sessionStorage.length,
+                cookies: document.cookie
+            };
+            
+            let html = '<h3>环境信息：</h3>';
+            html += '<strong>浏览器:</strong> ' + info.userAgent + '<br>';
+            html += '<strong>当前URL:</strong> ' + info.location + '<br>';
+            html += '<strong>localStorage条目数:</strong> ' + info.localStorageLength + '<br>';
+            html += '<strong>sessionStorage条目数:</strong> ' + info.sessionStorageLength + '<br>';
+            html += '<strong>Cookies:</strong> ' + info.cookies + '<br>';
+            
+            resultDiv.innerHTML = html;
+        }
+        
+        // 2. 检查登录状态
+        function checkLoginStatus() {
+            const resultDiv = document.getElementById('loginStatusResult');
+            
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                
+                let html = '<h3>登录状态：</h3>';
+                html += '<strong>userInfo:</strong><br><pre>' + JSON.stringify(userInfo, null, 2) + '</pre><br>';
+                html += '<strong>userProfile:</strong><br><pre>' + JSON.stringify(userProfile, null, 2) + '</pre><br>';
+                html += '<strong>isLoggedIn:</strong> ' + (userInfo.isLoggedIn || userInfo.id ? '是' : '否') + '<br>';
+                html += '<strong>userId:</strong> ' + (userInfo.id || userProfile.id || '无') + '<br>';
+                
+                if (userInfo.isLoggedIn || userInfo.id) {
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">' + html + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        // 3. 直接测试API
+        async function testApiDirect() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                const userId = userInfo.id || JSON.parse(localStorage.getItem('userProfile') || '{}').id;
+                
+                if (!userId) {
+                    resultDiv.innerHTML = '<div class="error">未找到用户ID</div>';
+                    return;
+                }
+                
+                const url = '/api/delivery-notes?userId=' + encodeURIComponent(userId);
+                console.log('Testing API:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                let html = '<h3>API响应：</h3>';
+                html += '<strong>URL:</strong> ' + url + '<br>';
+                html += '<strong>状态码:</strong> ' + response.status + '<br>';
+                html += '<strong>响应数据:</strong><br><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success && data.data) {
+                    html += '<br><strong>送货单数量:</strong> ' + data.data.length;
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">' + html + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                console.error('API测试失败:', e);
+            }
+        }
+        
+        // 4. 检查缓存
+        function checkCache() {
+            const resultDiv = document.getElementById('cacheResult');
+            
+            try {
+                const deliveryNotes = localStorage.getItem('delivery-notes');
+                const cacheData = {
+                    deliveryNotes: deliveryNotes ? JSON.parse(deliveryNotes) : null,
+                    deliveryNotesCache: typeof deliveryNotesCache !== 'undefined' ? deliveryNotesCache : '未定义',
+                    deliveryNotesLoaded: typeof deliveryNotesLoaded !== 'undefined' ? deliveryNotesLoaded : '未定义'
+                };
+                
+                let html = '<h3>缓存信息：</h3>';
+                html += '<strong>localStorage.delivery-notes:</strong><br><pre>' + JSON.stringify(cacheData.deliveryNotes, null, 2) + '</pre><br>';
+                html += '<strong>deliveryNotesCache:</strong><br><pre>' + JSON.stringify(cacheData.deliveryNotesCache, null, 2) + '</pre><br>';
+                html += '<strong>deliveryNotesLoaded:</strong> ' + cacheData.deliveryNotesLoaded + '<br>';
+                
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        // 清除缓存
+        function clearCache() {
+            const resultDiv = document.getElementById('cacheResult');
+            
+            try {
+                localStorage.removeItem('delivery-notes');
+                if (typeof deliveryNotesCache !== 'undefined') {
+                    deliveryNotesCache = null;
+                    deliveryNotesLoaded = false;
+                }
+                resultDiv.innerHTML = '<div class="success">缓存已清除</div>';
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        // 5. 测试前端函数
+        async function testFrontendFunctions() {
+            const resultDiv = document.getElementById('frontendResult');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                // 测试getCurrentUserId
+                const userId = typeof getCurrentUserId === 'function' ? getCurrentUserId() : '函数未定义';
+                
+                // 测试getDeliveryNotesAsync
+                let notes = [];
+                if (typeof getDeliveryNotesAsync === 'function') {
+                    notes = await getDeliveryNotesAsync();
+                }
+                
+                // 测试getDeliveryNotes
+                let cachedNotes = [];
+                if (typeof getDeliveryNotes === 'function') {
+                    cachedNotes = getDeliveryNotes();
+                }
+                
+                let html = '<h3>前端函数测试：</h3>';
+                html += '<strong>getCurrentUserId():</strong> ' + userId + '<br>';
+                html += '<strong>getDeliveryNotesAsync():</strong><br><pre>' + JSON.stringify(notes, null, 2) + '</pre><br>';
+                html += '<strong>getDeliveryNotes():</strong><br><pre>' + JSON.stringify(cachedNotes, null, 2) + '</pre><br>';
+                
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                console.error('前端函数测试失败:', e);
+            }
+        }
+        
+        // 6. 强制刷新数据
+        async function forceRefreshData() {
+            const resultDiv = document.getElementById('refreshResult');
+            resultDiv.innerHTML = '刷新中...';
+            
+            try {
+                // 清除缓存
+                localStorage.removeItem('delivery-notes');
+                if (typeof deliveryNotesCache !== 'undefined') {
+                    deliveryNotesCache = null;
+                    deliveryNotesLoaded = false;
+                }
+                
+                // 强制重新获取数据
+                if (typeof getDeliveryNotesAsync === 'function') {
+                    const notes = await getDeliveryNotesAsync();
+                    
+                    // 触发重新渲染
+                    if (typeof renderDeliveryNotes === 'function') {
+                        renderDeliveryNotes();
+                    }
+                    
+                    let html = '<h3>刷新结果：</h3>';
+                    html += '<strong>获取的送货单数量:</strong> ' + notes.length + '<br>';
+                    html += '<strong>送货单数据:</strong><br><pre>' + JSON.stringify(notes, null, 2) + '</pre>';
+                    html += '<br><strong>已触发重新渲染</strong>';
+                    
+                    resultDiv.innerHTML = '<div class="success">' + html + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">getDeliveryNotesAsync 函数未定义</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                console.error('强制刷新失败:', e);
+            }
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            console.log('送货单诊断工具加载完成');
+            checkEnvironment();
+            checkLoginStatus();
+        };
+    </script>
+</body>
+</html>

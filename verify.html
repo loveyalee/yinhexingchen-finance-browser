@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实名认证 - 银河星辰财务专用办公智能体</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .verify-container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .verify-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .verify-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #388bfd, #8b5cf6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+    }
+
+    .verify-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a2332;
+      margin-bottom: 8px;
+    }
+
+    .verify-subtitle {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #3a4654;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #e0e4e8;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: #f8f9fb;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #388bfd;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.1);
+    }
+
+    .id-upload-area {
+      border: 2px dashed #e0e4e8;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8f9fb;
+    }
+
+    .id-upload-area:hover {
+      border-color: #388bfd;
+      background: #f0f7ff;
+    }
+
+    .id-upload-area .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .id-upload-area .upload-text {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .id-upload-area .upload-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+    }
+
+    .id-preview {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .id-preview img {
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: 8px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: linear-gradient(135deg, #388bfd, #5b6ef5);
+      color: white;
+      margin-top: 24px;
+    }
+
+    .btn-submit:hover {
+      box-shadow: 0 4px 16px rgba(56, 139, 253, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-skip {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      background: transparent;
+      color: #888;
+      margin-top: 12px;
+    }
+
+    .btn-skip:hover {
+      color: #666;
+    }
+
+    .verify-tips {
+      background: #fff7e8;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 24px;
+    }
+
+    .verify-tips h4 {
+      font-size: 13px;
+      color: #e67e22;
+      margin-bottom: 10px;
+    }
+
+    .verify-tips ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .verify-tips li {
+      font-size: 12px;
+      color: #666;
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .verify-tips li::before {
+      content: '•';
+      color: #e67e22;
+    }
+
+    @media (max-width: 480px) {
+      .verify-container {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-container">
+    <div class="verify-header">
+      <div class="verify-icon">🪪</div>
+      <div class="verify-title">实名认证</div>
+      <div class="verify-subtitle">完成实名认证，解锁全部功能</div>
+    </div>
+
+    <form id="verify-form">
+      <div class="form-group">
+        <label for="real-name">真实姓名</label>
+        <input type="text" id="real-name" placeholder="请输入您的真实姓名" required>
+      </div>
+
+      <div class="form-group">
+        <label for="id-type">证件类型</label>
+        <select id="id-type">
+          <option value="idcard">身份证</option>
+          <option value="passport">护照</option>
+          <option value="hkm">港澳台通行证</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="id-number">证件号码</label>
+        <input type="text" id="id-number" placeholder="请输入证件号码" required>
+      </div>
+
+      <div class="form-group">
+        <label>证件照片（正面）</label>
+        <div class="id-upload-area" onclick="document.getElementById('id-front').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击上传证件正面照片</div>
+          <div class="upload-hint">支持 JPG、PNG 格式，大小不超过 5MB</div>
+        </div>
+        <input type="file" id="id-front" accept="image/*" style="display: none;" onchange="previewImage(this, 'front-preview')">
+        <div id="front-preview" class="id-preview"></div>
+      </div>
+
+      <div class="form-group">
+        <label>证件照片（反面）</label>
+        <div class="id-upload-area" onclick="document.getElementById('id-back').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击上传证件反面照片</div>
+          <div class="upload-hint">支持 JPG、PNG 格式，大小不超过 5MB</div>
+        </div>
+        <input type="file" id="id-back" accept="image/*" style="display: none;" onchange="previewImage(this, 'back-preview')">
+        <div id="back-preview" class="id-preview"></div>
+      </div>
+
+      <button type="submit" class="btn-submit">提交认证</button>
+      <button type="button" class="btn-skip" onclick="skipVerify()">稍后再说</button>
+    </form>
+
+    <div class="verify-tips">
+      <h4>温馨提示</h4>
+      <ul>
+        <li>您的个人信息将被严格保密，仅用于身份验证</li>
+        <li>认证通过后可使用云端同步、会员功能等</li>
+        <li>证件照片需清晰可见，无遮挡、无反光</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function previewImage(input, previewId) {
+      var preview = document.getElementById(previewId);
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          preview.innerHTML = '<img src="' + e.target.result + '" alt="预览">';
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function skipVerify() {
+      if (confirm('确定要稍后再进行实名认证吗？部分功能可能受限。')) {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var form = document.getElementById('verify-form');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        var realName = document.getElementById('real-name').value.trim();
+        var idType = document.getElementById('id-type').value;
+        var idNumber = document.getElementById('id-number').value.trim();
+        var idFront = document.getElementById('id-front').files[0];
+        var idBack = document.getElementById('id-back').files[0];
+
+        if (!realName) {
+          alert('请输入真实姓名');
+          return;
+        }
+
+        if (!idNumber) {
+          alert('请输入证件号码');
+          return;
+        }
+
+        // 身份证格式验证
+        if (idType === 'idcard' && !/^\d{17}[\dXx]$/.test(idNumber)) {
+          alert('请输入正确的身份证号码');
+          return;
+        }
+
+        var userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+
+        if (!userProfile.id) {
+          alert('请先登录');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // 提交认证
+        var submitBtn = document.querySelector('.btn-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '提交中...';
+
+        fetch('/api/users/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userProfile.id,
+            real_name: realName,
+            id_type: idType,
+            id_number: idNumber
+          })
+        }).then(function(resp) {
+          return resp.json();
+        }).then(function(result) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '提交认证';
+
+          if (!result.success) {
+            alert(result.message || '认证失败');
+            return;
+          }
+
+          // 更新用户信息
+          userProfile.realName = realName;
+          userProfile.idType = idType;
+          userProfile.idNumber = idNumber;
+          userProfile.isVerified = true;
+          localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+          alert('实名认证提交成功！系统将在1-3个工作日内完成审核。');
+          window.location.href = 'index.html';
+        }).catch(function(err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '提交认证';
+          alert('认证失败：' + err.message);
+        });
+      });
+    });
+  </script>
+  <!-- 引用蜻蜓聊天器 -->
+  <script src="chat_float.js"></script>
+  <!-- 引用小雅客服 -->
+  <script src="xiaoya_service.js"></script>
+</body>
+</html>

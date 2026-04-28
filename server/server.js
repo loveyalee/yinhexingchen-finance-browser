@@ -713,8 +713,432 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ================================================================
+// 费用报销 API
+// ================================================================
+
+// MySQL 连接配置（复用现有的阿里云RDS配置）
+const mysql = require('mysql2/promise');
+const multer = require('multer');
+const uploadDir = path.join(__dirname, 'data', 'uploads', 'expenses');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 文件上传配置
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error('仅支持 JPG/PNG/GIF/WEBP 格式的图片'));
+    }
+  }
+});
+
+async function getExpenseConnection() {
+  return await mysql.createConnection({
+    host: process.env.MYSQL_HOST || 'rm-bp1t731ujc98jo9c10o.mysql.rds.aliyuncs.com',
+    port: parseInt(process.env.MYSQL_PORT) || 3306,
+    database: process.env.MYSQL_DB || 'rds_dingding',
+    user: process.env.MYSQL_USER || 'ram_dingding',
+    password: process.env.MYSQL_PWD || 'h5J5BVEXtrjKVDSxmS4w',
+    charset: 'utf8mb4',
+    timezone: '+08:00'
+  });
+}
+
+// 初始化数据库表
+async function initExpenseTables() {
+  const conn = await getExpenseConnection();
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS expense_reimbursements (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        expense_no VARCHAR(32) NOT NULL,
+        user_id VARCHAR(64) NOT NULL,
+        user_name VARCHAR(64) NOT NULL,
+        expense_type VARCHAR(32) NOT NULL,
+        amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        expense_date DATE NOT NULL,
+        reason TEXT NOT NULL,
+        status VARCHAR(16) NOT NULL DEFAULT 'draft',
+        images JSON,
+        reject_reason VARCHAR(256),
+        paid_at DATETIME,
+        paid_method VARCHAR(32),
+        paid_account VARCHAR(64),
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_expense_no (expense_no),
+        KEY idx_user_id (user_id),
+        KEY idx_status (status),
+        KEY idx_expense_date (expense_date)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS expense_approvals (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        expense_id BIGINT UNSIGNED NOT NULL,
+        approver_id VARCHAR(64) NOT NULL,
+        approver_name VARCHAR(64) NOT NULL,
+        approver_role VARCHAR(32),
+        approval_level TINYINT UNSIGNED NOT NULL DEFAULT 1,
+        status VARCHAR(16) NOT NULL,
+        comment TEXT,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_expense_id (expense_id),
+        KEY idx_approver_id (approver_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS expense_images (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        expense_id BIGINT UNSIGNED NOT NULL,
+        file_name VARCHAR(255) NOT NULL,
+        file_url VARCHAR(512) NOT NULL,
+        file_size INT UNSIGNED DEFAULT 0,
+        file_type VARCHAR(32),
+        upload_user_id VARCHAR(64) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_expense_id (expense_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    console.log('[Expense] 数据库表初始化完成');
+  } catch (error) {
+    console.error('[Expense] 数据库表初始化失败:', error.message);
+  } finally {
+    await conn.end();
+  }
+}
+
+// 生成报销单号
+async function generateExpenseNo() {
+  const conn = await getExpenseConnection();
+  try {
+    const yearMonth = new Date().toISOString().substring(0, 7).replace('-', '');
+    const [rows] = await conn.query(
+      "SELECT MAX(CAST(RIGHT(expense_no, 4) AS UNSIGNED)) as max_seq FROM expense_reimbursements WHERE LEFT(expense_no, 8) = ?",
+      ['BX' + yearMonth]
+    );
+    const nextSeq = ((rows[0] && rows[0].max_seq) || 0) + 1;
+    return 'BX' + yearMonth + String(nextSeq).padStart(4, '0');
+  } finally {
+    await conn.end();
+  }
+}
+
+// GET /api/expenses — 获取报销列表
+app.get('/api/expenses', async (req, res) => {
+  try {
+    const { userId, status, type, search, dateFrom, dateTo, page = 1, pageSize = 20 } = req.query;
+    const conn = await getExpenseConnection();
+
+    let where = [];
+    let params = [];
+
+    if (userId) {
+      where.push('user_id = ?');
+      params.push(userId);
+    }
+    if (status) {
+      where.push('status = ?');
+      params.push(status);
+    }
+    if (type) {
+      where.push('expense_type = ?');
+      params.push(type);
+    }
+    if (search) {
+      where.push('(expense_no LIKE ? OR reason LIKE ? OR user_name LIKE ?)');
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    if (dateFrom) {
+      where.push('expense_date >= ?');
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      where.push('expense_date <= ?');
+      params.push(dateTo);
+    }
+
+    const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+    const offset = (parseInt(page) - 1) * parseInt(pageSize);
+
+    const [rows] = await conn.query(
+      `SELECT * FROM expense_reimbursements ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, parseInt(pageSize), offset]
+    );
+
+    const [countRows] = await conn.query(
+      `SELECT COUNT(*) as total FROM expense_reimbursements ${whereClause}`,
+      params
+    );
+
+    // 转换 images JSON 字段
+    const data = rows.map(r => ({
+      ...r,
+      images: r.images ? JSON.parse(r.images) : []
+    }));
+
+    await conn.end();
+    res.json({ success: true, data, total: countRows[0].total });
+  } catch (error) {
+    console.error('[Expense] GET /api/expenses error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/expenses/:id — 获取报销详情
+app.get('/api/expenses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const conn = await getExpenseConnection();
+
+    const [rows] = await conn.query('SELECT * FROM expense_reimbursements WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      await conn.end();
+      return res.status(404).json({ success: false, message: '报销单不存在' });
+    }
+
+    const expense = rows[0];
+    expense.images = expense.images ? JSON.parse(expense.images) : [];
+
+    const [approvalRows] = await conn.query(
+      'SELECT * FROM expense_approvals WHERE expense_id = ? ORDER BY created_at ASC',
+      [id]
+    );
+    expense.approvals = approvalRows;
+
+    await conn.end();
+    res.json({ success: true, data: expense });
+  } catch (error) {
+    console.error('[Expense] GET /api/expenses/:id error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/expenses — 新建报销单
+app.post('/api/expenses', async (req, res) => {
+  try {
+    const { userId, userName, expenseType, amount, expenseDate, reason, images } = req.body;
+
+    if (!expenseType || !amount || !expenseDate || !reason) {
+      return res.status(400).json({ success: false, message: '缺少必填字段' });
+    }
+
+    const expenseNo = await generateExpenseNo();
+    const conn = await getExpenseConnection();
+
+    const [result] = await conn.query(
+      `INSERT INTO expense_reimbursements (expense_no, user_id, user_name, expense_type, amount, expense_date, reason, images, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [expenseNo, userId, userName || '匿名用户', expenseType, amount, expenseDate, reason, JSON.stringify(images || [])]
+    );
+
+    await conn.end();
+    res.json({ success: true, message: '报销单创建成功', data: { id: result.insertId, expenseNo } });
+  } catch (error) {
+    console.error('[Expense] POST /api/expenses error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT /api/expenses/:id — 更新报销单
+app.put('/api/expenses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { expenseType, amount, expenseDate, reason, images } = req.body;
+    const conn = await getExpenseConnection();
+
+    const [rows] = await conn.query('SELECT * FROM expense_reimbursements WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      await conn.end();
+      return res.status(404).json({ success: false, message: '报销单不存在' });
+    }
+
+    await conn.query(
+      `UPDATE expense_reimbursements SET expense_type=?, amount=?, expense_date=?, reason=?, images=?, status='pending', updated_at=NOW()
+       WHERE id=?`,
+      [expenseType, amount, expenseDate, reason, JSON.stringify(images || []), id]
+    );
+
+    await conn.end();
+    res.json({ success: true, message: '报销单已更新' });
+  } catch (error) {
+    console.error('[Expense] PUT /api/expenses/:id error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT /api/expenses/:id/status — 更新报销状态（审批）
+app.put('/api/expenses/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, comment, approverId, approverName, approverRole } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: '缺少状态参数' });
+    }
+
+    const conn = await getExpenseConnection();
+
+    const [rows] = await conn.query('SELECT * FROM expense_reimbursements WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      await conn.end();
+      return res.status(404).json({ success: false, message: '报销单不存在' });
+    }
+
+    const expense = rows[0];
+    const newStatus = status === 'rejected' ? 'rejected' : (status === 'approved' ? 'approved' : status);
+
+    let updateFields = 'status = ?, updated_at = NOW()';
+    let updateParams = [newStatus];
+
+    if (status === 'rejected' && comment) {
+      updateFields += ', reject_reason = ?';
+      updateParams.push(comment);
+    }
+
+    if (status === 'approved') {
+      updateFields += ', status = ?';
+      updateParams[0] = 'approved';
+    }
+
+    if (status === 'paid') {
+      updateFields += ', status = ?, paid_at = NOW()';
+      updateParams[0] = 'paid';
+    }
+
+    updateParams.push(id);
+
+    await conn.query(
+      `UPDATE expense_reimbursements SET ${updateFields} WHERE id = ?`,
+      updateParams
+    );
+
+    // 记录审批历史
+    if (['approved', 'rejected'].includes(status)) {
+      await conn.query(
+        `INSERT INTO expense_approvals (expense_id, approver_id, approver_name, approver_role, status, comment)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, approverId, approverName, approverRole || '', status, comment || '']
+      );
+    }
+
+    await conn.end();
+    res.json({ success: true, message: `状态已更新为：${status}` });
+  } catch (error) {
+    console.error('[Expense] PUT /api/expenses/:id/status error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// DELETE /api/expenses/:id — 删除报销单
+app.delete('/api/expenses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const conn = await getExpenseConnection();
+
+    const [rows] = await conn.query('SELECT status FROM expense_reimbursements WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      await conn.end();
+      return res.status(404).json({ success: false, message: '报销单不存在' });
+    }
+
+    if (!['draft', 'rejected'].includes(rows[0].status)) {
+      await conn.end();
+      return res.status(400).json({ success: false, message: '只能删除草稿或已驳回的报销单' });
+    }
+
+    await conn.query('DELETE FROM expense_approvals WHERE expense_id = ?', [id]);
+    await conn.query('DELETE FROM expense_reimbursements WHERE id = ?', [id]);
+
+    await conn.end();
+    res.json({ success: true, message: '报销单已删除' });
+  } catch (error) {
+    console.error('[Expense] DELETE /api/expenses/:id error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/expenses/upload — 上传附件图片
+app.post('/api/expenses/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: '未检测到上传文件' });
+    }
+
+    const fileUrl = `/uploads/expenses/${req.file.filename}`;
+    res.json({
+      success: true,
+      data: {
+        url: fileUrl,
+        name: req.file.originalname,
+        size: req.file.size,
+        type: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('[Expense] Upload error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 静态文件：提供上传文件的访问
+app.use('/uploads', express.static(path.join(__dirname, 'data', 'uploads')));
+
+// GET /api/expenses/stats — 获取统计
+app.get('/api/expenses/stats', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const conn = await getExpenseConnection();
+
+    let where = userId ? 'WHERE user_id = ?' : '';
+    let params = userId ? [userId] : [];
+
+    const [rows] = await conn.query(
+      `SELECT status, COUNT(*) as count, COALESCE(SUM(amount), 0) as total_amount
+       FROM expense_reimbursements ${where}
+       GROUP BY status`,
+      params
+    );
+
+    const [allRows] = await conn.query(
+      `SELECT COUNT(*) as total, COALESCE(SUM(amount), 0) as total_amount
+       FROM expense_reimbursements ${where}`,
+      params
+    );
+
+    await conn.end();
+    res.json({ success: true, data: { byStatus: rows, all: allRows[0] } });
+  } catch (error) {
+    console.error('[Expense] GET /api/expenses/stats error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // 启动服务器
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`=================================`);
   console.log(`银河星辰支付服务已启动`);
   console.log(`端口: ${PORT}`);
@@ -726,6 +1150,223 @@ app.listen(PORT, () => {
   console.log(`  微信支付: 未配置`);
   console.log(`  转账支付: 已启用`);
   console.log(`=================================`);
+
+  // 初始化费用报销数据库表
+  await initExpenseTables();
+  // 初始化送货单数据库表
+  await initDeliveryNoteTables();
 });
 
 module.exports = app;
+
+// ==================== 送货单数据库操作 ====================
+
+// 初始化送货单数据库表
+async function initDeliveryNoteTables() {
+  const conn = await getExpenseConnection();
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS delivery_notes (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        no VARCHAR(32) NOT NULL,
+        customer VARCHAR(255) NOT NULL,
+        project_name VARCHAR(255),
+        contact VARCHAR(64),
+        contact_phone VARCHAR(32),
+        address TEXT,
+        remark TEXT,
+        date DATE NOT NULL,
+        status VARCHAR(16) NOT NULL DEFAULT 'draft',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_no (no),
+        KEY idx_customer (customer),
+        KEY idx_status (status),
+        KEY idx_date (date)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS delivery_note_items (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        delivery_note_id BIGINT UNSIGNED NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        model VARCHAR(64),
+        length VARCHAR(32),
+        wattage VARCHAR(32),
+        brightness VARCHAR(32),
+        sensor VARCHAR(32),
+        quantity DECIMAL(10,2) NOT NULL DEFAULT 0,
+        unit VARCHAR(16),
+        price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        KEY idx_delivery_note_id (delivery_note_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('[DeliveryNote] Tables initialized successfully');
+  } catch (error) {
+    console.error('[DeliveryNote] initDeliveryNoteTables error:', error);
+  } finally {
+    await conn.end();
+  }
+}
+
+// GET /api/delivery-notes — 获取送货单列表
+app.get('/api/delivery-notes', async (req, res) => {
+  const conn = await getExpenseConnection();
+  try {
+    const userId = req.query.userId;
+    let query = 'SELECT * FROM delivery_notes';
+    let params = [];
+    
+    if (userId) {
+      query += ' WHERE user_id = ?';
+      params.push(userId);
+    }
+    
+    query += ' ORDER BY date DESC';
+    
+    const [notes] = await conn.query(query, params);
+    
+    const result = await Promise.all(notes.map(async (note) => {
+      const [items] = await conn.query(`
+        SELECT * FROM delivery_note_items WHERE delivery_note_id = ?
+      `, [note.id]);
+      return { ...note, items };
+    }));
+    
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('[DeliveryNote] GET /api/delivery-notes error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await conn.end();
+  }
+});
+
+// GET /api/delivery-notes/:no — 获取单个送货单
+app.get('/api/delivery-notes/:no', async (req, res) => {
+  const conn = await getExpenseConnection();
+  try {
+    const [notes] = await conn.query(`
+      SELECT * FROM delivery_notes WHERE no = ?
+    `, [req.params.no]);
+    
+    if (notes.length === 0) {
+      return res.status(404).json({ success: false, message: '送货单不存在' });
+    }
+    
+    const note = notes[0];
+    const [items] = await conn.query(`
+      SELECT * FROM delivery_note_items WHERE delivery_note_id = ?
+    `, [note.id]);
+    
+    res.json({ success: true, data: { ...note, items } });
+  } catch (error) {
+    console.error('[DeliveryNote] GET /api/delivery-notes/:no error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await conn.end();
+  }
+});
+
+// POST /api/delivery-notes — 创建送货单
+app.post('/api/delivery-notes', async (req, res) => {
+  const conn = await getExpenseConnection();
+  try {
+    const { no, customer, project_name, projectName, contact, contactPhone, contact_phone, address, remark, date, status, items } = req.body;
+    
+    const [result] = await conn.query(`
+      INSERT INTO delivery_notes (no, customer, project_name, contact, contact_phone, address, remark, date, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [no, customer, project_name || projectName || '', contact || '', contactPhone || contact_phone || '', address || '', remark || '', date, status || 'draft']);
+    
+    const noteId = result.insertId;
+    
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        await conn.query(`
+          INSERT INTO delivery_note_items (delivery_note_id, product_name, model, length, wattage, brightness, sensor, quantity, unit, price, subtotal)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [noteId, item.product_name || item.product || '', item.model || '', item.length || '', item.wattage || '', item.brightness || '', item.sensor || '', item.quantity || 0, item.unit || '个', item.price || 0, item.subtotal || (item.quantity * item.price)]);
+      }
+    }
+    
+    console.log(`[DeliveryNote] Created delivery note: ${no}`);
+    res.json({ success: true, id: noteId, no });
+  } catch (error) {
+    console.error('[DeliveryNote] POST /api/delivery-notes error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await conn.end();
+  }
+});
+
+// PUT /api/delivery-notes — 更新送货单
+app.put('/api/delivery-notes', async (req, res) => {
+  const conn = await getExpenseConnection();
+  try {
+    const { no, customer, project_name, projectName, contact, contactPhone, contact_phone, address, remark, date, status, items } = req.body;
+    
+    await conn.query(`
+      UPDATE delivery_notes 
+      SET customer = ?, project_name = ?, contact = ?, contact_phone = ?, address = ?, remark = ?, date = ?, status = ?
+      WHERE no = ?
+    `, [customer, project_name || projectName || '', contact || '', contactPhone || contact_phone || '', address || '', remark || '', date, status, no]);
+    
+    const [notes] = await conn.query(`SELECT id FROM delivery_notes WHERE no = ?`, [no]);
+    if (notes.length === 0) {
+      return res.status(404).json({ success: false, message: '送货单不存在' });
+    }
+    const noteId = notes[0].id;
+    
+    // 删除原有商品项
+    await conn.query(`DELETE FROM delivery_note_items WHERE delivery_note_id = ?`, [noteId]);
+    
+    // 添加新商品项
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        await conn.query(`
+          INSERT INTO delivery_note_items (delivery_note_id, product_name, model, length, wattage, brightness, sensor, quantity, unit, price, subtotal)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [noteId, item.product_name || item.product || '', item.model || '', item.length || '', item.wattage || '', item.brightness || '', item.sensor || '', item.quantity || 0, item.unit || '个', item.price || 0, item.subtotal || (item.quantity * item.price)]);
+      }
+    }
+    
+    console.log(`[DeliveryNote] Updated delivery note: ${no}`);
+    res.json({ success: true, no });
+  } catch (error) {
+    console.error('[DeliveryNote] PUT /api/delivery-notes error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await conn.end();
+  }
+});
+
+// DELETE /api/delivery-notes — 删除送货单
+app.delete('/api/delivery-notes', async (req, res) => {
+  const conn = await getExpenseConnection();
+  try {
+    const { id, no } = req.body;
+    
+    let noteId = id;
+    if (no) {
+      const [notes] = await conn.query(`SELECT id FROM delivery_notes WHERE no = ?`, [no]);
+      if (notes.length === 0) {
+        return res.status(404).json({ success: false, message: '送货单不存在' });
+      }
+      noteId = notes[0].id;
+    }
+    
+    await conn.query(`DELETE FROM delivery_note_items WHERE delivery_note_id = ?`, [noteId]);
+    await conn.query(`DELETE FROM delivery_notes WHERE id = ?`, [noteId]);
+    
+    console.log(`[DeliveryNote] Deleted delivery note: ${no || id}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[DeliveryNote] DELETE /api/delivery-notes error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await conn.end();
+  }
+});

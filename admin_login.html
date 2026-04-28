@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>管理后台登录 - 银河星辰财务专用浏览器</title>
+  <title>管理后台登录 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -119,6 +119,32 @@
       font-size: 14px;
       display: none;
     }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .login-container {
+        width: 95%;
+        padding: 20px;
+      }
+      
+      .login-header h2 {
+        font-size: 20px;
+      }
+      
+      .form-group {
+        margin-bottom: 15px;
+      }
+      
+      .form-group input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      
+      .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -147,7 +173,7 @@
     </form>
     
     <div class="login-footer">
-      <p>返回 <a href="index.html">财务浏览器</a></p>
+      <p>返回 <a href="index.html">银河星辰财务办公智能体</a></p>
     </div>
   </div>
   

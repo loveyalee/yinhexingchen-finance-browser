@@ -22,6 +22,16 @@
     .circle-item { padding: 10px; background: #f8f9fa; border-radius: 4px; text-align: center; }
     .circle-icon { font-size: 32px; margin-bottom: 5px; }
     .circle-name { font-weight: bold; font-size: 12px; }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      body { padding: 10px; }
+      .container { padding: 0; }
+      h1 { font-size: 20px; margin-bottom: 20px; }
+      .test-grid { grid-template-columns: 1fr; }
+      .test-card { padding: 15px; }
+      .circle-preview { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    }
   </style>
 </head>
 <body>

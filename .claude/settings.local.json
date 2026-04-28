@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -o StrictHostKeyChecking=no root@111.230.36.222 \"curl -s 'http://localhost:5098/api/delivery-notes?userId=USER_1776900041357' 2>/dev/null\")"
+    ]
+  }
+}

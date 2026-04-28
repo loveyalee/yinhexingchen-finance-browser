@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>进货单管理 - 银河星辰财务办公智能体</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .header {
+      background-color: white;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      color: #1a2d42;
+    }
+
+    .content-area {
+      padding: 20px 30px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      margin-bottom: 15px;
+      color: #1a2d42;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .section-header h3 {
+      margin-bottom: 0;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .empty-text {
+      padding: 18px 12px;
+      color: #6c7b8a;
+      text-align: center;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-purchased {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .purchase-note-no {
+      color: #1a65b8;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .purchase-note-no:hover {
+      text-decoration: underline;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12, 24, 40, 0.55);
+      padding: 20px;
+      z-index: 2000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(800px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(13, 31, 53, 0.24);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .modal-grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .items-table th,
+    .items-table td {
+      padding: 8px 6px;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .items-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .items-table input {
+      width: 100%;
+      padding: 4px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .close-btn:hover {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-bar input,
+    .search-bar select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .search-bar input[type="text"] {
+      min-width: 200px;
+    }
+
+    .search-bar input[type="date"] {
+      min-width: 140px;
+    }
+
+    /* 侧边栏样式 */
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, #0d1f35 0%, #1a3a5c 100%);
+      color: white;
+      padding: 20px 0;
+      flex-shrink: 0;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.28);
+    }
+
+    .sidebar .logo {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+      padding: 0 15px;
+      color: #f0c040;
+    }
+
+    .nav-menu {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 2px;
+    }
+
+    .nav-item > a {
+      display: block;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item > a:hover,
+    .nav-item > a.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: #f0c040;
+    }
+
+    .nav-item.has-submenu {
+      position: relative;
+    }
+
+    .nav-item.has-submenu > a::after {
+      content: '▼';
+      float: right;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    .submenu {
+      display: none;
+      list-style: none;
+      background: rgba(0,0,0,0.2);
+      margin-top: 2px;
+    }
+
+    .nav-item.has-submenu:hover > .submenu {
+      display: block;
+    }
+
+    .submenu-item a {
+      display: block;
+      padding: 10px 20px 10px 35px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .submenu-item a:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .browser-controls {
+      display: flex;
+      gap: 5px;
+    }
+
+    .browser-controls .btn {
+      padding: 6px 10px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+    }
+
+    .browser-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+      }
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .label {
+      color: #6c7b8a;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a2d42;
+    }
+
+    /* Tab 样式 */
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eef2f8;
+      padding-bottom: 0;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      color: #6c7b8a;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      color: #1a65b8;
+    }
+
+    .tab.active {
+      color: #1a65b8;
+      border-bottom-color: #1a65b8;
+      font-weight: 600;
+    }
+
+    /* 筛选栏 */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">银河星辰财务办公智能体</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html" onclick="event.stopPropagation();">费用报销</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('invoice-management'); return false;">发票管理</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-plan'); return false;">税务筹划</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-consult'); return false;">税务咨询</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-risk'); return false;">税务风险</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('tax-equity'); return false;">股权转让</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">供应链管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();">商品管理</a></li>
+            <li class="submenu-item"><a href="customer_management.html" onclick="event.stopPropagation();">客户管理</a></li>
+            <li class="submenu-item"><a href="purchase_order.html" onclick="event.stopPropagation();">进货单</a></li>
+            <li class="submenu-item"><a href="delivery_note_management.html" onclick="event.stopPropagation();">送货单</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
+        <li class="nav-item"><a href="forum.html">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html">付费问答</a></li>
+        <li class="nav-item"><a href="news.html">行业头条</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">特色功能</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="toolbox.html" onclick="event.stopPropagation();">工具箱</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
+            <li class="submenu-item enterprise-menu" style="display:none;"><a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+              <ul class="submenu" style="display:none;">
+                <li class="submenu-item"><a href="company_management.html" onclick="event.stopPropagation();">公司管理</a></li>
+                <li class="submenu-item"><a href="contract_management.html" onclick="event.stopPropagation();">合同管理</a></li>
+                <li class="submenu-item"><a href="e-seal.html" onclick="event.stopPropagation();">电子印章管理</a></li>
+                <li class="submenu-item"><a href="enterprise_finance.html" onclick="event.stopPropagation();">企业融资</a></li>
+                <li class="submenu-item"><a href="bid_management.html" onclick="event.stopPropagation();">招投标管理</a></li>
+              </ul>
+            </li>
+            <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); logout();">退出登陆</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <div class="browser-bar">
+          <div class="browser-controls">
+            <button class="btn">←</button>
+            <button class="btn">→</button>
+            <button class="btn">⟳</button>
+          </div>
+          <input type="text" placeholder="搜索进货单..." id="searchInput">
+          <button class="btn btn-primary" onclick="loadPurchaseOrders()">搜索</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openPurchaseModal()">+ 新建进货单</button>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <h1>进货单管理</h1>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="icon">📋</div>
+            <div class="label">全部进货单</div>
+            <div class="value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon">⏳</div>
+            <div class="label">待入库</div>
+            <div class="value" id="statPending">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon">✅</div>
+            <div class="label">已完成</div>
+            <div class="value" id="statCompleted">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon">❌</div>
+            <div class="label">已取消</div>
+            <div class="value" id="statCancelled">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon">💰</div>
+            <div class="label">总进货金额</div>
+            <div class="value" id="statAmount">¥0</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" data-tab="all" onclick="switchTab('all')">全部</div>
+          <div class="tab" data-tab="pending" onclick="switchTab('pending')">待入库</div>
+          <div class="tab" data-tab="completed" onclick="switchTab('completed')">已完成</div>
+          <div class="tab" data-tab="cancelled" onclick="switchTab('cancelled')">已取消</div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <select id="filterSupplier">
+            <option value="">全部供应商</option>
+          </select>
+          <input type="date" id="filterDateFrom" placeholder="开始日期">
+          <input type="date" id="filterDateTo" placeholder="结束日期">
+          <button class="btn btn-secondary" onclick="loadPurchaseOrders()">筛选</button>
+          <button class="btn btn-secondary" onclick="clearFilters()">清除</button>
+        </div>
+
+        <!-- Table -->
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>进货单号</th>
+                  <th>供应商</th>
+                  <th>进货日期</th>
+                  <th>金额</th>
+                  <th>状态</th>
+                  <th>制单人</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="purchaseTableBody">
+                <tr><td colspan="8" style="text-align:center;color:#999;padding:30px;">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建/编辑进货单模态框 -->
+  <div class="modal" id="purchase-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">新建进货单</h3>
+        <button class="close-btn" onclick="closePurchaseModal()">×</button>
+      </div>
+      <form id="purchase-form">
+        <input type="hidden" id="purchase-id">
+
+        <div class="modal-grid">
+          <div class="form-group">
+            <label>进货单号</label>
+            <input type="text" id="purchase-no" readonly placeholder="系统自动生成">
+          </div>
+          <div class="form-group">
+            <label>供应商 <span style="color:#e74c3c;">*</span></label>
+            <input type="text" id="supplier-name" required placeholder="请输入供应商名称">
+          </div>
+          <div class="form-group">
+            <label>联系人</label>
+            <input type="text" id="supplier-contact" placeholder="请输入联系人">
+          </div>
+          <div class="form-group">
+            <label>联系电话</label>
+            <input type="tel" id="supplier-phone" placeholder="请输入联系电话">
+          </div>
+          <div class="form-group">
+            <label>进货日期 <span style="color:#e74c3c;">*</span></label>
+            <input type="date" id="purchase-date" required>
+          </div>
+          <div class="form-group">
+            <label>预计到货日期</label>
+            <input type="date" id="expected-date">
+          </div>
+          <div class="form-group full-width">
+            <label>送货地址</label>
+            <input type="text" id="supplier-address" placeholder="请输入送货地址">
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <div class="section-header">
+            <h3 style="font-size:15px;">商品明细</h3>
+            <button type="button" class="btn btn-sm btn-success" onclick="addPurchaseItemRow()">+ 添加商品行</button>
+          </div>
+          <div class="table-container" style="max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;">#</th>
+                  <th style="min-width:120px;">商品名称</th>
+                  <th style="width:60px;">型号</th>
+                  <th style="width:60px;">数量</th>
+                  <th style="width:50px;">单位</th>
+                  <th style="width:80px;">单价</th>
+                  <th style="width:90px;">小计</th>
+                  <th style="width:40px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="purchase-items-tbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px;gap:16px;">
+            <span style="font-size:15px;font-weight:600;color:#1a2d42;">合计：<span id="purchase-total-amount" style="color:#e74c3c;">¥0.00</span></span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label>备注</label>
+          <textarea id="purchase-remark" placeholder="请输入备注" rows="2"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" onclick="savePurchaseOrder()">保存</button>
+          <button type="button" class="btn btn-success" onclick="saveAndNewPurchaseOrder()">保存并新增</button>
+          <button type="button" class="btn btn-secondary" onclick="closePurchaseModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let purchaseOrders = [];
+    let currentTab = 'all';
+    let itemRowIndex = 0;
+
+    function generatePurchaseNo() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+      return `JH${year}${month}${day}${random}`;
+    }
+
+    function openPurchaseModal(id = null) {
+      document.getElementById('purchase-modal').classList.add('show');
+      document.getElementById('purchase-form').reset();
+      document.getElementById('purchase-id').value = '';
+      document.getElementById('purchase-items-tbody').innerHTML = '';
+      document.getElementById('purchase-total-amount').textContent = '¥0.00';
+      itemRowIndex = 0;
+
+      if (id) {
+        document.getElementById('modal-title').textContent = '编辑进货单';
+        const order = purchaseOrders.find(o => o.id === id);
+        if (order) {
+          document.getElementById('purchase-id').value = order.id;
+          document.getElementById('purchase-no').value = order.purchase_no || '';
+          document.getElementById('supplier-name').value = order.supplier || '';
+          document.getElementById('supplier-contact').value = order.contact || '';
+          document.getElementById('supplier-phone').value = order.phone || '';
+          document.getElementById('purchase-date').value = order.purchase_date || '';
+          document.getElementById('expected-date').value = order.expected_date || '';
+          document.getElementById('supplier-address').value = order.address || '';
+          document.getElementById('purchase-remark').value = order.remark || '';
+          document.getElementById('purchase-total-amount').textContent = '¥' + (parseFloat(order.amount) || 0).toFixed(2);
+
+          (order.items || []).forEach(item => addPurchaseItemRow(item));
+        }
+      } else {
+        document.getElementById('modal-title').textContent = '新建进货单';
+        document.getElementById('purchase-no').value = generatePurchaseNo();
+        document.getElementById('purchase-date').value = new Date().toISOString().split('T')[0];
+        addPurchaseItemRow();
+      }
+    }
+
+    function closePurchaseModal() {
+      document.getElementById('purchase-modal').classList.remove('show');
+    }
+
+    function addPurchaseItemRow(item = {}) {
+      const tbody = document.getElementById('purchase-items-tbody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${++itemRowIndex}</td>
+        <td><input type="text" class="item-name" value="${item.name || ''}" placeholder="商品名称"></td>
+        <td><input type="text" class="item-model" value="${item.model || ''}" placeholder="型号"></td>
+        <td><input type="number" class="item-qty" value="${item.qty || 1}" min="1" onchange="calcItemAmount(this)"></td>
+        <td><input type="text" class="item-unit" value="${item.unit || '件'}" style="width:50px;"></td>
+        <td><input type="number" class="item-price" value="${item.price || 0}" min="0" step="0.01" onchange="calcItemAmount(this)"></td>
+        <td class="item-subtotal">¥0.00</td>
+        <td><button class="btn btn-sm btn-danger" onclick="removeItemRow(this)">×</button></td>
+      `;
+      tbody.appendChild(row);
+      calcItemAmount(row.querySelector('.item-qty'));
+    }
+
+    function removeItemRow(btn) {
+      btn.closest('tr').remove();
+      recalcRowNumbers();
+      calcTotalAmount();
+    }
+
+    function recalcRowNumbers() {
+      const rows = document.querySelectorAll('#purchase-items-tbody tr');
+      rows.forEach((row, i) => {
+        row.querySelector('td:first-child').textContent = i + 1;
+      });
+      itemRowIndex = rows.length;
+    }
+
+    function calcItemAmount(input) {
+      const row = input.closest('tr');
+      const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+      const price = parseFloat(row.querySelector('.item-price').value) || 0;
+      const subtotal = qty * price;
+      row.querySelector('.item-subtotal').textContent = '¥' + subtotal.toFixed(2);
+      calcTotalAmount();
+    }
+
+    function calcTotalAmount() {
+      const subtotals = document.querySelectorAll('.item-subtotal');
+      let total = 0;
+      subtotals.forEach(st => {
+        const val = parseFloat(st.textContent.replace('¥', '')) || 0;
+        total += val;
+      });
+      document.getElementById('purchase-total-amount').textContent = '¥' + total.toFixed(2);
+      return total;
+    }
+
+    function getFormData() {
+      const items = [];
+      document.querySelectorAll('#purchase-items-tbody tr').forEach(row => {
+        items.push({
+          name: row.querySelector('.item-name').value,
+          model: row.querySelector('.item-model').value,
+          qty: parseFloat(row.querySelector('.item-qty').value) || 0,
+          unit: row.querySelector('.item-unit').value,
+          price: parseFloat(row.querySelector('.item-price').value) || 0
+        });
+      });
+
+      return {
+        id: document.getElementById('purchase-id').value || 'PO' + Date.now(),
+        purchase_no: document.getElementById('purchase-no').value,
+        supplier: document.getElementById('supplier-name').value,
+        contact: document.getElementById('supplier-contact').value,
+        phone: document.getElementById('supplier-phone').value,
+        purchase_date: document.getElementById('purchase-date').value,
+        expected_date: document.getElementById('expected-date').value,
+        address: document.getElementById('supplier-address').value,
+        remark: document.getElementById('purchase-remark').value,
+        amount: calcTotalAmount(),
+        items: items,
+        status: document.getElementById('purchase-id').value ? undefined : 'pending'
+      };
+    }
+
+    async function savePurchaseOrder() {
+      const data = getFormData();
+      if (!data.supplier) {
+        alert('请输入供应商名称');
+        return;
+      }
+      if (!data.date) {
+        alert('请选择进货日期');
+        return;
+      }
+
+      try {
+        data.user_id = localStorage.getItem('userId') || '';
+        const response = await fetch('/api/purchase-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+          closePurchaseModal();
+          loadPurchaseOrders();
+          alert('保存成功！');
+        } else {
+          alert(result.message || '保存失败');
+        }
+      } catch (e) {
+        alert('保存失败: ' + e.message);
+      }
+    }
+
+    async function saveAndNewPurchaseOrder() {
+      await savePurchaseOrder();
+      openPurchaseModal();
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+      loadPurchaseOrders();
+    }
+
+    function clearFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterSupplier').value = '';
+      document.getElementById('filterDateFrom').value = '';
+      document.getElementById('filterDateTo').value = '';
+      loadPurchaseOrders();
+    }
+
+    async function loadPurchaseOrders() {
+      try {
+        const userId = localStorage.getItem('userId') || '';
+        const response = await fetch(`/api/purchase-orders?userId=${userId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          purchaseOrders = result.data || [];
+        } else {
+          purchaseOrders = [];
+          console.error('Failed to load:', result.message);
+        }
+      } catch (e) {
+        purchaseOrders = [];
+        console.error('Load error:', e);
+      }
+
+      // Update stats
+      document.getElementById('statTotal').textContent = purchaseOrders.length;
+      document.getElementById('statPending').textContent = purchaseOrders.filter(o => o.status === 'pending').length;
+      document.getElementById('statCompleted').textContent = purchaseOrders.filter(o => o.status === 'completed').length;
+      document.getElementById('statCancelled').textContent = purchaseOrders.filter(o => o.status === 'cancelled').length;
+
+      const totalAmount = purchaseOrders.reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
+      document.getElementById('statAmount').textContent = '¥' + totalAmount.toFixed(2);
+
+      // Update supplier filter
+      const suppliers = [...new Set(purchaseOrders.map(o => o.supplier))];
+      const supplierSelect = document.getElementById('filterSupplier');
+      supplierSelect.innerHTML = '<option value="">全部供应商</option>';
+      suppliers.forEach(s => {
+        supplierSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      });
+
+      // Filter and render
+      let filtered = purchaseOrders;
+
+      if (currentTab !== 'all') {
+        filtered = filtered.filter(o => o.status === currentTab);
+      }
+
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      if (search) {
+        filtered = filtered.filter(o =>
+          (o.purchase_no || '').toLowerCase().includes(search) ||
+          (o.supplier || '').toLowerCase().includes(search)
+        );
+      }
+
+      const supplierFilter = document.getElementById('filterSupplier').value;
+      if (supplierFilter) {
+        filtered = filtered.filter(o => o.supplier === supplierFilter);
+      }
+
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+      if (dateFrom) {
+        filtered = filtered.filter(o => (o.purchase_date || '') >= dateFrom);
+      }
+      if (dateTo) {
+        filtered = filtered.filter(o => (o.purchase_date || '') <= dateTo);
+      }
+
+      const tbody = document.getElementById('purchaseTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;padding:30px;">暂无数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(order => {
+        const statusMap = {
+          'pending': { text: '待入库', class: 'status-pending' },
+          'completed': { text: '已完成', class: 'status-purchased' },
+          'cancelled': { text: '已取消', class: 'status-cancelled' }
+        };
+        const status = statusMap[order.status] || statusMap['pending'];
+
+        return `
+          <tr>
+            <td class="purchase-note-no" onclick="openPurchaseModal('${order.id}')">${order.purchase_no}</td>
+            <td>${order.supplier}</td>
+            <td>${order.purchase_date}</td>
+            <td>¥${(parseFloat(order.amount) || 0).toFixed(2)}</td>
+            <td><span class="status-badge ${status.class}">${status.text}</span></td>
+            <td>系统</td>
+            <td>${order.remark || '-'}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="updateStatus('${order.id}', 'completed')">完成</button>
+              <button class="btn btn-sm btn-danger" onclick="updateStatus('${order.id}', 'cancelled')">取消</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        const response = await fetch('/api/purchase-orders/status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status })
+        });
+        const result = await response.json();
+        if (result.success) {
+          loadPurchaseOrders();
+        } else {
+          alert(result.message || '更新失败');
+        }
+      } catch (e) {
+        alert('更新失败: ' + e.message);
+      }
+    }
+
+    // Helper functions
+    function toggleSubmenu(a) {
+      const li = a.parentElement;
+      const submenu = li.querySelector('.submenu');
+      if (submenu) {
+        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+      }
+    }
+
+    function toggleMemberSubmenu(a) {
+      const li = a.parentElement;
+      const submenu = li.querySelector('.submenu');
+      if (submenu) {
+        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+      }
+    }
+
+    function showModule(module) {
+      alert('模块功能开发中: ' + module);
+    }
+
+    function checkLoginAndRedirect(page) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+      } else {
+        window.location.href = page;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      loadPurchaseOrders();
+    });
+  </script>
+</body>
+</html>

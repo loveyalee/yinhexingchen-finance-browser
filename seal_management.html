@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>电子印章管理 - 银河星辰财务专用浏览器</title>
+  <title>电子印章管理 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -19,112 +19,7 @@
       color: #333;
     }
     
-    /* 悬浮客服助手 */
-    .customer-service {
-      position: fixed;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 9999;
-    }
-    
-    .service-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s ease;
-      border: 2px solid white;
-    }
-    
-    .service-icon:hover {
-      transform: scale(1.1) translateY(0);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    .service-icon .icon {
-      font-size: 24px;
-      color: white;
-      margin-bottom: 2px;
-    }
-    
-    .service-icon .name {
-      font-size: 10px;
-      color: white;
-      font-weight: bold;
-    }
-    
-    .service-panel {
-      position: absolute;
-      right: 70px;
-      bottom: 0;
-      width: 300px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 20px;
-      display: none;
-    }
-    
-    .service-panel.active {
-      display: block;
-    }
-    
-    .service-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .service-header h3 {
-      margin: 0;
-      color: #1a2d42;
-    }
-    
-    .service-close {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: #95a5a6;
-    }
-    
-    .service-content {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .service-item {
-      padding: 12px;
-      border: 1px solid rgba(26, 95, 168, 0.10);
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    
-    .service-item:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .service-item h4 {
-      margin: 0 0 5px 0;
-      font-size: 14px;
-      color: #34495e;
-    }
-    
-    .service-item p {
-      margin: 0;
-      font-size: 12px;
-      color: #666;
-    }
+    /* 悬浮客服助手 - 由 xiaoya_service.js 动态创建 */
     
     .container {
       display: flex;
@@ -501,12 +396,74 @@
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
     ::-webkit-scrollbar-thumb { background: rgba(26,95,168,0.22); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(26,95,168,0.42); }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        order: -1;
+      }
+      
+      .sidebar .logo {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      
+      .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      
+      .nav-item {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 45%;
+      }
+      
+      .nav-item a {
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      
+      .main-content {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+    }
 </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="logo">银河星辰财务专用浏览器/div>
+      <div class="logo">银河星辰财务办公智能体/div>
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html">仪表/a></li>
         <li class="nav-item"><a href="finance_software.html">财务软件</a></li>
@@ -519,6 +476,7 @@
         <li class="nav-item"><a href="smart_assistant.html">蜻蜓助手</a></li>
         <li class="nav-item"><a href="risk_management.html">风险预警</a></li>
         <li class="nav-item"><a href="budget_management.html">预算管理</a></li>
+        <li class="nav-item"><a href="expense_reimbursement.html">费用报销</a></li>
         <li class="nav-item"><a href="finance_management.html">财务管理</a></li>
         <li class="nav-item"><a href="invoice_management.html">发票管理</a></li>
         <li class="nav-item"><a href="contract_management.html">合同管理</a></li>
@@ -704,38 +662,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- 悬浮客服助手 -->
-  <div class="customer-service">
-    <div class="service-icon" id="service-icon">
-      <div class="icon">💬</div>
-      <div class="name">小雅客服</div>
-    </div>
-    <div class="service-panel" id="service-panel">
-      <div class="service-header">
-        <h3>小雅客服</h3>
-        <button class="service-close" id="service-close">×</button>
-      </div>
-      <div class="service-content">
-        <div class="service-item">
-          <h4>在线咨询</h4>
-          <p>专业客服为您解答问题</p>
-        </div>
-        <div class="service-item">
-          <h4>技术支/h4>
-          <p>软件使用问题解决方案</p>
-        </div>
-        <div class="service-item">
-          <h4>产品咨询</h4>
-          <p>了解更多产品功能</p>
-        </div>
-        <div class="service-item">
-          <h4>意见反馈</h4>
-          <p>提交您的宝贵建议</p>
         </div>
       </div>
     </div>

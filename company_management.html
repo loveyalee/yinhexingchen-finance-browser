@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公司信息管理 - 银河星辰</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
+      color: white;
+      padding: 20px;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+      padding: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
+
+    .nav-menu {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 8px;
+    }
+
+    .nav-item a {
+      display: block;
+      padding: 10px 12px;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+      font-size: 14px;
+    }
+
+    .nav-item a:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-item a.active {
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-item.has-submenu {
+      position: relative;
+    }
+
+    .submenu {
+      list-style: none;
+      padding-left: 0;
+      display: none;
+      margin-top: 5px;
+    }
+
+    .nav-item.has-submenu.active > .submenu {
+      display: block;
+    }
+
+    .submenu-item {
+      margin-bottom: 4px;
+    }
+
+    .submenu-item a {
+      padding: 8px 20px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .submenu-item a:hover {
+      color: #fff;
+      background-color: rgba(255,255,255,0.1);
+    }
+
+    .submenu-item a.active {
+      background: rgba(200,146,26,0.3);
+      color: #fff;
+    }
+
+    .submenu-item.has-submenu {
+      position: relative;
+    }
+
+    .submenu-item.has-submenu .submenu {
+      display: none;
+      padding-left: 15px;
+    }
+
+    .submenu-item.has-submenu.active > .submenu {
+      display: block;
+    }
+
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+      flex: 1;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      color: #1a2332;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .card h3 {
+      font-size: 18px;
+      color: #1a2332;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #3a4654;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #388bfd;
+      outline: none;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a65b8, #124fa0);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #124fa0, #0d3a7a);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+      background: #e8e8e8;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #27ae60, #1e8449);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f39c12, #d68910);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #3a4654;
+    }
+
+    tr:hover {
+      background: #f5f8ff;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 40px 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .search-suggestions.show {
+      display: block;
+    }
+
+    .suggestion-item {
+      padding: 12px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .suggestion-item:hover {
+      background: #f5f8ff;
+    }
+
+    .suggestion-item .name {
+      font-weight: 600;
+      color: #1a2332;
+    }
+
+    .suggestion-item .credit-code {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .suggestion-item .legal-person {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .empty-text {
+      text-align: center;
+      color: #888;
+      padding: 20px;
+    }
+
+    /* Toast 提示 */
+    #toast-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a65b8;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      z-index: 10001;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: opacity 0.3s;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 60px;
+        padding: 10px;
+      }
+
+      .logo {
+        font-size: 12px;
+        padding: 5px;
+      }
+
+      .nav-item a {
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      .main-content {
+        margin-left: 60px;
+        padding: 15px;
+      }
+
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo">银河星辰财务专用办公智能体</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html" onclick="event.stopPropagation();">财务记账</a></li>
+            <li class="submenu-item"><a href="inventory_management.html" onclick="event.stopPropagation();">进销存</a></li>
+            <li class="submenu-item"><a href="data_analysis.html" onclick="event.stopPropagation();">数据分析</a></li>
+            <li class="submenu-item"><a href="risk_management.html" onclick="event.stopPropagation();">风险预警</a></li>
+            <li class="submenu-item"><a href="budget_management.html" onclick="event.stopPropagation();">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html" onclick="event.stopPropagation();">费用报销</a></li>
+            <li class="submenu-item"><a href="audit_zone.html" onclick="event.stopPropagation();">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html" onclick="event.stopPropagation();">财务BP</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html" onclick="event.stopPropagation();">一键报税</a></li>
+            <li class="submenu-item"><a href="invoice_management.html" onclick="event.stopPropagation();">发票管理</a></li>
+            <li class="submenu-item"><a href="tax_zone.html" onclick="event.stopPropagation();">税务筹划</a></li>
+            <li class="submenu-item"><a href="tax_zone.html" onclick="event.stopPropagation();">税务咨询</a></li>
+            <li class="submenu-item"><a href="tax_zone.html" onclick="event.stopPropagation();">税务风险</a></li>
+            <li class="submenu-item"><a href="tax_zone.html" onclick="event.stopPropagation();">股权转让</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu active">
+          <a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="company_management.html" class="active" onclick="event.stopPropagation();">公司管理</a></li>
+            <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">企业管理</a></li>
+            <li class="submenu-item"><a href="contract_management.html" onclick="event.stopPropagation();">合同管理</a></li>
+            <li class="submenu-item"><a href="seal_management.html" onclick="event.stopPropagation();">印章管理</a></li>
+            <li class="submenu-item has-submenu">
+              <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">银行贷款</a></li>
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">股权融资</a></li>
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">债券融资</a></li>
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">融资租赁</a></li>
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">政府扶持</a></li>
+                <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">自助服务</a></li>
+              </ul>
+            </li>
+            <li class="submenu-item"><a href="enterprise_management.html" onclick="event.stopPropagation();">招投标管理</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务快聘</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_jobs.html?tab=job-seeker" onclick="event.stopPropagation();">财务快聘·个人求职</a></li>
+            <li class="submenu-item"><a href="finance_jobs.html?tab=company-recruit" onclick="event.stopPropagation();">财务快聘·企业招聘</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="finance_academy.html" onclick="event.stopPropagation();">财会学堂</a></li>
+        <li class="nav-item"><a href="templates_tools.html" onclick="event.stopPropagation();">模板专区</a></li>
+        <li class="nav-item"><a href="online_store.html" onclick="event.stopPropagation();">在线商城</a></li>
+        <li class="nav-item"><a href="cloud_chat.html" onclick="event.stopPropagation();">个人云盘</a></li>
+        <li class="nav-item"><a href="smart_assistant.html" onclick="event.stopPropagation();">蜻蜓助手</a></li>
+        <li class="nav-item"><a href="forum.html" onclick="event.stopPropagation();">会计论坛</a></li>
+        <li class="nav-item"><a href="paid_qa.html" onclick="event.stopPropagation();">付费问答</a></li>
+        <li class="nav-item"><a href="news.html" onclick="event.stopPropagation();">行业头条</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleMemberSubmenu(this); return false;">我的会员</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="member.html" onclick="event.stopPropagation();">个人中心</a></li>
+            <li class="submenu-item"><a href="#" onclick="handleLogout(); event.stopPropagation(); return false;">退出登陆</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="main-content">
+      <div class="header">
+        <h1>公司信息管理</h1>
+        <div>
+          <a href="enterprise_management.html" class="btn btn-secondary">返回公司列表</a>
+        </div>
+      </div>
+
+      <!-- 公司基本信息表单 -->
+      <div class="card">
+        <h3>公司基本信息</h3>
+
+        <!-- 企业名称智能搜索 -->
+        <div class="form-group">
+          <label>公司名称（可搜索已有企业）</label>
+          <div class="search-box">
+            <input type="text" id="company-name" placeholder="输入公司名称搜索或手动填写" autocomplete="off">
+            <div class="search-suggestions" id="company-suggestions"></div>
+          </div>
+          <div id="company-search-status" style="font-size:12px;color:#888;margin-top:5px;"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>统一社会信用代码</label>
+            <input type="text" id="company-credit-code" placeholder="请输入统一社会信用代码">
+          </div>
+          <div class="form-group">
+            <label>法定代表人</label>
+            <input type="text" id="company-legal-person" placeholder="请输入法定代表人">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>注册资本（万元）</label>
+            <input type="text" id="company-capital" placeholder="请输入注册资本">
+          </div>
+          <div class="form-group">
+            <label>成立日期</label>
+            <input type="date" id="company-establish-date">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>注册地址</label>
+          <input type="text" id="company-address" placeholder="请输入注册地址">
+        </div>
+
+        <div class="form-group">
+          <label>经营范围</label>
+          <textarea id="company-business-scope" placeholder="请输入经营范围"></textarea>
+        </div>
+
+        <input type="hidden" id="company-id">
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveCompany()">保存公司信息</button>
+          <button class="btn btn-secondary" onclick="resetCompanyForm()">重置表单</button>
+        </div>
+      </div>
+
+      <!-- 公司列表 -->
+      <div class="card">
+        <h3 style="display:flex;justify-content:space-between;align-items:center;">
+          <span>已添加的公司</span>
+        </h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th id="company-switch-header" style="display:none;">切换</th>
+                <th>公司名称</th>
+                <th>统一社会信用代码</th>
+                <th>法定代表人</th>
+                <th>注册资本</th>
+                <th>成立日期</th>
+                <th>操作</th>
+                <th id="company-mode-header" style="display:none;">工作模式</th>
+              </tr>
+            </thead>
+            <tbody id="company-list-tbody">
+              <tr>
+                <td colspan="6" style="text-align:center;color:#888;">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== 菜单切换功能 ==========
+    window.toggleSubmenu = function(element) {
+      const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+      if (!navItem) return;
+
+      const isActive = navItem.classList.contains('active');
+
+      // 如果是主菜单项，关闭同级其他已展开的菜单
+      if (navItem.classList.contains('nav-item')) {
+        const parent = navItem.closest('ul');
+        if (parent) {
+          parent.querySelectorAll(':scope > .nav-item.has-submenu.active').forEach(function(item) {
+            if (item !== navItem) item.classList.remove('active');
+          });
+        }
+      }
+
+      // 切换当前菜单
+      navItem.classList.toggle('active', !isActive);
+    };
+
+    window.toggleMemberSubmenu = function(element) {
+      toggleSubmenu(element);
+    };
+
+    window.handleLogout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('currentUserDb');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userProfile');
+        localStorage.removeItem('userWallet');
+        localStorage.removeItem('userTransactions');
+        localStorage.removeItem('currentWorkingCompanyId');
+        localStorage.removeItem('currentWorkingCompanyName');
+        window.location.href = 'login.html';
+      }
+    };
+
+    // ========== 公司管理功能 ==========
+    let currentWorkingCompanyId = localStorage.getItem('currentWorkingCompanyId') || null;
+    let companySearchTimer = null;
+    let selectedCompanyData = null;
+
+    // 加载公司列表
+    function loadCompanyList() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const isPersonalUser = userInfo.userType === 'personal' || userInfo.user_type === 'personal';
+
+      // 显示/隐藏个人用户的额外列
+      const switchHeader = document.getElementById('company-switch-header');
+      const modeHeader = document.getElementById('company-mode-header');
+      if (isPersonalUser) {
+        switchHeader.style.display = '';
+        modeHeader.style.display = '';
+      } else {
+        switchHeader.style.display = 'none';
+        modeHeader.style.display = 'none';
+      }
+
+      fetch('/api/company/list')
+        .then(resp => resp.json())
+        .then(result => {
+          const tbody = document.getElementById('company-list-tbody');
+          if (result.success && result.data && result.data.length > 0) {
+            let html = '';
+            result.data.forEach(company => {
+              const capitalDisplay = company.registered_capital || '-';
+              const isCurrentCompany = currentWorkingCompanyId == company.id;
+
+              html += `
+                <tr>
+                  ${isPersonalUser ? `<td>
+                    <button class="btn btn-sm ${isCurrentCompany ? 'btn-primary' : 'btn-secondary'}"
+                      onclick="switchWorkingCompany(${company.id}, '${company.name}')"
+                      title="切换到此公司工作">
+                      ${isCurrentCompany ? '✓ 当前' : '切换'}
+                    </button>
+                  </td>` : ''}
+                  <td>${company.name || '-'}</td>
+                  <td>${company.credit_code || '-'}</td>
+                  <td>${company.legal_person || '-'}</td>
+                  <td>${capitalDisplay}</td>
+                  <td>${company.establish_date || '-'}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-warning" onclick="editCompany(${company.id})">编辑</button>
+                      <button class="btn btn-sm btn-danger" onclick="deleteCompany(${company.id})">删除</button>
+                    </div>
+                  </td>
+                  ${isPersonalUser ? `<td>
+                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                      <input type="checkbox"
+                        onchange="setCompanyWorkMode(${company.id}, this.checked)"
+                        ${isCurrentCompany ? 'checked' : ''}
+                        style="width:16px;height:16px;">
+                      <span style="font-size:12px;color:#666;">仅此公司</span>
+                    </label>
+                  </td>` : ''}
+                </tr>
+              `;
+            });
+            tbody.innerHTML = html;
+          } else {
+            const colspan = isPersonalUser ? '8' : '7';
+            tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:#888;">暂无公司数据，请添加公司信息</td></tr>`;
+          }
+        })
+        .catch(error => {
+          console.error('加载公司列表失败:', error);
+          const colspan = isPersonalUser ? '8' : '7';
+          document.getElementById('company-list-tbody').innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:#e74c3c;">加载失败，请刷新重试</td></tr>`;
+        });
+    }
+
+    // 切换当前工作公司（个人用户）
+    function switchWorkingCompany(companyId, companyName) {
+      currentWorkingCompanyId = companyId;
+      localStorage.setItem('currentWorkingCompanyId', companyId);
+      localStorage.setItem('currentWorkingCompanyName', companyName);
+      loadCompanyList();
+      showToast(`已切换到公司：${companyName}`);
+    }
+
+    // 设置公司工作模式（个人用户）
+    function setCompanyWorkMode(companyId, enabled) {
+      if (enabled) {
+        currentWorkingCompanyId = companyId;
+        localStorage.setItem('currentWorkingCompanyId', companyId);
+        showToast('已设置为仅针对此公司工作模式');
+      } else {
+        currentWorkingCompanyId = null;
+        localStorage.removeItem('currentWorkingCompanyId');
+        localStorage.removeItem('currentWorkingCompanyName');
+        showToast('已取消公司工作模式限制');
+      }
+      loadCompanyList();
+    }
+
+    // 显示提示消息
+    function showToast(message) {
+      const existing = document.getElementById('toast-message');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'toast-message';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    // ========== 企业名称智能搜索 ==========
+    function initCompanySearch() {
+      const nameInput = document.getElementById('company-name');
+      const suggestionsDiv = document.getElementById('company-suggestions');
+      const statusDiv = document.getElementById('company-search-status');
+
+      nameInput.addEventListener('input', function() {
+        const keyword = this.value.trim();
+
+        if (companySearchTimer) {
+          clearTimeout(companySearchTimer);
+        }
+
+        selectedCompanyData = null;
+
+        if (keyword.length < 2) {
+          suggestionsDiv.classList.remove('show');
+          statusDiv.textContent = '';
+          return;
+        }
+
+        statusDiv.textContent = '正在搜索...';
+        statusDiv.style.color = '#388bfd';
+
+        companySearchTimer = setTimeout(() => {
+          searchCompany(keyword);
+        }, 500);
+      });
+
+      // 点击其他地方关闭下拉
+      document.addEventListener('click', function(e) {
+        if (!nameInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+          suggestionsDiv.classList.remove('show');
+        }
+      });
+    }
+
+    // 搜索企业
+    function searchCompany(keyword) {
+      const suggestionsDiv = document.getElementById('company-suggestions');
+      const statusDiv = document.getElementById('company-search-status');
+
+      fetch('/api/enterprise/search?keyword=' + encodeURIComponent(keyword))
+        .then(resp => resp.json())
+        .then(result => {
+          if (result.success && result.data && result.data.length > 0) {
+            statusDiv.textContent = '找到 ' + result.data.length + ' 个相关企业';
+            statusDiv.style.color = '#27ae60';
+            renderCompanySuggestions(result.data);
+          } else {
+            statusDiv.textContent = '未找到相关企业，可手动填写信息';
+            statusDiv.style.color = '#888';
+            suggestionsDiv.classList.remove('show');
+          }
+        })
+        .catch(err => {
+          statusDiv.textContent = '搜索失败：' + err.message;
+          statusDiv.style.color = '#e74c3c';
+          suggestionsDiv.classList.remove('show');
+        });
+    }
+
+    // 渲染企业搜索建议
+    function renderCompanySuggestions(companies) {
+      const suggestionsDiv = document.getElementById('company-suggestions');
+      let html = '';
+
+      companies.forEach((company, index) => {
+        html += `
+          <div class="suggestion-item" onclick="selectCompany(${index})">
+            <div class="name">${company.name}</div>
+            <div class="credit-code">统一社会信用代码：${company.creditCode}</div>
+            <div class="legal-person">法定代表人：${company.legalPerson || '-'}</div>
+          </div>
+        `;
+      });
+
+      suggestionsDiv.innerHTML = html;
+      suggestionsDiv.classList.add('show');
+      window.companySearchResults = companies;
+    }
+
+    // 选择企业
+    function selectCompany(index) {
+      const company = window.companySearchResults[index];
+      if (!company) return;
+
+      selectedCompanyData = company;
+
+      // 填充表单
+      document.getElementById('company-name').value = company.name;
+      document.getElementById('company-credit-code').value = company.creditCode || '';
+      document.getElementById('company-legal-person').value = company.legalPerson || '';
+
+      // 关闭下拉
+      document.getElementById('company-suggestions').classList.remove('show');
+
+      const statusDiv = document.getElementById('company-search-status');
+      statusDiv.textContent = '已选择：' + company.name;
+      statusDiv.style.color = '#27ae60';
+    }
+
+    // ========== 保存/编辑/删除公司 ==========
+    function saveCompany() {
+      const id = document.getElementById('company-id').value;
+      const name = document.getElementById('company-name').value.trim();
+      const creditCode = document.getElementById('company-credit-code').value.trim();
+      const legalPerson = document.getElementById('company-legal-person').value.trim();
+      const capital = document.getElementById('company-capital').value.trim();
+      const establishDate = document.getElementById('company-establish-date').value;
+      const address = document.getElementById('company-address').value.trim();
+      const businessScope = document.getElementById('company-business-scope').value.trim();
+
+      if (!name) {
+        alert('请输入公司名称');
+        return;
+      }
+
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const userId = userInfo.id || userInfo.phone;
+
+      const companyData = {
+        name: name,
+        credit_code: creditCode,
+        legal_person: legalPerson,
+        registered_capital: capital,
+        establish_date: establishDate,
+        address: address,
+        business_scope: businessScope,
+        user_id: userId
+      };
+
+      if (id) {
+        // 编辑
+        companyData.id = id;
+        fetch('/api/company/update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(companyData)
+        })
+        .then(resp => resp.json())
+        .then(result => {
+          if (result.success) {
+            showToast('公司信息已更新');
+            resetCompanyForm();
+            loadCompanyList();
+          } else {
+            alert('更新失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(err => {
+          alert('更新失败：' + err.message);
+        });
+      } else {
+        // 新增
+        fetch('/api/company/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(companyData)
+        })
+        .then(resp => resp.json())
+        .then(result => {
+          if (result.success) {
+            showToast('公司信息已保存');
+            resetCompanyForm();
+            loadCompanyList();
+          } else {
+            alert('保存失败：' + (result.message || '未知错误'));
+          }
+        })
+        .catch(err => {
+          alert('保存失败：' + err.message);
+        });
+      }
+    }
+
+    function editCompany(id) {
+      fetch('/api/company/list')
+        .then(resp => resp.json())
+        .then(result => {
+          if (result.success && result.data) {
+            const company = result.data.find(c => c.id === id);
+            if (company) {
+              document.getElementById('company-id').value = company.id;
+              document.getElementById('company-name').value = company.name || '';
+              document.getElementById('company-credit-code').value = company.credit_code || '';
+              document.getElementById('company-legal-person').value = company.legal_person || '';
+              document.getElementById('company-capital').value = company.registered_capital || '';
+              document.getElementById('company-establish-date').value = company.establish_date || '';
+              document.getElementById('company-address').value = company.address || '';
+              document.getElementById('company-business-scope').value = company.business_scope || '';
+
+              document.getElementById('company-search-status').textContent = '正在编辑：' + company.name;
+              document.getElementById('company-search-status').style.color = '#f39c12';
+
+              // 滚动到表单
+              document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        })
+        .catch(err => {
+          alert('获取公司信息失败：' + err.message);
+        });
+    }
+
+    function deleteCompany(id) {
+      if (!confirm('确定要删除此公司吗？')) return;
+
+      fetch('/api/company/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+      })
+      .then(resp => resp.json())
+      .then(result => {
+        if (result.success) {
+          showToast('公司已删除');
+          loadCompanyList();
+        } else {
+          alert('删除失败：' + (result.message || '未知错误'));
+        }
+      })
+      .catch(err => {
+        alert('删除失败：' + err.message);
+      });
+    }
+
+    function resetCompanyForm() {
+      document.getElementById('company-id').value = '';
+      document.getElementById('company-name').value = '';
+      document.getElementById('company-credit-code').value = '';
+      document.getElementById('company-legal-person').value = '';
+      document.getElementById('company-capital').value = '';
+      document.getElementById('company-establish-date').value = '';
+      document.getElementById('company-address').value = '';
+      document.getElementById('company-business-scope').value = '';
+      document.getElementById('company-search-status').textContent = '';
+      selectedCompanyData = null;
+    }
+
+    // ========== 页面初始化 ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      loadCompanyList();
+      initCompanySearch();
+    });
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none';">
-  <title>银河星辰会计核算 - 银河星辰财务专用浏览器</title>
+  <title>银河星辰会计核算 - 银河星辰财务办公智能体</title>
   <style>
     * {
       margin: 0;
@@ -699,6 +699,40 @@
     .acc-placeholder-icon { font-size: 48px; opacity: 0.5; }
     .acc-placeholder h3 { font-size: 16px; color: #4a6280; font-weight: 600; }
     .acc-placeholder p { font-size: 13px; }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 100vh;
+      }
+      
+      .top-bar, .content, .bottom-bar {
+        padding: 10px !important;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .sidebar {
+        width: 100% !important;
+        height: auto !important;
+        padding: 10px !important;
+      }
+      
+      table {
+        font-size: 11px !important;
+      }
+      
+      th, td {
+        padding: 6px 4px !important;
+      }
+      
+      .btn {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+      }
+    }
   </style>
 </head>
 <body>

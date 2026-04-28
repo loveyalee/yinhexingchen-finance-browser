@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>送货单测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+
+        /* 移动端适配 */
+        @media screen and (max-width: 768px) {
+            body { margin: 10px; }
+            .test-section { padding: 10px; margin: 15px 0; }
+            button { padding: 8px 12px; margin: 3px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>送货单测试工具</h1>
+    
+    <div class="test-section">
+        <h2>1. 检查localStorage</h2>
+        <button onclick="checkLocalStorage()">检查localStorage</button>
+        <div id="localStorageResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 测试获取送货单API</h2>
+        <button onclick="testApi()">测试API</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 强制设置用户ID</h2>
+        <p>如果localStorage中没有用户ID，点击下面的按钮设置：</p>
+        <button onclick="setUserId()">设置用户ID为 USER_1776900041357</button>
+        <div id="setUserIdResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 重新加载送货单</h2>
+        <button onclick="reloadPage()">刷新页面</button>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('localStorageResult');
+            
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                
+                let html = '<h3>LocalStorage内容：</h3>';
+                html += '<strong>userInfo:</strong><br>' + JSON.stringify(userInfo, null, 2) + '<br><br>';
+                html += '<strong>userProfile:</strong><br>' + JSON.stringify(userProfile, null, 2) + '<br><br>';
+                html += '<strong>当前用户ID:</strong> ' + getCurrentUserId();
+                
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function getCurrentUserId() {
+            try {
+                var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                if (userInfo.id) {
+                    return userInfo.id;
+                }
+                var profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                return profile.id || '';
+            } catch (e) {
+                return '';
+            }
+        }
+        
+        async function testApi() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                const userId = getCurrentUserId();
+                const response = await fetch('/api/delivery-notes?userId=' + encodeURIComponent(userId));
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="success">API调用成功！</div>' +
+                        '<h3>返回数据：</h3>' +
+                        '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">API调用失败：' + data.message + '</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function setUserId() {
+            const resultDiv = document.getElementById('setUserIdResult');
+            
+            try {
+                const userInfo = {
+                    id: 'USER_1776900041357',
+                    username: 'kaola',
+                    phone: '13873121186',
+                    user_type: 'enterprise',
+                    isLoggedIn: true
+                };
+                
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                resultDiv.innerHTML = '<div class="success">用户ID已设置为 USER_1776900041357</div>';
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+            }
+        }
+        
+        function reloadPage() {
+            window.location.reload();
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

@@ -939,7 +939,7 @@
             <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();">商品管理</a></li>
             <li class="submenu-item"><a href="supplier_management.html" onclick="event.stopPropagation();">供应商管理</a></li>
             <li class="submenu-item"><a href="purchase_order.html" onclick="event.stopPropagation();">进货单</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">库存管理</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -1088,7 +1088,7 @@
                 </div>
                 <div class="feature-item">
                   <h4><a href="finance_software.html" style="text-decoration: none; color: inherit;">软件集成</a></h4>
-                  <p>无缝集成进销存、会计核算等软件</p>
+                  <p>无缝集成库存管理、会计核算等软件</p>
                 </div>
                 <div class="feature-item">
                   <h4><a href="live_streaming.html" style="text-decoration: none; color: inherit;">直播课堂</a></h4>
@@ -1647,7 +1647,7 @@
         console.log('显示模块：', moduleName);
         // 根据模块名跳转到相应页面
         if (moduleName === 'inventory-management') {
-          // 进销存模块
+          // 库存管理模块
           window.location.href = 'inventory_management.html';
         } else if (moduleName.startsWith('tax-')) {
           // 税务专区模块

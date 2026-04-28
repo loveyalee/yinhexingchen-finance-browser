@@ -319,6 +319,25 @@ async function createMySQLTables() {
     try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN sensor_mode VARCHAR(50) DEFAULT ''`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN unit VARCHAR(20) DEFAULT '个'`); } catch(e) {}
 
+    // 供应商表
+    await conn.execute(`
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        contact VARCHAR(100) DEFAULT '',
+        phone VARCHAR(50) DEFAULT '',
+        product VARCHAR(255) DEFAULT '',
+        coop_type VARCHAR(50) DEFAULT '长期合作',
+        address VARCHAR(255) DEFAULT '',
+        remark TEXT,
+        create_time DATETIME NOT NULL,
+        update_time DATETIME NOT NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_name (name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     // 兼容旧表：按需添加新增字段
     try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_status VARCHAR(20) DEFAULT 'normal'`); } catch(e) {}
     try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_reason TEXT`); } catch(e) {}

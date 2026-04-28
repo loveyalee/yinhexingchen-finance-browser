@@ -1,0 +1,1 @@
+INSERT INTO accounts (id, user_id, name, industry, start_date, accounting_system, create_time, update_time, status, db_file) VALUES ('ACCT_1775832528371', 'USER_1776256489959', '湖南博闰金属回收有限公司', 'recycling_resource', '2025-01-01', 'small_enterprise', '2026-04-10T14:48:48.371Z', '2026-04-28T20:47:00.000Z', 'active', '/var/www/yinhexingchen/db/account_ACCT_1775832528371.db');

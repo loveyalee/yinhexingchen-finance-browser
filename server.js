@@ -4560,14 +4560,15 @@ if (!data.id) {
     const userId = parsedUrl.query.userId;
     if (mainDb) {
       try {
-        if (!userId) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: '缺少用户ID参数' }));
-          return;
-        }
-        let accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        let accounts = [];
         let repairedDbFiles = 0;
+        
+        // 未登录用户返回演示账套
+        if (!userId || userId === 'guest' || userId === 'demo') {
+          accounts = mainDb.prepare("SELECT * FROM accounts WHERE status = 'active' AND (name LIKE '%演示%' OR name LIKE '%北京银河星辰%') ORDER BY create_time DESC").all();
+        } else {
+          accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        }
         accounts = accounts.map(function(account) {
           const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
           if (normalizedDbFile !== account.db_file) {

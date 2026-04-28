@@ -310,6 +310,11 @@ window.addDeliveryItemRow = function(item) {
   if (!tbody) return;
 
   var rows = tbody.querySelectorAll('tr');
+  if (rows.length >= 10) {
+    alert('最多只能添加10行商品');
+    return;
+  }
+
   var rowIndex = rows.length + 1;
 
   var tr = document.createElement('tr');
@@ -431,6 +436,11 @@ window.addDeliveryItemRow = function(item) {
   removeButton.className = 'btn-remove-row';
   removeButton.textContent = '✕';
   removeButton.onclick = function() {
+    var rows = tbody.querySelectorAll('tr');
+    if (rows.length <= 1) {
+      alert('至少需要保留1行商品');
+      return;
+    }
     tr.remove();
     updateRowNumbers();
     updateDeliveryTotal();

@@ -296,6 +296,22 @@
       width: 36px;
     }
 
+    /* 商品明细滚动条样式 */
+    .items-scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .items-scroll-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+    .items-scroll-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .items-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
     .btn-remove-row {
       background: #fee2e2;
       color: #dc2626;
@@ -535,7 +551,7 @@
             <h3 style="font-size:15px;">商品明细</h3>
             <button type="button" class="btn btn-sm btn-success" onclick="addDeliveryItemRow()">+ 添加商品行</button>
           </div>
-          <div class="table-container" style="max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;">
+          <div class="table-container items-scroll-container" style="max-height:280px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;">
             <table class="items-table">
               <thead>
                 <tr>

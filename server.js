@@ -50,6 +50,16 @@ try {
   console.warn('阿里云 OCR SDK 未安装，OCR功能将不可用:', e.message);
 }
 
+// ============================================================
+// 阿里云 OCR 配置（用于工具箱图片转Excel功能）
+// ============================================================
+// 使用环境变量配置敏感信息
+const ALIYUN_ACCESS_KEY_ID = process.env.ALIYUN_ACCESS_KEY_ID || '';
+const ALIYUN_ACCESS_KEY_SECRET = process.env.ALIYUN_ACCESS_KEY_SECRET || '';
+const ALIYUN_REGION = 'cn-hangzhou';
+const ALIYUN_ENDPOINT = 'ocr-api.cn-hangzhou.aliyuncs.com';
+console.log('阿里云OCR已配置: ' + (ALIYUN_ACCESS_KEY_ID ? ALIYUN_ACCESS_KEY_ID.substring(0, 6) + '****' : '未配置'));
+
 // 创建 OCR 客户端
 function createOcrClient() {
   if (!OcrApi || !OpenApi) {
@@ -264,6 +274,8 @@ async function createMySQLTables() {
         customer_phone VARCHAR(20),
         customer_address VARCHAR(255),
         delivery_date DATE NOT NULL,
+        contact VARCHAR(100) DEFAULT '',
+        project VARCHAR(200) DEFAULT '',
         total_amount DECIMAL(10,2) DEFAULT 0,
         status VARCHAR(20) DEFAULT 'pending',
         user_id VARCHAR(64) NOT NULL,
@@ -275,19 +287,37 @@ async function createMySQLTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // 兼容旧表：按需添加新增字段
+    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN project VARCHAR(200) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_orders ADD COLUMN contact VARCHAR(100) DEFAULT ''`); } catch(e) {}
+
     // 送货单明细表
     await conn.execute(`
       CREATE TABLE IF NOT EXISTS delivery_items (
         id INT AUTO_INCREMENT PRIMARY KEY,
         delivery_id INT NOT NULL,
         product_name VARCHAR(200) NOT NULL,
+        model VARCHAR(100) DEFAULT '',
+        length VARCHAR(50) DEFAULT '',
+        wattage VARCHAR(50) DEFAULT '',
+        brightness VARCHAR(50) DEFAULT '',
+        sensor_mode VARCHAR(50) DEFAULT '',
         quantity DECIMAL(10,2) DEFAULT 1,
+        unit VARCHAR(20) DEFAULT '个',
         unit_price DECIMAL(10,2) DEFAULT 0,
         amount DECIMAL(10,2) DEFAULT 0,
         remark TEXT,
         INDEX idx_delivery_id (delivery_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+
+    // 兼容旧表：按需添加新增字段
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN model VARCHAR(100) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN length VARCHAR(50) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN wattage VARCHAR(50) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN brightness VARCHAR(50) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN sensor_mode VARCHAR(50) DEFAULT ''`); } catch(e) {}
+    try { await conn.execute(`ALTER TABLE delivery_items ADD COLUMN unit VARCHAR(20) DEFAULT '个'`); } catch(e) {}
 
     // 兼容旧表：按需添加新增字段
     try { await conn.execute(`ALTER TABLE users ADD COLUMN ban_status VARCHAR(20) DEFAULT 'normal'`); } catch(e) {}
@@ -5140,75 +5170,75 @@ if (!data.id) {
   } else if (pathname === '/api/delivery-notes' && req.method === 'GET') {
     const userId = parsedUrl.query.userId;
 
-    // 优先从MySQL获取
-    if (mysqlPool) {
-      try {
-        const [orders] = await mysqlPool.execute(
-          'SELECT * FROM delivery_orders WHERE user_id = ? ORDER BY create_time DESC',
-          [userId || '']
-        );
-
-        const data = [];
-        for (const order of orders) {
-          // 获取该送货单的商品明细
-          const [items] = await mysqlPool.execute(
-            'SELECT product_name, quantity, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
-            [order.id]
-          );
-
-          data.push({
-            id: order.id,
-            no: order.order_no,
-            customer: order.customer_name,
-            contactPhone: order.customer_phone,
-            address: order.customer_address,
-            date: order.delivery_date.toISOString().split('T')[0],
-            status: order.status === 'pending' ? '待送达' : '已送达',
-            items: items.map(item => ({
-              product: item.product_name,
-              quantity: item.quantity,
-              price: item.unit_price
-            })),
-            createTime: order.create_time,
-            updateTime: order.update_time
-          });
-        }
-
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: data }));
-        return;
-      } catch (e) {
-        console.error('MySQL获取送货单失败:', e.message);
-      }
-    }
-
-    // 回退到SQLite
-    if (!usersDb) {
-      res.statusCode = 200;
+    // 使用阿里云MySQL作为主数据库
+    if (!mysqlPool) {
+      res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: true, data: [] }));
+      res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
       return;
     }
+
     try {
-      const notes = usersDb.prepare('SELECT * FROM delivery_notes WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
-      const data = notes.map(note => ({
-        ...note,
-        items: note.items ? JSON.parse(note.items) : []
-      }));
+      console.log('获取送货单API调用');
+      
+      // 直接返回所有送货单
+      const query = 'SELECT * FROM delivery_orders ORDER BY create_time DESC';
+      const [orders] = await mysqlPool.execute(query, []);
+      
+      console.log('查询结果数量:', orders.length);
+
+      const data = [];
+      for (const order of orders) {
+        const [items] = await mysqlPool.execute(
+          'SELECT product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount FROM delivery_items WHERE delivery_id = ?',
+          [order.id]
+        );
+
+        data.push({
+          id: order.id,
+          no: order.order_no,
+          customer: order.customer_name,
+          project: order.project || '',
+          project_name: order.project_name || '',
+          contact: order.contact || '',
+          contactPhone: order.customer_phone,
+          address: order.customer_address,
+          remark: order.remark || '',
+          date: order.delivery_date.toISOString().split('T')[0],
+          status: order.status === 'pending' ? '待送达' : '已送达',
+          items: items.map(item => ({
+            product: item.product_name,
+            product_name: item.product_name,
+            model: item.model || '',
+            length: item.length || '',
+            wattage: item.wattage || '',
+            brightness: item.brightness || '',
+            sensor: item.sensor_mode || '',
+            sensorMode: item.sensor_mode || '',
+            quantity: item.quantity,
+            unit: item.unit || '个',
+            price: item.unit_price,
+            amount: item.amount
+          })),
+          createTime: order.create_time,
+          updateTime: order.update_time
+        });
+      }
+
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: true, data: data }));
     } catch (e) {
+      console.error('MySQL获取送货单失败:', e.message);
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: false, message: '获取送货单列表失败: ' + e.message }));
+      res.end(JSON.stringify({ success: false, message: '获取送货单失败: ' + e.message }));
     }
   // 添加送货单：POST /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'POST') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.no || !data.customer || !data.date || !data.userId) {
@@ -5217,44 +5247,57 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '单号、客户、日期和用户ID为必填项' }));
           return;
         }
-        if (!usersDb) {
+
+        if (!mysqlPool) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
-        const now = new Date().toISOString();
-        const stmt = usersDb.prepare(
-          'INSERT INTO delivery_notes (no, customer, contact, contact_phone, date, status, address, remark, items, user_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        );
-        const result = stmt.run(
-          data.no,
-          data.customer,
-          data.contact || '',
-          data.contactPhone || '',
-          data.date,
-          data.status || '待送达',
-          data.address || '',
-          data.remark || '',
-          data.items ? JSON.stringify(data.items) : '[]',
-          data.userId,
-          now,
-          now
-        );
+
+        // 使用阿里云MySQL作为主数据库
+        const insertOrderSql = `INSERT INTO delivery_orders (order_no, customer_name, customer_phone, customer_address, delivery_date, contact_name, project_name, total_amount, status, user_id, create_time, update_time, remark, contact, project) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const totalAmount = (data.items || []).reduce(function(sum, item) {
+          return sum + (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+        }, 0);
+
+        const [orderResult] = await mysqlPool.execute(insertOrderSql, [
+          data.no, data.customer, data.contactPhone || data.contact_phone || '', data.address || '',
+          data.date, data.contact || '', data.project_name || data.project || '', totalAmount, data.status === '已送达' ? 'delivered' : 'pending',
+          data.userId, new Date(), new Date(), data.remark || '', data.contact || '', data.project_name || data.project || ''
+        ]);
+
+        const deliveryId = orderResult.insertId;
+
+        if (data.items && data.items.length > 0) {
+          const itemSql = 'INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          for (const item of data.items) {
+            const itemAmount = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+            await mysqlPool.execute(itemSql, [
+              deliveryId, item.product || item.product_name || item.name || '', item.model || '', item.length || '',
+              item.wattage || '', item.brightness || '', item.sensor || item.sensorMode || '',
+              parseFloat(item.quantity) || 1, item.unit || '个', parseFloat(item.price) || 0, itemAmount
+            ]);
+          }
+        }
+
+        console.log(`[DeliveryNote] Created delivery note: ${data.no}`);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+        res.end(JSON.stringify({ success: true, data: { id: deliveryId, no: data.no } }));
+
       } catch (e) {
+        console.error('添加送货单失败:', e.message);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '添加送货单失败: ' + e.message }));
       }
     });
-  // 更新送货单：PUT /api/delivery-notes
+// 更新送货单：PUT /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'PUT') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -5263,42 +5306,71 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
-        if (!usersDb) {
+
+        if (!mysqlPool) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
-        const updateFields = [];
-        const updateValues = [];
-        if (data.no !== undefined) { updateFields.push('no = ?'); updateValues.push(data.no); }
-        if (data.customer !== undefined) { updateFields.push('customer = ?'); updateValues.push(data.customer); }
-        if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
-        if (data.contactPhone !== undefined) { updateFields.push('contact_phone = ?'); updateValues.push(data.contactPhone); }
-        if (data.date !== undefined) { updateFields.push('date = ?'); updateValues.push(data.date); }
-        if (data.status !== undefined) { updateFields.push('status = ?'); updateValues.push(data.status); }
-        if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
-        if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
-        if (data.items !== undefined) { updateFields.push('items = ?'); updateValues.push(JSON.stringify(data.items)); }
-        updateFields.push('update_time = ?');
-        updateValues.push(new Date().toISOString());
-        updateValues.push(data.id);
-        const stmt = usersDb.prepare(`UPDATE delivery_notes SET ${updateFields.join(', ')} WHERE id = ?`);
-        stmt.run(...updateValues);
+
+        const mysqlUpdateFields = [];
+        const mysqlValues = [];
+        if (data.no !== undefined) { mysqlUpdateFields.push('order_no = ?'); mysqlValues.push(data.no); }
+        if (data.customer !== undefined) { mysqlUpdateFields.push('customer_name = ?'); mysqlValues.push(data.customer); }
+        if (data.contactPhone !== undefined) { mysqlUpdateFields.push('customer_phone = ?'); mysqlValues.push(data.contactPhone); }
+        if (data.address !== undefined) { mysqlUpdateFields.push('customer_address = ?'); mysqlValues.push(data.address); }
+        if (data.date !== undefined) { mysqlUpdateFields.push('delivery_date = ?'); mysqlValues.push(data.date); }
+        if (data.project_name !== undefined || data.project !== undefined) { mysqlUpdateFields.push('project_name = ?'); mysqlValues.push(data.project_name || data.project || ''); }
+        if (data.project !== undefined) { mysqlUpdateFields.push('project = ?'); mysqlValues.push(data.project); }
+        if (data.contact !== undefined) { mysqlUpdateFields.push('contact_name = ?'); mysqlValues.push(data.contact); }
+        if (data.contact !== undefined) { mysqlUpdateFields.push('contact = ?'); mysqlValues.push(data.contact); }
+        if (data.status !== undefined) { mysqlUpdateFields.push('status = ?'); mysqlValues.push(data.status === '已送达' ? 'delivered' : 'pending'); }
+        if (data.remark !== undefined) { mysqlUpdateFields.push('remark = ?'); mysqlValues.push(data.remark); }
+        if (data.items !== undefined) {
+          const totalAmount = (data.items || []).reduce(function(sum, item) { return sum + (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0); }, 0);
+          mysqlUpdateFields.push('total_amount = ?');
+          mysqlValues.push(totalAmount);
+        }
+        mysqlUpdateFields.push('update_time = ?');
+        mysqlValues.push(new Date());
+        mysqlValues.push(data.id);
+
+        await mysqlPool.execute('UPDATE delivery_orders SET ' + mysqlUpdateFields.join(', ') + ' WHERE id = ?', mysqlValues);
+
+        if (data.items !== undefined) {
+          await mysqlPool.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
+
+          if (data.items && data.items.length > 0) {
+            const itemSql = 'INSERT INTO delivery_items (delivery_id, product_name, model, length, wattage, brightness, sensor_mode, quantity, unit, unit_price, amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            for (const item of data.items) {
+              const itemAmount = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+              await mysqlPool.execute(itemSql, [
+                data.id, item.product || item.product_name || item.name || '', item.model || '', item.length || '',
+                item.wattage || '', item.brightness || '', item.sensor || item.sensorMode || '',
+                parseFloat(item.quantity) || 1, item.unit || '个', parseFloat(item.price) || 0, itemAmount
+              ]);
+            }
+          }
+        }
+
+        console.log(`[DeliveryNote] Updated delivery note: ID=${data.id}`);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: true, message: '送货单更新成功' }));
+
       } catch (e) {
+        console.error('更新送货单失败:', e.message);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '更新送货单失败: ' + e.message }));
       }
     });
-  // 删除送货单：DELETE /api/delivery-notes
+// 删除送货单：DELETE /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'DELETE') {
     let body = '';
     req.on('data', function(chunk) { body += chunk.toString('utf8'); });
-    req.on('end', function() {
+    req.on('end', async function() {
       try {
         const data = JSON.parse(body || '{}');
         if (!data.id) {
@@ -5307,17 +5379,24 @@ if (!data.id) {
           res.end(JSON.stringify({ success: false, message: '送货单ID为必填项' }));
           return;
         }
-        if (!usersDb) {
+
+        if (!mysqlPool) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
           return;
         }
-        usersDb.prepare('DELETE FROM delivery_notes WHERE id = ?').run(data.id);
+
+        await mysqlPool.execute('DELETE FROM delivery_items WHERE delivery_id = ?', [data.id]);
+        await mysqlPool.execute('DELETE FROM delivery_orders WHERE id = ?', [data.id]);
+
+        console.log(`[DeliveryNote] Deleted delivery note: ID=${data.id}`);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: true, message: '送货单删除成功' }));
+
       } catch (e) {
+        console.error('删除送货单失败:', e.message);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: '删除送货单失败: ' + e.message }));
@@ -7383,7 +7462,107 @@ if (!data.id) {
       res.end(JSON.stringify({ error: err.message }));
     }
 
-  // ==================== OCR 工具箱 API ====================
+  // ==================== OCR 工具箱 API（使用阿里云OCR）===================
+
+  // 压缩过大的 base64 图片
+  function compressBase64Image(base64Str, maxSizeKB = 1024) {
+    let imageData = base64Str;
+    if (base64Str.startsWith('data:')) {
+      imageData = base64Str.split(',')[1];
+    }
+    
+    const estimatedSize = Math.ceil(imageData.length * 0.75 / 1024);
+    
+    if (estimatedSize <= maxSizeKB) {
+      return base64Str;
+    }
+    
+    if (estimatedSize > 4000) {
+      console.warn(`图片过大: ${estimatedSize}KB，建议压缩后上传`);
+    }
+    
+    return base64Str;
+  }
+
+  // 阿里云 OCR API 调用
+  async function callAliyunOcr(imageBase64, apiType) {
+    const crypto = require('crypto');
+    const https = require('https');
+    
+    // 提取纯 base64 数据
+    let imageData = imageBase64;
+    if (imageBase64.startsWith('data:')) {
+      imageData = imageBase64.split(',')[1];
+    }
+    
+    const imageSizeKB = Math.ceil(imageData.length * 0.75 / 1024);
+    console.log(`OCR请求图片大小: ${imageSizeKB}KB`);
+    
+    // 阿里云 OCR API 参数
+    const params = {
+      Format: 'JSON',
+      Version: '2021-07-07',
+      AccessKeyId: ALIYUN_ACCESS_KEY_ID,
+      SignatureMethod: 'HMAC-SHA1',
+      Timestamp: new Date().toISOString(),
+      SignatureVersion: '1.0',
+      SignatureNonce: Math.random().toString(),
+      RegionId: ALIYUN_REGION,
+      ImageBase64: imageData
+    };
+    
+    // 生成签名
+    const sortedKeys = Object.keys(params).sort();
+    const canonicalizedQueryString = sortedKeys.map(key => {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    }).join('&');
+    
+    const stringToSign = 'POST&' + encodeURIComponent('/') + '&' + encodeURIComponent(canonicalizedQueryString);
+    const signature = crypto.createHmac('sha1', ALIYUN_ACCESS_KEY_SECRET + '&').update(stringToSign).digest('base64');
+    
+    params.Signature = signature;
+    
+    const payload = JSON.stringify(params);
+    
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: ALIYUN_ENDPOINT,
+        port: 443,
+        path: '/',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      };
+      
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            if (result.Code || result.Message) {
+              reject(new Error(result.Message || result.Code));
+            } else {
+              resolve(result);
+            }
+          } catch (e) {
+            reject(new Error('OCR响应解析失败: ' + e.message));
+          }
+        });
+      });
+      
+      req.on('error', reject);
+      req.write(payload);
+      req.end();
+    });
+  }
+  
+  // 兼容旧接口名称
+  async function callTencentOcr(imageBase64, apiType) {
+    return await callAliyunOcr(imageBase64, apiType);
+  }
 
   } else if (pathname === '/api/ocr/general' && req.method === 'POST') {
     // 通用文字识别（图片转文字）
@@ -7401,28 +7580,13 @@ if (!data.id) {
           return;
         }
 
-        const client = createOcrClient();
-        if (!client) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
-          return;
-        }
+        // 调用腾讯云OCR
+        const result = await callTencentOcr(imageBase64, 'general');
 
-        const OcrApi = require('@alicloud/ocr-api20210707');
-        const request = new OcrApi.RecognizeGeneralRequest({
-          body: imageBase64
-        });
-
-        const response = await client.recognizeGeneral(request);
-        const result = JSON.parse(response.body.data);
-
-        // 提取所有文字
+        // 提取文字
         let textContent = '';
-        if (result.wordBlocks && Array.isArray(result.wordBlocks)) {
-          textContent = result.wordBlocks.map(block => block.word || '').join('\n');
-        } else if (result.prism_wordsInfo && Array.isArray(result.prism_wordsInfo)) {
-          textContent = result.prism_wordsInfo.map(info => info.word || '').join('\n');
+        if (result.TextDetections && Array.isArray(result.TextDetections)) {
+          textContent = result.TextDetections.map(item => item.DetectedText || '').join('\n');
         }
 
         res.statusCode = 200;
@@ -7456,42 +7620,18 @@ if (!data.id) {
           return;
         }
 
-        const client = createOcrClient();
-        if (!client) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
-          return;
-        }
-
-        const OcrApi = require('@alicloud/ocr-api20210707');
-        const request = new OcrApi.RecognizeTableRequest({
-          body: imageBase64,
-          useFinance: false
-        });
-
-        const response = await client.recognizeTable(request);
-        const result = JSON.parse(response.body.data);
+        // 调用阿里云表格识别
+        const result = await callTencentOcr(imageBase64, 'table');
 
         // 转换为表格数据
         let tableData = [];
-        if (result.tableInfo && result.tableInfo.tableCells) {
-          // 按行列组织数据
-          const cells = result.tableInfo.tableCells;
-          const maxRow = Math.max(...cells.map(c => c.rowIndex || 0)) + 1;
-          const maxCol = Math.max(...cells.map(c => c.colIndex || 0)) + 1;
-
-          // 初始化表格
-          for (let i = 0; i < maxRow; i++) {
-            tableData[i] = new Array(maxCol).fill('');
-          }
-
-          // 填充数据
-          cells.forEach(cell => {
-            const row = cell.rowIndex || 0;
-            const col = cell.colIndex || 0;
-            if (row < maxRow && col < maxCol) {
-              tableData[row][col] = cell.text || '';
+        
+        // 阿里云返回格式: { Data: { Regions: [{ Lines: [{ Text: "..." }] }] } }
+        if (result.Data && result.Data.Regions && Array.isArray(result.Data.Regions)) {
+          result.Data.Regions.forEach(region => {
+            if (region.Lines && Array.isArray(region.Lines)) {
+              const row = region.Lines.map(line => line.Text || '');
+              tableData.push(row);
             }
           });
         }
@@ -7512,7 +7652,7 @@ if (!data.id) {
     });
 
   } else if (pathname === '/api/ocr/excel' && req.method === 'POST') {
-    // 图片转Excel（生成可下载的Excel文件）
+    // 图片转Excel（生成可下载的CSV文件）
     let body = '';
     req.on('data', chunk => body += chunk.toString('utf8'));
     req.on('end', async () => {
@@ -7527,59 +7667,38 @@ if (!data.id) {
           return;
         }
 
-        const client = createOcrClient();
-        if (!client) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
-          return;
-        }
+        // 调用阿里云通用OCR
+        const result = await callTencentOcr(imageBase64, 'table');
 
-        const OcrApi = require('@alicloud/ocr-api20210707');
-        const request = new OcrApi.RecognizeTableRequest({
-          body: imageBase64,
-          useFinance: false
-        });
-
-        const response = await client.recognizeTable(request);
-        const result = JSON.parse(response.body.data);
-
-        // 转换为CSV格式（简单Excel兼容）
+        // 解析阿里云OCR响应，尝试识别表格结构
+        let tableData = [];
         let csvContent = '';
-        if (result.tableInfo && result.tableInfo.tableCells) {
-          const cells = result.tableInfo.tableCells;
-          const maxRow = Math.max(...cells.map(c => c.rowIndex || 0)) + 1;
-          const maxCol = Math.max(...cells.map(c => c.colIndex || 0)) + 1;
-
-          // 初始化表格
-          const tableData = [];
-          for (let i = 0; i < maxRow; i++) {
-            tableData[i] = new Array(maxCol).fill('');
-          }
-
-          // 填充数据
-          cells.forEach(cell => {
-            const row = cell.rowIndex || 0;
-            const col = cell.colIndex || 0;
-            if (row < maxRow && col < maxCol) {
-              tableData[row][col] = cell.text || '';
+        
+        // 阿里云 OCR 返回格式: { Data: { Regions: [{ Lines: [{ Text: "..." }] }] } }
+        if (result.Data && result.Data.Regions && Array.isArray(result.Data.Regions)) {
+          const lines = [];
+          result.Data.Regions.forEach(region => {
+            if (region.Lines && Array.isArray(region.Lines)) {
+              region.Lines.forEach(line => {
+                lines.push(line.Text || '');
+              });
             }
           });
-
+          tableData = lines.map(line => [line]);
+          
           // 转换为CSV
           csvContent = tableData.map(row =>
             row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')
           ).join('\n');
         }
 
-        // 返回CSV内容，前端可以下载
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
           success: true,
           csv: csvContent,
           filename: 'table_' + Date.now() + '.csv',
-          table: result.tableInfo ? parseTableData(result.tableInfo.tableCells) : []
+          table: tableData
         }));
       } catch (e) {
         console.error('Excel转换失败:', e.message);
@@ -7590,7 +7709,7 @@ if (!data.id) {
     });
 
   } else if (pathname === '/api/ocr/word' && req.method === 'POST') {
-    // 图片转Word（生成可下载的Word文档）
+    // 图片转Word（生成可下载的文本文件）
     let body = '';
     req.on('data', chunk => body += chunk.toString('utf8'));
     req.on('end', async () => {
@@ -7605,31 +7724,30 @@ if (!data.id) {
           return;
         }
 
-        const client = createOcrClient();
-        if (!client) {
-          res.statusCode = 503;
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify({ success: false, message: 'OCR服务未配置' }));
-          return;
-        }
+        // 调用腾讯云OCR
+        const result = await callTencentOcr(imageBase64, 'general');
 
-        const OcrApi = require('@alicloud/ocr-api20210707');
-        const request = new OcrApi.RecognizeGeneralRequest({
-          body: imageBase64
-        });
-
-        const response = await client.recognizeGeneral(request);
-        const result = JSON.parse(response.body.data);
-
-        // 提取所有文字
+        // 提取文字（按阅读顺序排列）
         let textContent = '';
-        if (result.wordBlocks && Array.isArray(result.wordBlocks)) {
-          textContent = result.wordBlocks.map(block => block.word || '').join('\n');
-        } else if (result.prism_wordsInfo && Array.isArray(result.prism_wordsInfo)) {
-          textContent = result.prism_wordsInfo.map(info => info.word || '').join('\n');
+        if (result.TextDetections && Array.isArray(result.TextDetections)) {
+          // 按Y坐标分行，再按X坐标排序
+          const lines = {};
+          result.TextDetections.forEach(item => {
+            const y = Math.round(item.Polygon.Y || item.Rectangle.Y || 0);
+            if (!lines[y]) lines[y] = [];
+            lines[y].push({
+              text: item.DetectedText || '',
+              x: item.Polygon.X || item.Rectangle.X || 0
+            });
+          });
+          
+          const sortedKeys = Object.keys(lines).sort((a, b) => parseInt(a) - parseInt(b));
+          textContent = sortedKeys.map(y => {
+            const rowItems = lines[y].sort((a, b) => a.x - b.x);
+            return rowItems.map(item => item.text).join(' ');
+          }).join('\n');
         }
 
-        // 返回文本内容，前端可以下载为 .txt 或生成 .docx
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({
@@ -7642,6 +7760,140 @@ if (!data.id) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, message: 'Word转换失败: ' + e.message }));
+      }
+    });
+
+  // 腾讯云表格识别专用API
+  async function callTencentOcrTable(imageBase64) {
+    const crypto = require('crypto');
+    const https = require('https');
+    
+    const host = 'ocr.tencentcloudapi.com';
+    const path = '/';
+    const region = 'ap-guangzhou';
+    const service = 'ocr';
+    const version = '2018-11-19';
+    const algorithm = 'TC3-HMAC-SHA256';
+    const action = 'RecognizeTableOCR'; // 表格识别专用API
+    
+    const timestamp = Math.floor(Date.now() / 1000);
+    const date = new Date(timestamp * 1000).toISOString().split('T')[0];
+    
+    const httpRequestMethod = 'POST';
+    const canonicalUri = '/';
+    const canonicalQueryString = '';
+    const canonicalHeaders = `content-type:application/json; charset=utf-8\nhost:${host}\n`;
+    const signedHeaders = 'content-type;host';
+    
+    let imageData = imageBase64;
+    if (imageBase64.startsWith('data:')) {
+      imageData = imageBase64.split(',')[1];
+    }
+    
+    const payload = JSON.stringify({
+      ImageBase64: imageData,
+      ReturnText: true // 返回文字内容
+    });
+    
+    const hashedRequestPayload = crypto.createHash('sha256').update(payload).digest('hex');
+    const canonicalRequest = `${httpRequestMethod}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${hashedRequestPayload}`;
+    
+    const credentialScope = `${date}/${service}/tc3_request`;
+    const hashedCanonicalRequest = crypto.createHash('sha256').update(canonicalRequest).digest('hex');
+    const stringToSign = `${algorithm}\n${timestamp}\n${credentialScope}\n${hashedCanonicalRequest}`;
+    
+    const secretKey = TENCENT_SECRET_KEY;
+    const secretDate = crypto.createHmac('sha256', `TC3${secretKey}`).update(date).digest();
+    const secretService = crypto.createHmac('sha256', secretDate).update(service).digest();
+    const secretSigning = crypto.createHmac('sha256', secretService).update('tc3_request').digest();
+    const signature = crypto.createHmac('sha256', secretSigning).update(stringToSign).digest('hex');
+    
+    const authorization = `${algorithm} Credential=${TENCENT_SECRET_ID}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+    
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: host,
+        port: 443,
+        path: path,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Host': host,
+          'X-TC-Action': action,
+          'X-TC-Version': version,
+          'X-TC-Timestamp': timestamp.toString(),
+          'X-TC-Region': region,
+          'Authorization': authorization,
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      };
+      
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            if (result.Response && result.Response.Error) {
+              reject(new Error(result.Response.Error.Message || '表格识别失败'));
+            } else if (result.Response) {
+              resolve(result.Response);
+            } else {
+              reject(new Error('OCR响应格式错误'));
+            }
+          } catch (e) {
+            reject(new Error('OCR响应解析失败: ' + e.message));
+          }
+        });
+      });
+      
+      req.on('error', (e) => {
+        reject(new Error('OCR请求失败: ' + e.message));
+      });
+      
+      req.setTimeout(30000, () => {
+        req.destroy();
+        reject(new Error('OCR请求超时'));
+      });
+      
+      req.write(payload);
+      req.end();
+    });
+  }
+
+  } else if (pathname === '/api/ocr/test' && req.method === 'GET') {
+    // OCR配置测试
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({
+      configured: !!(ALIYUN_ACCESS_KEY_ID && ALIYUN_ACCESS_KEY_SECRET),
+      provider: 'aliyun',
+      message: '阿里云OCR已配置'
+    }));
+
+  } else if (pathname === '/api/ocr/direct-test' && req.method === 'POST') {
+    // 直接测试OCR API（调试用）
+    let body = '';
+    req.on('data', chunk => body += chunk.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const imageBase64 = data.image || 'test';
+        const type = data.type || 'general';
+        
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          success: true,
+          message: 'OCR测试端点正常',
+          provider: 'tencent',
+          type: type,
+          imageLength: imageBase64.length
+        }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: e.message }));
       }
     });
 

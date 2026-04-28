@@ -261,7 +261,9 @@ window.openAddDeliveryNoteModal = function() {
   document.getElementById('delivery-remark').value = '';
   document.getElementById('delivery-items-tbody').innerHTML = '';
   document.getElementById('delivery-total-amount').textContent = '¥0.00';
-  addDeliveryItemRow();
+  for (var i = 0; i < 5; i++) {
+    addDeliveryItemRow();
+  }
   document.getElementById('delivery-note-modal').classList.add('show');
   document.getElementById('delivery-customer').focus();
 };

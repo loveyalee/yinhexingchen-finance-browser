@@ -1,0 +1,1 @@
+INSERT INTO accounts (id, user_id, name, industry, start_date, accounting_system, create_time, update_time, status, db_file) VALUES ('ACCT_DEMO_BJYX', NULL, '北京银河星辰软件开发有限公司', 'software', '2026-01-01', 'small_enterprise', '2026-04-28T20:47:00.000Z', '2026-04-28T20:47:00.000Z', 'active', '/var/www/yinhexingchen/db/account_ACCT_DEMO_BJYX.db');

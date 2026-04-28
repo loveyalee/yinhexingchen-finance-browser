@@ -4558,17 +4558,28 @@ if (!data.id) {
   // 获取所有账套：GET /api/accounts
   } else if (pathname === '/api/accounts' && req.method === 'GET') {
     const userId = parsedUrl.query.userId;
-    if (mainDb) {
-      try {
-        let accounts = [];
-        let repairedDbFiles = 0;
-        
-        // 未登录用户返回演示账套
-        if (!userId || userId === 'guest' || userId === 'demo') {
+    try {
+      let accounts = [];
+      let repairedDbFiles = 0;
+      
+      // 未登录用户返回演示账套
+      if (!userId || userId === 'guest' || userId === 'demo') {
+        if (mainDb) {
           accounts = mainDb.prepare("SELECT * FROM accounts WHERE status = 'active' AND (name LIKE '%演示%' OR name LIKE '%北京银河星辰%') ORDER BY create_time DESC").all();
-        } else {
-          accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        } else if (mysqlPool) {
+          const [rows] = await mysqlPool.execute("SELECT * FROM accounts WHERE status = 'active' AND (name LIKE '%演示%' OR name LIKE '%北京银河星辰%') ORDER BY create_time DESC");
+          accounts = rows;
         }
+      } else {
+        if (mainDb) {
+          accounts = mainDb.prepare('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC').all('active', userId);
+        } else if (mysqlPool) {
+          const [rows] = await mysqlPool.execute('SELECT * FROM accounts WHERE status = ? AND user_id = ? ORDER BY create_time DESC', ['active', userId]);
+          accounts = rows;
+        }
+      }
+      
+      if (mainDb) {
         accounts = accounts.map(function(account) {
           const normalizedDbFile = getNormalizedAccountDbFile(account.id, account.db_file);
           if (normalizedDbFile !== account.db_file) {
@@ -4579,18 +4590,14 @@ if (!data.id) {
           }
           return account;
         });
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: true, data: accounts, repairedDbFiles: repairedDbFiles, isDemo: !userId || userId === 'guest' || userId === 'demo' }));
-      } catch (e) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ success: false, message: '查询账套失败: ' + e.message }));
       }
-    } else {
-      res.statusCode = 503;
+      res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.end(JSON.stringify({ success: false, message: '数据库未初始化' }));
+      res.end(JSON.stringify({ success: true, data: accounts, repairedDbFiles: repairedDbFiles, isDemo: !userId || userId === 'guest' || userId === 'demo' }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: false, message: '查询账套失败: ' + e.message }));
     }
 
   } else if (pathname.match(/^\/api\/accounts\/[^/]+\/opening-balances\/status$/) && req.method === 'GET') {

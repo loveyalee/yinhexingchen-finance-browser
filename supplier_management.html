@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>供应商管理 - 银河星辰财务办公智能体</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 50%, #eaecf5 100%);
+      background-attachment: fixed;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .header {
+      background-color: white;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      color: #1a2d42;
+    }
+
+    .content-area {
+      padding: 20px 30px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      margin-bottom: 15px;
+      color: #1a2d42;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .section-header h3 {
+      margin-bottom: 0;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a65b8 0%, #124fa0 100%);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .btn-home {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-home:hover {
+      background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .empty-text {
+      padding: 18px 12px;
+      color: #6c7b8a;
+      text-align: center;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12, 24, 40, 0.55);
+      padding: 20px;
+      z-index: 2000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(13, 31, 53, 0.24);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    /* 搜索框样式 */
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #1a65b8;
+    }
+
+    /* 移动端适配 */
+    @media screen and (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+      }
+      
+      .header h1 {
+        font-size: 18px;
+      }
+      
+      .content-area {
+        padding: 10px 15px;
+      }
+      
+      .card {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      
+      .form-group {
+        margin-bottom: 12px;
+      }
+      
+      .form-group label {
+        font-size: 13px;
+      }
+      
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 8px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:15px;">
+      <button type="button" class="btn btn-home" onclick="window.location.href='index.html'">返回主页</button>
+      <h1>供应商管理</h1>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" onclick="openAddSupplierModal()">新增供应商</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="card">
+      <div class="section-header">
+        <h3>供应商列表</h3>
+        <div style="display:flex;gap:10px;">
+          <button type="button" class="btn btn-sm btn-primary" onclick="toggleSelectAllSuppliers()">全选/取消全选</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="batchDeleteSuppliers()">批量删除</button>
+        </div>
+      </div>
+      <div class="search-box">
+        <input type="text" id="supplier-search" placeholder="搜索供应商名称、联系人、电话..." oninput="filterSuppliers()">
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="select-all-suppliers" onclick="toggleSelectAllSuppliers()"></th>
+              <th>供应商名称</th>
+              <th>联系人</th>
+              <th>联系电话</th>
+              <th>主营产品</th>
+              <th>地址</th>
+              <th>合作类型</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="suppliers-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 供应商编辑弹窗 -->
+  <div class="modal" id="supplier-edit-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="supplier-modal-title">新增供应商</h3>
+        <button class="btn btn-danger btn-sm" onclick="closeSupplierModal()">关闭</button>
+      </div>
+      <form id="supplier-form">
+        <input type="hidden" id="supplier-edit-index" value="">
+        <div class="form-group">
+          <label>供应商名称 <span style="color:#e74c3c;">*</span></label>
+          <input type="text" id="supplier-name" placeholder="请输入供应商名称">
+        </div>
+        <div class="form-group">
+          <label>联系人</label>
+          <input type="text" id="supplier-contact" placeholder="请输入联系人">
+        </div>
+        <div class="form-group">
+          <label>联系电话</label>
+          <input type="text" id="supplier-phone" placeholder="请输入联系电话">
+        </div>
+        <div class="form-group">
+          <label>主营产品</label>
+          <input type="text" id="supplier-product" placeholder="请输入主营产品">
+        </div>
+        <div class="form-group">
+          <label>合作类型</label>
+          <select id="supplier-coop-type">
+            <option value="长期合作">长期合作</option>
+            <option value="短期合作">短期合作</option>
+            <option value="临时采购">临时采购</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>地址</label>
+          <input type="text" id="supplier-address" placeholder="请输入供应商地址">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="supplier-remark" placeholder="请输入备注" rows="3"></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" onclick="saveSupplierFromForm()">保存</button>
+          <button type="button" class="btn btn-secondary" onclick="closeSupplierModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="supplier_management.js"></script>
+</body>
+</html>

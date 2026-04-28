@@ -195,12 +195,12 @@ function renderDeliveryNotesTable() {
         }
 
         // 商品明细列
-        html += '<td>' + (item.product || item.name || '') + '</td>';
+        html += '<td>' + (item.product || item.product_name || item.name || '') + '</td>';
         html += '<td>' + (item.model || '') + '</td>';
         html += '<td>' + (item.length || '') + '</td>';
         html += '<td>' + (item.wattage || '') + '</td>';
         html += '<td>' + (item.brightness || '') + '</td>';
-        html += '<td>' + (item.sensorMode || '') + '</td>';
+        html += '<td>' + (item.sensor || item.sensorMode || '') + '</td>';
         html += '<td>' + (item.quantity || 0) + '</td>';
         html += '<td>' + (item.unit || '') + '</td>';
         html += '<td>' + (item.price ? '¥' + parseFloat(item.price).toFixed(2) : '') + '</td>';
@@ -857,7 +857,7 @@ window.exportSingleDeliveryNote = function(index) {
   document.body.removeChild(link);
 };
 
-// 打印送货单 - 模态框预览
+// 打印送货单 - 模态框预览，支持自动分页
 window.printDeliveryNote = function(index) {
   var notes = getAllDeliveryNotes();
   var note = notes[index];
@@ -872,53 +872,60 @@ window.printDeliveryNote = function(index) {
   var today = new Date();
   var printDate = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
 
-  var previewHtml = `
-    <div class="a4-preview">
-      <div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>
-      <div class="info-section">
-        <div class="info">
-          <p><strong>单号：</strong>${note.no || ''}</p>
-          <p><strong>客户：</strong>${note.customer || ''}</p>
-          <p><strong>项目：</strong>${note.project || '-'}</p>
-          <p><strong>联系人：</strong>${note.contact || '-'}${(note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : ''}</p>
-        </div>
-        <div class="info" style="text-align:right;">
-          <p><strong>日期：</strong>${note.date || ''}</p>
-          <p><strong>地址：</strong>${note.address || '-'}</p>
-        </div>
-      </div>
-      <table class="items-table">
-        <thead>
-          <tr>
-            <th style="width:18px;">序号</th>
-            <th style="width:55px;">商品名称</th>
-            <th style="width:35px;">型号</th>
-            <th style="width:25px;">长度</th>
-            <th style="width:25px;">瓦数</th>
-            <th style="width:35px;">单/双亮</th>
-            <th style="width:40px;">感应</th>
-            <th style="width:22px;">数量</th>
-            <th style="width:22px;">单位</th>
-            <th style="width:40px;">单价</th>
-            <th style="width:45px;">小计</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${(note.items || []).map(function(item, i) {
-            var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-            return '<tr><td>' + (i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
-          }).join('')}
-        </tbody>
-      </table>
-      <div class="total-section">合计：<span class="amount">¥${totalAmount.toFixed(2)}</span></div>
-      ${note.remark ? '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>' : ''}
-      <div class="footer" style="justify-content:space-between;">
-        <div class="signature-box"><div class="line">收货人</div></div>
-        <div class="signature-box"><div class="line">送货人</div></div>
-        <div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>
-      </div>
-    </div>
-  `;
+  // 每页最多显示的商品行数（根据纸张高度估算）
+  var itemsPerPage = 8;
+  var allItems = note.items || [];
+  var pages = [];
+  for (var i = 0; i < allItems.length; i += itemsPerPage) {
+    pages.push(allItems.slice(i, i + itemsPerPage));
+  }
+
+  var previewHtml = '';
+
+  pages.forEach(function(pageItems, pageIndex) {
+    var isFirstPage = pageIndex === 0;
+    var isLastPage = pageIndex === pages.length - 1;
+    var pageTotal = pageItems.reduce(function(sum, item) {
+      return sum + (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+    }, 0);
+
+    var itemsHtml = pageItems.map(function(item, i) {
+      var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
+      return '<tr><td>' + ((pageIndex * itemsPerPage) + i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+    }).join('');
+
+    previewHtml += '<div class="print-page">';
+    previewHtml += '<div class="header"><h1 style="text-align:center;width:100%;">送 货 单</h1></div>';
+    previewHtml += '<div class="info-section">';
+    previewHtml += '<div class="info">';
+    previewHtml += '<p><strong>单号：</strong>' + (note.no || '') + (pages.length > 1 ? ' (第' + (pageIndex + 1) + '/' + pages.length + '页)' : '') + '</p>';
+    previewHtml += '<p><strong>客户：</strong>' + (note.customer || '') + '</p>';
+    previewHtml += '<p><strong>项目：</strong>' + (note.project || '-') + '</p>';
+    previewHtml += '<p><strong>联系人：</strong>' + (note.contact || '-') + ((note.contact_phone || note.contactPhone) ? '  ' + (note.contact_phone || note.contactPhone) : '') + '</p>';
+    previewHtml += '</div>';
+    previewHtml += '<div class="info" style="text-align:right;">';
+    previewHtml += '<p><strong>日期：</strong>' + (note.date || '') + '</p>';
+    previewHtml += '<p><strong>地址：</strong>' + (note.address || '-') + '</p>';
+    previewHtml += '</div>';
+    previewHtml += '</div>';
+    previewHtml += '<table class="items-table">';
+    previewHtml += '<thead><tr><th style="width:18px;">序号</th><th style="width:55px;">商品名称</th><th style="width:35px;">型号</th><th style="width:25px;">长度</th><th style="width:25px;">瓦数</th><th style="width:35px;">单/双亮</th><th style="width:40px;">感应</th><th style="width:22px;">数量</th><th style="width:22px;">单位</th><th style="width:40px;">单价</th><th style="width:45px;">小计</th></tr></thead>';
+    previewHtml += '<tbody>' + itemsHtml + '</tbody></table>';
+
+    if (isLastPage) {
+      previewHtml += '<div class="total-section">合计：<span class="amount">¥' + totalAmount.toFixed(2) + '</span></div>';
+      if (note.remark) {
+        previewHtml += '<div class="remark-section"><strong>备注：</strong>' + note.remark + '</div>';
+      }
+      previewHtml += '<div class="footer">';
+      previewHtml += '<div class="signature-box"><div class="line">收货人</div></div>';
+      previewHtml += '<div class="signature-box"><div class="line">送货人</div></div>';
+      previewHtml += '<div style="font-size:8px;text-align:right;">送货日期：____年____月____日</div>';
+      previewHtml += '</div>';
+    }
+
+    previewHtml += '</div>';
+  });
 
   document.getElementById('print-preview-content').innerHTML = previewHtml;
   document.getElementById('print-preview-modal').classList.add('show');
@@ -942,34 +949,40 @@ window.doPrint = function() {
   <style>
     @page { size: 241mm 139.5mm; margin: 0; }
     body { margin: 0; padding: 0; }
-    .a4-preview {
+    .print-page {
       width: 241mm;
       min-height: 139.5mm;
       padding: 5mm 8mm;
+      page-break-after: always;
+      box-sizing: border-box;
       font-family: 'Microsoft YaHei', Arial, sans-serif;
       font-size: 10px;
       line-height: 1.4;
-      box-sizing: border-box;
+      background: white;
+      overflow: visible;
     }
-    .a4-preview .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
-    .a4-preview .header h1 { font-size: 14px; color: #333; margin: 0; }
-    .a4-preview .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .a4-preview .info-section .info { font-size: 9px; }
-    .a4-preview .info-section .info p { margin: 1px 0; }
-    .a4-preview .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
-    .a4-preview .items-table th, .a4-preview .items-table td { border: 1px solid #333; padding: 2px 1px; text-align: center; font-size: 8px; }
-    .a4-preview .items-table th { background-color: #f5f5f5; font-weight: 600; }
-    .a4-preview .total-section { text-align: right; margin-top: 4px; font-size: 11px; font-weight: 600; }
-    .a4-preview .total-section .amount { color: #e74c3c; }
-    .a4-preview .remark-section { margin-top: 4px; font-size: 8px; }
-    .a4-preview .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .a4-preview .signature-box { width: 80px; text-align: center; font-size: 8px; }
-    .a4-preview .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
+    .print-page:last-child {
+      page-break-after: auto;
+    }
+    .print-page .header { text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+    .print-page .header h1 { font-size: 14px; color: #333; margin: 0; }
+    .print-page .info-section { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .print-page .info-section .info { font-size: 9px; }
+    .print-page .info-section .info p { margin: 1px 0; }
+    .print-page .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; page-break-inside: avoid; }
+    .print-page .items-table th, .print-page .items-table td { border: 1px solid #333; padding: 2px 1px; text-align: center; font-size: 8px; page-break-inside: avoid; }
+    .print-page .items-table th { background-color: #f5f5f5; font-weight: 600; }
+    .print-page .total-section { text-align: right; margin-top: 4px; font-size: 11px; font-weight: 600; }
+    .print-page .total-section .amount { color: #e74c3c; }
+    .print-page .remark-section { margin-top: 4px; font-size: 8px; }
+    .print-page .footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .print-page .signature-box { width: 80px; text-align: center; font-size: 8px; }
+    .print-page .signature-box .line { border-top: 1px solid #333; margin-top: 15px; padding-top: 2px; }
   </style>
 </head>
 <body>
 ${content}
-<script>window.onload = function() { window.print(); window.close(); }</script>
+<script>window.onload = function() { window.print(); window.close(); }<\/script>
 </body>
 </html>
   `);

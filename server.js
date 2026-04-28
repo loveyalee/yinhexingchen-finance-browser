@@ -5192,6 +5192,180 @@ if (!data.id) {
       }
     });
 
+  // ==================== 供应商管理API ====================
+  // 获取供应商列表：GET /api/suppliers
+  } else if (pathname === '/api/suppliers' && req.method === 'GET') {
+    const userId = parsedUrl.query.userId;
+    
+    // 使用阿里云MySQL作为主数据库
+    if (mysqlPool) {
+      try {
+        const [suppliers] = await mysqlPool.execute(
+          'SELECT * FROM suppliers WHERE user_id = ? ORDER BY create_time DESC',
+          [userId || '']
+        );
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: suppliers }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '获取供应商列表失败: ' + e.message }));
+      }
+    } else if (usersDb) {
+      try {
+        const suppliers = usersDb.prepare('SELECT * FROM suppliers WHERE user_id = ? ORDER BY create_time DESC').all(userId || '');
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, data: suppliers }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '获取供应商列表失败: ' + e.message }));
+      }
+    } else {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ success: true, data: [] }));
+    }
+  // 添加供应商：POST /api/suppliers
+  } else if (pathname === '/api/suppliers' && req.method === 'POST') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.name || !data.userId) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '供应商名称和用户ID为必填项' }));
+          return;
+        }
+        
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        
+        if (mysqlPool) {
+          const [result] = await mysqlPool.execute(
+            'INSERT INTO suppliers (user_id, name, contact, phone, product, coop_type, address, remark, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [data.userId, data.name, data.contact || '', data.phone || '', data.product || '', data.coopType || '长期合作', data.address || '', data.remark || '', now, now]
+          );
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, data: { id: result.insertId } }));
+        } else if (usersDb) {
+          const stmt = usersDb.prepare(
+            'INSERT INTO suppliers (user_id, name, contact, phone, product, coop_type, address, remark, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          );
+          const result = stmt.run(
+            data.userId, data.name, data.contact || '', data.phone || '', data.product || '', data.coopType || '长期合作', data.address || '', data.remark || '', now, now
+          );
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: true, data: { id: result.lastInsertRowid } }));
+        } else {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+        }
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '添加供应商失败: ' + e.message }));
+      }
+    });
+  // 更新供应商：PUT /api/suppliers
+  } else if (pathname === '/api/suppliers' && req.method === 'PUT') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '供应商ID为必填项' }));
+          return;
+        }
+        
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (data.name !== undefined) { updateFields.push('name = ?'); updateValues.push(data.name); }
+        if (data.contact !== undefined) { updateFields.push('contact = ?'); updateValues.push(data.contact); }
+        if (data.phone !== undefined) { updateFields.push('phone = ?'); updateValues.push(data.phone); }
+        if (data.product !== undefined) { updateFields.push('product = ?'); updateValues.push(data.product); }
+        if (data.coopType !== undefined) { updateFields.push('coop_type = ?'); updateValues.push(data.coopType); }
+        if (data.address !== undefined) { updateFields.push('address = ?'); updateValues.push(data.address); }
+        if (data.remark !== undefined) { updateFields.push('remark = ?'); updateValues.push(data.remark); }
+        
+        if (updateFields.length === 0) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '没有需要更新的字段' }));
+          return;
+        }
+        
+        updateFields.push('update_time = ?');
+        updateValues.push(now);
+        updateValues.push(data.id);
+        
+        if (mysqlPool) {
+          await mysqlPool.execute(`UPDATE suppliers SET ${updateFields.join(', ')} WHERE id = ?`, updateValues);
+        } else if (usersDb) {
+          const stmt = usersDb.prepare(`UPDATE suppliers SET ${updateFields.join(', ')} WHERE id = ?`);
+          stmt.run(...updateValues);
+        } else {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '供应商更新成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '更新供应商失败: ' + e.message }));
+      }
+    });
+  // 删除供应商：DELETE /api/suppliers
+  } else if (pathname === '/api/suppliers' && req.method === 'DELETE') {
+    let body = '';
+    req.on('data', function(chunk) { body += chunk.toString('utf8'); });
+    req.on('end', async function() {
+      try {
+        const data = JSON.parse(body || '{}');
+        if (!data.id) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '供应商ID为必填项' }));
+          return;
+        }
+        
+        if (mysqlPool) {
+          await mysqlPool.execute('DELETE FROM suppliers WHERE id = ?', [data.id]);
+        } else if (usersDb) {
+          usersDb.prepare('DELETE FROM suppliers WHERE id = ?').run(data.id);
+        } else {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(JSON.stringify({ success: false, message: '数据库服务未启动' }));
+          return;
+        }
+        
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: true, message: '供应商删除成功' }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({ success: false, message: '删除供应商失败: ' + e.message }));
+      }
+    });
+
   // ==================== 送货单管理API ====================
   // 获取送货单列表：GET /api/delivery-notes
   } else if (pathname === '/api/delivery-notes' && req.method === 'GET') {

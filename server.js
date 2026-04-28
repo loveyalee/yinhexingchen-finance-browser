@@ -5198,10 +5198,11 @@ if (!data.id) {
           id: order.id,
           no: order.order_no,
           customer: order.customer_name,
-          project: order.project || '',
+          project: order.project_name || order.project || '',
           project_name: order.project_name || '',
-          contact: order.contact || '',
-          contactPhone: order.customer_phone,
+          contact: order.contact_name || order.contact || '',
+          contact_name: order.contact_name || '',
+          contactPhone: order.customer_phone || '',
           address: order.customer_address,
           remark: order.remark || '',
           date: order.delivery_date.toISOString().split('T')[0],
@@ -9409,6 +9410,180 @@ if (!data.id) {
       }
     });
 
+  // ================================================
+  // 费用报销 API
+  // ================================================
+  } else if (pathname === '/api/expenses' && req.method === 'GET') {
+    // GET /api/expenses - 查询报销单列表
+    const { userId, search, type, dateFrom, dateTo, status, page, limit } = parsedUrl.query;
+    let sql = 'SELECT id, expense_no AS expenseNo, title AS expenseType, expense_type AS expenseTypeRaw, amount, expense_date AS expenseDate, reason, status, user_id AS userId, user_name AS userName, approver, approved_time AS approvedTime, paid_time AS paidTime, create_time AS createdAt, images, verified_invoices AS verifiedInvoices, reject_reason AS rejectReason, paid_at AS paidAt FROM expense_reimbursements WHERE 1=1';
+    let countSql = 'SELECT COUNT(*) as total FROM expense_reimbursements WHERE 1=1';
+    const params = [];
+    if (userId) { sql += ' AND user_id=?'; countSql += ' AND user_id=?'; params.push(userId); }
+    if (search) { sql += ' AND (title LIKE ? OR description LIKE ? OR expense_no LIKE ?)'; countSql += ' AND (title LIKE ? OR description LIKE ? OR expense_no LIKE ?)'; const s='%'+search+'%'; params.push(s, s, s); }
+    if (type) { sql += ' AND expense_type=?'; countSql += ' AND expense_type=?'; params.push(type); }
+    if (dateFrom) { sql += ' AND expense_date>=?'; countSql += ' AND expense_date>=?'; params.push(dateFrom); }
+    if (dateTo) { sql += ' AND expense_date<=?'; countSql += ' AND expense_date<=?'; params.push(dateTo); }
+    if (status) { sql += ' AND status=?'; countSql += ' AND status=?'; params.push(status); }
+    sql += ' ORDER BY create_time DESC';
+    const pg = parseInt(page) || 1;
+    const lm = parseInt(limit) || 50;
+    sql += ` LIMIT ${lm} OFFSET ${(pg-1)*lm}`;
+    try {
+      let rows = [], total = 0;
+      if (mysqlPool) {
+        const [r, [cnt]] = await Promise.all([
+          mysqlPool.execute(sql, params),
+          mysqlPool.execute(countSql, params)
+        ]);
+        rows = r;
+        total = cnt.total;
+      } else if (usersDb) {
+        rows = usersDb.prepare(sql).all(...params);
+        total = usersDb.prepare(countSql).get(...params).total;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true, data: rows, total }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, message: e.message }));
+    }
+
+  } else if (pathname === '/api/expenses' && req.method === 'POST') {
+    // POST /api/expenses - 新建报销单
+    let body = '';
+    req.on('data', c => body += c.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const d = JSON.parse(body);
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const expenseNo = 'BX' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(Date.now()).slice(-4);
+        const images = d.images ? JSON.stringify(d.images) : null;
+        const verifiedInvoices = d.verifiedInvoices ? JSON.stringify(d.verifiedInvoices) : null;
+        const sql = `INSERT INTO expense_reimbursements (expense_no, title, expense_type, amount, expense_date, reason, status, user_id, user_name, images, verified_invoices, create_time, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`;
+        const vals = [expenseNo, d.title||d.expenseType||'报销', d.expenseType, d.amount, d.expenseDate, d.reason, d.userId, d.userName||'未知用户', images, verifiedInvoices, now, now];
+        let insertId;
+        if (mysqlPool) {
+          const [r] = await mysqlPool.execute(sql, vals);
+          insertId = r.insertId;
+        } else if (usersDb) {
+          const info = usersDb.prepare(sql).run(...vals);
+          insertId = info.lastInsertRowid;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, data: { id: insertId, expenseNo } }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname.startsWith('/api/expenses/') && pathname.endsWith('/status') && req.method === 'PUT') {
+    // PUT /api/expenses/:id/status - 更新报销单状态（审批/打款）
+    const id = pathname.split('/')[3];
+    let body = '';
+    req.on('data', c => body += c.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const d = JSON.parse(body);
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        let sql = 'UPDATE expense_reimbursements SET status=?, updated_at=?';
+        const params = [d.status, now];
+        if (d.status === 'rejected' && d.rejectReason) { sql += ', reject_reason=?'; params.push(d.rejectReason); }
+        if (d.status === 'paid') { sql += ', paid_at=?'; params.push(now); }
+        if (d.approverName) {
+          sql += ', approver=?, approved_time=?'; params.push(d.approverName, now);
+        }
+        sql += ' WHERE id=?';
+        params.push(id);
+        if (mysqlPool) {
+          await mysqlPool.execute(sql, params);
+        } else if (usersDb) {
+          usersDb.prepare(sql).run(...params);
+        }
+        // 记录审批
+        if (d.status === 'approved' || d.status === 'rejected') {
+          const approverId = d.approverId || 'ADMIN';
+          const approverName = d.approverName || '管理员';
+          if (mysqlPool) {
+            await mysqlPool.execute('INSERT INTO expense_approvals (expense_id, approver_id, approver_name, status, comment, created_at) VALUES (?,?,?,?,?,?)', [id, approverId, approverName, d.status, d.comment||'', now]);
+          } else if (usersDb) {
+            usersDb.prepare('INSERT INTO expense_approvals (expense_id, approver_id, approver_name, status, comment, created_at) VALUES (?,?,?,?,?,?)').run(id, approverId, approverName, d.status, d.comment||'', now);
+          }
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/expenses/upload' && req.method === 'POST') {
+    // POST /api/expenses/upload - 上传发票附件图片
+    const chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', async () => {
+      try {
+        const buf = Buffer.concat(chunks);
+        const boundary = (req.headers['content-type'] || '').match(/boundary=(?:"([^"]+)"|([^\s;]+))/);
+        if (!boundary) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, message: 'No boundary found' }));
+          return;
+        }
+        const b = boundary[1] || boundary[2];
+        const parts = buf.toString('binary').split('--' + b);
+        let fileUrl = '', fileName = '';
+        for (const part of parts) {
+          const m = part.match(/filename="([^"]+)"/);
+          if (m) { fileName = m[1]; break; }
+        }
+        const uploadDir = path.join(__dirname, 'uploads', 'expenses');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        const fn = Date.now() + '_' + Math.random().toString(36).slice(2) + '_' + fileName;
+        const fp = path.join(uploadDir, fn);
+        fs.writeFileSync(fp, buf);
+        fileUrl = '/uploads/expenses/' + fn;
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, data: { url: fileUrl, name: fileName } }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
+  } else if (pathname === '/api/expenses/check-duplicate' && req.method === 'POST') {
+    // POST /api/expenses/check-duplicate - 发票查重
+    let body = '';
+    req.on('data', c => body += c.toString('utf8'));
+    req.on('end', async () => {
+      try {
+        const { code, number, amount, date } = JSON.parse(body);
+        if (!code || !number) {
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: true, duplicate: false }));
+          return;
+        }
+        let rows = [];
+        if (mysqlPool) {
+          const [r] = await mysqlPool.execute(
+            `SELECT * FROM expense_invoices WHERE invoice_code=? AND invoice_number=? AND amount=? LIMIT 5`,
+            [code, number, amount || 0]
+          );
+          rows = r;
+        } else if (usersDb) {
+          rows = usersDb.prepare(`SELECT * FROM expense_invoices WHERE invoice_code=? AND invoice_number=? AND amount=? LIMIT 5`).all(code, number, amount || 0);
+        }
+        const duplicate = rows.length > 0;
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, duplicate, records: rows }));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, message: e.message }));
+      }
+    });
+
   } else {
     const filePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
     const fullPath = path.join(__dirname, filePath);
@@ -9979,6 +10154,11 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`  GET  /api/news                 - 获取新闻列表`);
   console.log(`  POST /api/admin/news           - 添加新闻(管理员)`);
   console.log(`  POST /api/admin/news/batch     - 批量添加新闻`);
+  console.log(`  GET  /api/expenses            - 查询报销单列表`);
+  console.log(`  POST /api/expenses            - 新建报销单`);
+  console.log(`  PUT  /api/expenses/:id/status - 更新报销单状态`);
+  console.log(`  POST /api/expenses/upload     - 上传发票附件`);
+  console.log(`  POST /api/expenses/check-duplicate - 发票查重`);
   console.log(`========================================\n`);
 
   // 启动新闻自动采集

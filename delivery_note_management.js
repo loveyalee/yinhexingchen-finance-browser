@@ -6,6 +6,12 @@ var deliveryNoteStorageKey = 'deliveryNotes';
 var deliveryNotesCache = null;
 var deliveryNotesLoaded = false;
 
+// 页面加载时强制刷新缓存
+function forceRefreshDeliveryNotes() {
+  deliveryNotesCache = null;
+  deliveryNotesLoaded = false;
+}
+
 // ==================== 检查登录状态 ====================
 function checkLoginStatus() {
   try {
@@ -996,6 +1002,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!checkLoginStatus()) {
       return;
     }
+    // 强制刷新缓存，确保从API获取最新数据
+    forceRefreshDeliveryNotes();
     await getAllDeliveryNotesAsync();
     renderDeliveryNotesTable();
   } catch (e) {

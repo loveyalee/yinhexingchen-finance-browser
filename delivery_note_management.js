@@ -897,7 +897,7 @@ window.printDeliveryNote = function(index) {
 
     var itemsHtml = pageItems.map(function(item, i) {
       var subtotal = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0);
-      return '<tr><td>' + ((pageIndex * itemsPerPage) + i + 1) + '</td><td>' + (item.product || item.name || '') + '</td><td>' + (item.model || '') + '</td><td>' + (item.length || '') + '</td><td>' + (item.wattage || '') + '</td><td>' + (item.brightness || '') + '</td><td>' + (item.sensorMode || item.sensor || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
+      return '<tr><td>' + ((pageIndex * itemsPerPage) + i + 1) + '</td><td>' + (item.product || item.name || item.product_name || '') + '</td><td>' + (item.quantity || 0) + '</td><td>' + (item.unit || '个') + '</td><td>¥' + (parseFloat(item.price) || 0).toFixed(2) + '</td><td>¥' + subtotal.toFixed(2) + '</td></tr>';
     }).join('');
 
     previewHtml += '<div class="print-page">';
@@ -915,7 +915,7 @@ window.printDeliveryNote = function(index) {
     previewHtml += '</div>';
     previewHtml += '</div>';
     previewHtml += '<table class="items-table">';
-    previewHtml += '<thead><tr><th style="width:18px;">序号</th><th style="width:55px;">商品名称</th><th style="width:35px;">型号</th><th style="width:25px;">长度</th><th style="width:25px;">瓦数</th><th style="width:35px;">单/双亮</th><th style="width:40px;">感应</th><th style="width:22px;">数量</th><th style="width:22px;">单位</th><th style="width:40px;">单价</th><th style="width:45px;">小计</th></tr></thead>';
+    previewHtml += '<thead><tr><th style="width:18px;">序号</th><th style="width:120px;">商品名称</th><th style="width:30px;">数量</th><th style="width:30px;">单位</th><th style="width:50px;">单价</th><th style="width:50px;">小计</th></tr></thead>';
     previewHtml += '<tbody>' + itemsHtml + '</tbody></table>';
 
     if (isLastPage) {

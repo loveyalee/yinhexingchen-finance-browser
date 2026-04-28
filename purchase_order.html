@@ -283,6 +283,108 @@
       color: #333;
     }
 
+    /* 供应商搜索下拉框 */
+    .supplier-wrapper {
+      position: relative;
+    }
+    
+    .supplier-input-group {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .supplier-input-group input {
+      flex: 1;
+    }
+    
+    .supplier-input-group .btn {
+      flex-shrink: 0;
+      padding: 8px 12px;
+    }
+    
+    .supplier-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 60px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .supplier-dropdown.show {
+      display: block;
+    }
+    
+    .supplier-dropdown-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .supplier-dropdown-item:last-child {
+      border-bottom: none;
+    }
+    
+    .supplier-dropdown-item:hover {
+      background: #f5f9ff;
+    }
+    
+    .supplier-dropdown-item.selected {
+      background: #e8f0fe;
+    }
+    
+    .supplier-dropdown-item .supplier-name {
+      font-weight: 500;
+      color: #1a2d42;
+    }
+    
+    .supplier-dropdown-item .supplier-info {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+    
+    .supplier-dropdown-item .supplier-contact {
+      font-size: 12px;
+      color: #1a65b8;
+    }
+    
+    .supplier-dropdown-empty {
+      padding: 15px;
+      text-align: center;
+      color: #999;
+    }
+    
+    .supplier-dropdown-empty .hint {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 5px;
+    }
+    
+    .no-match-hint {
+      padding: 12px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      border-top: 1px solid #eee;
+    }
+    
+    .no-match-hint .btn-link {
+      color: #1a65b8;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-left: 5px;
+    }
+
     .search-bar {
       display: flex;
       gap: 10px;
@@ -717,7 +819,13 @@
           </div>
           <div class="form-group">
             <label>供应商 <span style="color:#e74c3c;">*</span></label>
-            <input type="text" id="supplier-name" required placeholder="请输入供应商名称">
+            <div class="supplier-wrapper">
+              <div class="supplier-input-group">
+                <input type="text" id="supplier-name" required placeholder="输入供应商名称搜索或选择" autocomplete="off">
+                <button type="button" class="btn btn-sm btn-success" onclick="openAddSupplierModal()" title="新增供应商">+ 新增</button>
+              </div>
+              <div class="supplier-dropdown" id="supplier-dropdown"></div>
+            </div>
           </div>
           <div class="form-group">
             <label>联系人</label>
@@ -777,6 +885,54 @@
           <button type="button" class="btn btn-primary" onclick="savePurchaseOrder()">保存</button>
           <button type="button" class="btn btn-success" onclick="saveAndNewPurchaseOrder()">保存并新增</button>
           <button type="button" class="btn btn-secondary" onclick="closePurchaseModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 快速新增供应商模态框 -->
+  <div class="modal" id="supplier-quick-add-modal">
+    <div class="modal-content" style="max-width:480px;">
+      <div class="modal-header">
+        <h3>新增供应商</h3>
+        <button class="close-btn" onclick="closeSupplierQuickAddModal()">×</button>
+      </div>
+      <form id="supplier-quick-form">
+        <div class="form-group">
+          <label>供应商名称 <span style="color:#e74c3c;">*</span></label>
+          <input type="text" id="sq-name" required placeholder="请输入供应商名称">
+        </div>
+        <div class="form-group">
+          <label>联系人</label>
+          <input type="text" id="sq-contact" placeholder="请输入联系人">
+        </div>
+        <div class="form-group">
+          <label>联系电话</label>
+          <input type="tel" id="sq-phone" placeholder="请输入联系电话">
+        </div>
+        <div class="form-group">
+          <label>主营产品</label>
+          <input type="text" id="sq-product" placeholder="请输入主营产品">
+        </div>
+        <div class="form-group">
+          <label>合作类型</label>
+          <select id="sq-coop-type">
+            <option value="长期合作">长期合作</option>
+            <option value="短期合作">短期合作</option>
+            <option value="临时采购">临时采购</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>地址</label>
+          <input type="text" id="sq-address" placeholder="请输入地址">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="sq-remark" placeholder="请输入备注" rows="2"></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-success" onclick="quickSaveSupplier()">保存并选用</button>
+          <button type="button" class="btn btn-secondary" onclick="closeSupplierQuickAddModal()">取消</button>
         </div>
       </form>
     </div>

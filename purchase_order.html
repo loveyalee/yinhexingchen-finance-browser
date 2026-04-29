@@ -1531,13 +1531,15 @@
     }
 
     // 供应商输入框事件
+    let pendingSupplierName = ''; // 记录用户手动输入但未保存的供应商名
+
     function initSupplierSearch() {
       const input = document.getElementById('supplier-name');
       const dropdown = document.getElementById('supplier-dropdown');
 
       input.addEventListener('input', function() {
         const keyword = this.value.trim();
-        
+
         // 清除之前的定时器
         if (supplierSearchTimeout) {
           clearTimeout(supplierSearchTimeout);
@@ -1546,12 +1548,16 @@
         if (keyword === '') {
           dropdown.classList.remove('show');
           selectedSupplier = null;
+          pendingSupplierName = '';
           // 清空关联字段
           document.getElementById('supplier-contact').value = '';
           document.getElementById('supplier-phone').value = '';
           document.getElementById('supplier-address').value = '';
           return;
         }
+
+        // 标记为用户手动输入（不是从下拉选择）
+        pendingSupplierName = keyword;
 
         // 延迟搜索，避免频繁请求
         supplierSearchTimeout = setTimeout(function() {
@@ -1563,6 +1569,34 @@
         const keyword = this.value.trim();
         if (keyword !== '') {
           showSupplierDropdown(keyword);
+        }
+      });
+
+      // 失去焦点时检查是否需要新增供应商
+      input.addEventListener('blur', function() {
+        const keyword = this.value.trim();
+
+        // 如果是从下拉选择的，pendingSupplierName 会被 selectSupplier 清空
+        if (!keyword || !pendingSupplierName) return;
+
+        // 检查输入的名称是否匹配已有供应商（精确匹配或包含匹配）
+        const matched = supplierList.find(function(s) {
+          const name = (s.name || '').trim();
+          return name === keyword || name.indexOf(keyword) !== -1 || keyword.indexOf(name) !== -1;
+        });
+
+        if (!matched) {
+          // 确认是否新增供应商
+          setTimeout(function() {
+            const confirmed = confirm('未找到供应商 "' + keyword + '"，是否将其新增为供应商？');
+            if (confirmed) {
+              openAddSupplierModal();
+            } else {
+              pendingSupplierName = '';
+            }
+          }, 100);
+        } else {
+          pendingSupplierName = '';
         }
       });
 
@@ -1654,7 +1688,10 @@
       if (!supplier) return;
 
       selectedSupplier = supplier;
-      
+
+      // 清空待确认标记，避免 blur 时重复提示
+      pendingSupplierName = '';
+
       // 填充表单
       document.getElementById('supplier-name').value = supplier.name || '';
       document.getElementById('supplier-contact').value = supplier.contact || '';

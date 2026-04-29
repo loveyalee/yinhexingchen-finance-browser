@@ -1135,6 +1135,82 @@ window.printCustomFormat = function() {
 };
 
 // 页面初始化
+
+// ==================== 侧边栏菜单功能（与主页一致） ====================
+function closeSiblingMenus(navItem) {
+  const isTopLevel = navItem.classList.contains('nav-item');
+  const siblingSelector = isTopLevel ? ':scope > .nav-item.has-submenu' : ':scope > .submenu-item.has-submenu';
+  const container = navItem.parentElement;
+  if (!container) return;
+
+  container.querySelectorAll(siblingSelector).forEach(item => {
+    if (item === navItem) return;
+    item.classList.remove('active');
+    item.querySelectorAll('.submenu-item.has-submenu').forEach(child => child.classList.remove('active'));
+  });
+}
+
+window.toggleSubmenu = function(element) {
+  const navItem = element.closest('.nav-item.has-submenu, .submenu-item.has-submenu');
+  if (!navItem) return;
+
+  const willOpen = !navItem.classList.contains('active');
+  if (willOpen) {
+    closeSiblingMenus(navItem);
+  }
+
+  navItem.classList.toggle('active', willOpen);
+
+  if (!willOpen) {
+    navItem.querySelectorAll('.submenu-item.has-submenu').forEach(item => {
+      item.classList.remove('active');
+    });
+  }
+};
+
+window.toggleMemberSubmenu = function(element) {
+  const navItem = element.closest('.nav-item.has-submenu');
+  if (navItem) {
+    navItem.classList.toggle('active');
+  }
+};
+
+window.showModule = function(module) {
+  alert('模块功能开发中: ' + module);
+};
+
+window.checkLoginAndRedirect = function(url) {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+  const isLoggedIn = userInfo && (userInfo.isLoggedIn || userInfo.id);
+  if (!isLoggedIn) {
+    if (confirm('您还未登录，请先登录后再访问')) {
+      window.location.href = 'login.html';
+    }
+    return false;
+  }
+  if (userInfo && !userInfo.isLoggedIn) {
+    userInfo.isLoggedIn = true;
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  }
+  window.location.href = url;
+};
+
+window.logout = function() {
+  if (confirm('确定要退出登录吗？')) {
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('currentUserId');
+    localStorage.removeItem('currentUserDb');
+    window.location.href = 'login.html';
+  }
+};
+
+// 阻止子菜单链接点击事件冒泡
+document.querySelectorAll('.submenu-item a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+});
+
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     // 检查登录状态

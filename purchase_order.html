@@ -1729,7 +1729,7 @@
             return name === keyword || name.indexOf(keyword) !== -1 || keyword.indexOf(name) !== -1;
           });
           if (!matched) {
-            const confirmed = confirm('银河星辰财务智能体没有发现该商品 "' + keyword + '"，是否新增此商品？');
+            const confirmed = confirm('没有发现该商品 "' + keyword + '"，是否新增此商品？');
             if (confirmed) {
               openProductQuickAddModal(keyword);
             }

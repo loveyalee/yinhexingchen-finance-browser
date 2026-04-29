@@ -1492,7 +1492,7 @@
       }
 
       try {
-        data.user_id = localStorage.getItem('userId') || '';
+        data.user_id = getCurrentUserId();
         const response = await fetch('/api/purchase-orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1534,7 +1534,7 @@
 
     async function loadPurchaseOrders() {
       try {
-        const userId = localStorage.getItem('userId') || '';
+        const userId = getCurrentUserId();
         const response = await fetch(`/api/purchase-orders?userId=${userId}`);
         const result = await response.json();
         
@@ -1652,7 +1652,7 @@
 
     // 获取供应商列表
     async function loadSupplierList() {
-      const userId = localStorage.getItem('userId') || '';
+      const userId = getCurrentUserId();
       try {
         const response = await fetch('/api/suppliers?userId=' + userId);
         const result = await response.json();
@@ -1672,7 +1672,7 @@
 
     // 加载商品列表
     async function loadProductList() {
-      const userId = localStorage.getItem('userId') || '';
+      const userId = getCurrentUserId();
       try {
         const response = await fetch('/api/products?userId=' + userId);
         if (response.ok) {
@@ -1836,7 +1836,7 @@
         return;
       }
 
-      const userId = localStorage.getItem('userId') || '';
+      const userId = getCurrentUserId();
 
       const productData = {
         name: name,
@@ -1888,7 +1888,17 @@
       }
     }
 
-    // 供应商输入框事件
+    // ==================== 用户ID辅助函数 ====================
+    function getCurrentUserId() {
+      try {
+        var userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        return userInfo.id || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    // ==================== 供应商输入框事件 ====================
     let pendingSupplierName = ''; // 记录用户手动输入但未保存的供应商名
 
     function initSupplierSearch() {
@@ -2085,8 +2095,8 @@
         return;
       }
 
-      const userId = localStorage.getItem('userId') || '';
-      
+      const userId = getCurrentUserId();
+
       const supplierData = {
         name: name,
         contact: document.getElementById('sq-contact').value.trim(),

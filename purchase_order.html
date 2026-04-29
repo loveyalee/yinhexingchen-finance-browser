@@ -525,25 +525,30 @@
     /* 侧边栏样式 */
     .container {
       display: flex;
-      min-height: 100vh;
+      height: 100vh;
     }
 
     .sidebar {
-      width: 260px;
-      background: linear-gradient(180deg, #0d1f35 0%, #1a3a5c 100%);
+      width: 240px;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
       color: white;
-      padding: 20px 0;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 100vh;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.30);
       flex-shrink: 0;
-      box-shadow: 4px 0 24px rgba(0,0,0,0.28);
     }
 
-    .sidebar .logo {
-      font-size: 18px;
+    .logo {
+      font-size: 24px;
       font-weight: bold;
       margin-bottom: 30px;
       text-align: center;
-      padding: 0 15px;
       color: #f0c040;
+      background: transparent;
+      border: none;
+      padding: 0;
+      letter-spacing: 0.5px;
     }
 
     .nav-menu {
@@ -551,15 +556,16 @@
     }
 
     .nav-item {
-      margin-bottom: 2px;
+      margin-bottom: 8px;
     }
 
     .nav-item > a {
       display: block;
-      padding: 12px 20px;
+      padding: 12px 15px;
       color: rgba(255,255,255,0.85);
       text-decoration: none;
-      transition: all 0.3s;
+      border-radius: 6px;
+      transition: all 0.22s ease;
       border-left: 3px solid transparent;
     }
 
@@ -568,6 +574,7 @@
       background: rgba(255,255,255,0.1);
       color: white;
       border-left-color: #f0c040;
+      padding-left: 18px;
     }
 
     .nav-item.has-submenu {
@@ -582,28 +589,52 @@
     }
 
     .submenu {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
+      border-radius: 0 0 4px 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       display: none;
+      z-index: 1000;
       list-style: none;
-      background: rgba(0,0,0,0.2);
-      margin-top: 2px;
+      margin-top: 5px;
+      border-left: 2px solid rgba(200,146,26,0.45);
     }
 
-    .nav-item.has-submenu:hover > .submenu {
+    .nav-item.has-submenu:hover > .submenu,
+    .nav-item.has-submenu.active > .submenu {
       display: block;
+    }
+
+    .submenu-item {
+      margin: 0;
     }
 
     .submenu-item a {
       display: block;
-      padding: 10px 20px 10px 35px;
+      padding: 10px 15px 10px 20px;
       color: rgba(255,255,255,0.75);
       text-decoration: none;
-      font-size: 14px;
+      border-radius: 4px;
       transition: all 0.3s;
+      font-size: 14px;
     }
 
     .submenu-item a:hover {
       background: rgba(255,255,255,0.1);
       color: white;
+    }
+
+    .submenu-item .submenu {
+      margin-left: 15px;
+      margin-top: 5px;
+    }
+
+    .submenu-item.has-submenu > a::after {
+      content: '▶';
+      float: right;
+      font-size: 9px;
+      margin-top: 3px;
     }
 
     .main-content {
@@ -618,6 +649,10 @@
       align-items: center;
       gap: 10px;
       flex: 1;
+      height: 60px;
+      padding: 0 20px;
+      background-color: white;
+      border-bottom: 1px solid rgba(26, 95, 168, 0.12);
     }
 
     .browser-controls {
@@ -629,23 +664,33 @@
       padding: 6px 10px;
       background: #f5f5f5;
       border: 1px solid #ddd;
+      border-radius: 4px;
     }
 
     .browser-bar input {
       flex: 1;
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      height: 40px;
+      padding: 0 15px;
+      border: 1px solid rgba(26, 95, 168, 0.10);
+      border-radius: 20px;
+      outline: none;
+      max-width: 600px;
     }
 
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
+        height: auto;
       }
       .sidebar {
         width: 100%;
         height: auto;
-        padding: 10px;
+        padding: 16px 12px;
+        max-height: none;
+      }
+      .logo {
+        font-size: 20px;
+        margin-bottom: 18px;
       }
       .nav-menu {
         display: flex;
@@ -792,10 +837,9 @@
           <a href="#" onclick="toggleSubmenu(this); return false;">供应链管理</a>
           <ul class="submenu">
             <li class="submenu-item"><a href="product_management.html" onclick="event.stopPropagation();">商品管理</a></li>
-            <li class="submenu-item"><a href="customer_management.html" onclick="event.stopPropagation();">客户管理</a></li>
+            <li class="submenu-item"><a href="supplier_management.html" onclick="event.stopPropagation();">供应商管理</a></li>
             <li class="submenu-item"><a href="purchase_order.html" onclick="event.stopPropagation();">进货单</a></li>
-            <li class="submenu-item"><a href="delivery_note_management.html" onclick="event.stopPropagation();">送货单</a></li>
-            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">进销存</a></li>
+            <li class="submenu-item"><a href="#" onclick="showModule('inventory-management'); return false;">库存管理</a></li>
           </ul>
         </li>
         <li class="nav-item has-submenu">
@@ -831,12 +875,22 @@
           <ul class="submenu">
             <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('member.html');">个人中心</a></li>
             <li class="submenu-item enterprise-menu" style="display:none;"><a href="#" onclick="toggleSubmenu(this); return false;">企业管理</a>
-              <ul class="submenu" style="display:none;">
-                <li class="submenu-item"><a href="company_management.html" onclick="event.stopPropagation();">公司管理</a></li>
-                <li class="submenu-item"><a href="contract_management.html" onclick="event.stopPropagation();">合同管理</a></li>
-                <li class="submenu-item"><a href="e-seal.html" onclick="event.stopPropagation();">电子印章管理</a></li>
-                <li class="submenu-item"><a href="enterprise_finance.html" onclick="event.stopPropagation();">企业融资</a></li>
-                <li class="submenu-item"><a href="bid_management.html" onclick="event.stopPropagation();">招投标管理</a></li>
+              <ul class="submenu">
+                <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('company_management.html');">公司管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('contract_management.html');">合同管理</a></li>
+                <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('e-seal.html');">电子印章管理</a></li>
+                <li class="submenu-item has-submenu">
+                  <a href="#" onclick="toggleSubmenu(this); return false;">企业融资</a>
+                  <ul class="submenu">
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=bank');">银行贷款</a></li>
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=equity');">股权融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=bond');">债券融资</a></li>
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=lease');">融资租赁</a></li>
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=gov');">政府扶持</a></li>
+                    <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('enterprise_finance.html?type=self');">自助服务</a></li>
+                  </ul>
+                </li>
+                <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); checkLoginAndRedirect('bid_management.html');">招投标管理</a></li>
               </ul>
             </li>
             <li class="submenu-item"><a href="#" onclick="event.stopPropagation(); logout();">退出登陆</a></li>

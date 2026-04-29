@@ -544,11 +544,6 @@
       font-weight: bold;
       margin-bottom: 30px;
       text-align: center;
-      color: #f0c040;
-      background: transparent;
-      border: none;
-      padding: 0;
-      letter-spacing: 0.5px;
     }
 
     .nav-menu {
@@ -556,25 +551,20 @@
     }
 
     .nav-item {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .nav-item > a {
       display: block;
-      padding: 12px 15px;
-      color: rgba(255,255,255,0.85);
+      padding: 12px;
+      color: white;
       text-decoration: none;
-      border-radius: 6px;
-      transition: all 0.22s ease;
-      border-left: 3px solid transparent;
+      border-radius: 4px;
+      transition: background-color 0.3s;
     }
 
-    .nav-item > a:hover,
-    .nav-item > a.active {
-      background: rgba(255,255,255,0.1);
-      color: white;
-      border-left-color: #f0c040;
-      padding-left: 18px;
+    .nav-item > a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
     }
 
     .nav-item.has-submenu {
@@ -584,8 +574,8 @@
     .nav-item.has-submenu > a::after {
       content: '▼';
       float: right;
-      font-size: 10px;
-      margin-top: 4px;
+      font-size: 12px;
+      margin-left: 5px;
     }
 
     .submenu {
@@ -593,12 +583,11 @@
       width: 100%;
       background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%);
       border-radius: 0 0 4px 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       display: none;
       z-index: 1000;
       list-style: none;
       margin-top: 5px;
-      border-left: 2px solid rgba(200,146,26,0.45);
     }
 
     .nav-item.has-submenu:hover > .submenu,
@@ -612,29 +601,28 @@
 
     .submenu-item a {
       display: block;
-      padding: 10px 15px 10px 20px;
-      color: rgba(255,255,255,0.75);
+      padding: 10px 15px;
+      color: white;
       text-decoration: none;
       border-radius: 4px;
-      transition: all 0.3s;
-      font-size: 14px;
+      transition: background-color 0.3s;
     }
 
     .submenu-item a:hover {
-      background: rgba(255,255,255,0.1);
-      color: white;
+      background-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* 三级菜单样式 */
     .submenu-item .submenu {
-      margin-left: 15px;
+      margin-left: 20px;
       margin-top: 5px;
     }
 
     .submenu-item.has-submenu > a::after {
-      content: '▶';
+      content: '▼';
       float: right;
-      font-size: 9px;
-      margin-top: 3px;
+      font-size: 10px;
+      margin-top: 4px;
     }
 
     .main-content {

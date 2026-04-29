@@ -876,6 +876,70 @@
     .items-scroll-container::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+
+    /* 自定义确认对话框 */
+    .custom-dialog-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    .custom-dialog-overlay.hidden { display: none; }
+    .custom-dialog {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 32px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .custom-dialog-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .custom-dialog-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+    .custom-dialog-message {
+      font-size: 15px;
+      color: #475569;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .custom-dialog-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .custom-dialog-btn {
+      padding: 10px 28px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .custom-dialog-btn-cancel {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .custom-dialog-btn-cancel:hover {
+      background: #e2e8f0;
+    }
+    .custom-dialog-btn-confirm {
+      background: #2563eb;
+      color: #fff;
+    }
+    .custom-dialog-btn-confirm:hover {
+      background: #1d4ed8;
+    }
   </style>
 </head>
 <body>
@@ -1729,10 +1793,10 @@
             return name === keyword || name.indexOf(keyword) !== -1 || keyword.indexOf(name) !== -1;
           });
           if (!matched) {
-            const confirmed = confirm('没有发现该商品 "' + keyword + '"，是否新增此商品？');
-            if (confirmed) {
-              openProductQuickAddModal(keyword);
-            }
+            showConfirmDialog(
+              '没有发现该商品 "' + keyword + '"，是否新增此商品？',
+              function() { openProductQuickAddModal(keyword); }
+            );
           }
         }, 100);
       }, true);
@@ -1898,6 +1962,39 @@
       }
     }
 
+    // ==================== 自定义确认对话框 ====================
+    function showConfirmDialog(message, onConfirm, onCancel) {
+      document.getElementById('custom-dialog-message').textContent = message;
+      document.getElementById('custom-dialog-overlay').classList.remove('hidden');
+
+      var overlay = document.getElementById('custom-dialog-overlay');
+      var confirmBtn = document.getElementById('custom-dialog-confirm');
+      var cancelBtn = document.getElementById('custom-dialog-cancel');
+
+      var cleanup = function() {
+        overlay.classList.add('hidden');
+        confirmBtn.removeEventListener('click', onConfirmWrap);
+        cancelBtn.removeEventListener('click', onCancelWrap);
+        overlay.removeEventListener('click', onOverlayClick);
+      };
+
+      var onConfirmWrap = function() {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+      var onCancelWrap = function() {
+        cleanup();
+        if (onCancel) onCancel();
+      };
+      var onOverlayClick = function(e) {
+        if (e.target === overlay) { cleanup(); if (onCancel) onCancel(); }
+      };
+
+      confirmBtn.addEventListener('click', onConfirmWrap);
+      cancelBtn.addEventListener('click', onCancelWrap);
+      overlay.addEventListener('click', onOverlayClick);
+    }
+
     // ==================== 供应商输入框事件 ====================
     let pendingSupplierName = ''; // 记录用户手动输入但未保存的供应商名
 
@@ -1956,12 +2053,11 @@
         if (!matched) {
           // 确认是否新增供应商
           setTimeout(function() {
-            const confirmed = confirm('未找到供应商 "' + keyword + '"，是否将其新增为供应商？');
-            if (confirmed) {
-              openAddSupplierModal();
-            } else {
-              pendingSupplierName = '';
-            }
+            showConfirmDialog(
+              '未找到供应商 "' + keyword + '"，是否将其新增为供应商？',
+              function() { openAddSupplierModal(); },
+              function() { pendingSupplierName = ''; }
+            );
           }, 100);
         } else {
           pendingSupplierName = '';
@@ -2193,9 +2289,10 @@
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
       const isLoggedIn = userInfo && (userInfo.isLoggedIn || userInfo.id);
       if (!isLoggedIn) {
-        if (confirm('您还未登录，请先登录后再访问')) {
-          window.location.href = 'login.html';
-        }
+        showConfirmDialog(
+          '您还未登录，请先登录后再访问',
+          function() { window.location.href = 'login.html'; }
+        );
         return false;
       }
       if (userInfo && !userInfo.isLoggedIn) {
@@ -2206,12 +2303,15 @@
     };
 
     window.logout = function() {
-      if (confirm('确定要退出登录吗？')) {
-        localStorage.removeItem('userInfo');
-        localStorage.removeItem('currentUserId');
-        localStorage.removeItem('currentUserDb');
-        window.location.href = 'login.html';
-      }
+      showConfirmDialog(
+        '确定要退出登录吗？',
+        function() {
+          localStorage.removeItem('userInfo');
+          localStorage.removeItem('currentUserId');
+          localStorage.removeItem('currentUserDb');
+          window.location.href = 'login.html';
+        }
+      );
     };
 
     // 阻止子菜单链接点击事件冒泡，确保链接能正常跳转
@@ -2605,5 +2705,18 @@
       loadPurchaseOrders();
     });
   </script>
+
+  <!-- 自定义确认对话框 -->
+  <div id="custom-dialog-overlay" class="custom-dialog-overlay hidden">
+    <div class="custom-dialog">
+      <div class="custom-dialog-icon">🔍</div>
+      <div class="custom-dialog-title" id="custom-dialog-title">提示</div>
+      <div class="custom-dialog-message" id="custom-dialog-message"></div>
+      <div class="custom-dialog-buttons">
+        <button class="custom-dialog-btn custom-dialog-btn-cancel" id="custom-dialog-cancel">取消</button>
+        <button class="custom-dialog-btn custom-dialog-btn-confirm" id="custom-dialog-confirm">确定</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

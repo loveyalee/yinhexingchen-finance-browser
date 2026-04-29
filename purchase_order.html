@@ -384,6 +384,91 @@
       text-decoration: underline;
       margin-left: 5px;
     }
+
+    /* 商品名称搜索下拉 */
+    .product-wrapper {
+      position: relative;
+    }
+
+    .product-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1100;
+      display: none;
+    }
+
+    .product-dropdown.show {
+      display: block;
+    }
+
+    .product-dropdown-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+
+    .product-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .product-dropdown-item:hover {
+      background: #f5f9ff;
+    }
+
+    .product-dropdown-item .product-detail {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .product-dropdown-empty {
+      padding: 12px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+    }
+
+    .product-dropdown-empty .hint {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .product-dropdown-empty .btn-link {
+      color: #1a65b8;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-left: 4px;
+    }
+
+    /* 商品名称输入框 */
+    .item-name {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+    }
+
+    .item-name:focus {
+      outline: none;
+      border-color: #1a65b8;
+    }
+
+    .item-name:focus {
+      outline: none;
+      border-color: #1a65b8;
+      background: #fff;
+    }
     
     /* OCR上传识别区域 */
     .ocr-upload-area {
@@ -1146,6 +1231,58 @@
     </div>
   </div>
 
+  <!-- 快速新增商品模态框 -->
+  <div class="modal" id="product-quick-add-modal">
+    <div class="modal-content" style="max-width:480px;">
+      <div class="modal-header">
+        <h3>新增商品</h3>
+        <button class="close-btn" onclick="closeProductQuickAddModal()">×</button>
+      </div>
+      <form id="product-quick-form">
+        <div class="form-group">
+          <label>商品名称 <span style="color:#e74c3c;">*</span></label>
+          <input type="text" id="pq-name" required placeholder="请输入商品名称">
+        </div>
+        <div class="form-group">
+          <label>型号</label>
+          <input type="text" id="pq-model" placeholder="请输入型号">
+        </div>
+        <div class="form-group">
+          <label>长度</label>
+          <input type="text" id="pq-length" placeholder="请输入长度">
+        </div>
+        <div class="form-group">
+          <label>瓦数</label>
+          <input type="text" id="pq-wattage" placeholder="请输入瓦数">
+        </div>
+        <div class="form-group">
+          <label>单位</label>
+          <select id="pq-unit">
+            <option value="个">个</option>
+            <option value="件">件</option>
+            <option value="套">套</option>
+            <option value="米">米</option>
+            <option value="根">根</option>
+            <option value="台">台</option>
+            <option value="箱">箱</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>单价</label>
+          <input type="number" id="pq-price" placeholder="请输入单价" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <input type="text" id="pq-remark" placeholder="请输入备注">
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-success" onclick="quickSaveProduct()">保存并选用</button>
+          <button type="button" class="btn btn-secondary" onclick="closeProductQuickAddModal()">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     let purchaseOrders = [];
     let currentTab = 'all';
@@ -1218,9 +1355,20 @@
         return;
       }
       const row = document.createElement('tr');
+      const rowId = 'item-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+      row.id = rowId;
       row.innerHTML = `
         <td>${++itemRowIndex}</td>
-        <td><input type="text" class="item-name" value="${item.name || ''}" placeholder="商品名称"></td>
+        <td>
+          <div class="product-wrapper">
+            <input type="text" class="item-name"
+              value="${item.name || ''}"
+              placeholder="商品名称"
+              data-row-id="${rowId}"
+              autocomplete="off">
+            <div class="product-dropdown" id="pd-${rowId}"></div>
+          </div>
+        </td>
         <td><input type="text" class="item-model" value="${item.model || ''}" placeholder="型号"></td>
         <td><input type="text" class="item-length" value="${item.length || ''}" placeholder="长度"></td>
         <td><input type="text" class="item-wattage" value="${item.wattage || ''}" placeholder="瓦数"></td>
@@ -1515,6 +1663,228 @@
         }
       } catch (e) {
         supplierList = [];
+      }
+    }
+
+    // ==================== 商品搜索功能 ====================
+    let productList = [];
+    let productSearchTimeout = null;
+
+    // 加载商品列表
+    async function loadProductList() {
+      const userId = localStorage.getItem('userId') || '';
+      try {
+        const response = await fetch('/api/products?userId=' + userId);
+        if (response.ok) {
+          const data = await response.json();
+          productList = data.data || data || [];
+        } else {
+          productList = [];
+        }
+      } catch (e) {
+        productList = [];
+      }
+    }
+
+    // 初始化商品名称搜索（动态绑定到动态创建的输入框）
+    function initProductSearchListeners() {
+      document.addEventListener('input', function(e) {
+        if (!e.target.classList.contains('item-name')) return;
+        const input = e.target;
+        const keyword = input.value.trim();
+        const rowId = input.getAttribute('data-row-id');
+        if (!rowId) return;
+
+        if (productSearchTimeout) clearTimeout(productSearchTimeout);
+
+        if (keyword === '') {
+          hideProductDropdown(rowId);
+          return;
+        }
+
+        productSearchTimeout = setTimeout(function() {
+          showProductDropdown(keyword, rowId, input);
+        }, 200);
+      });
+
+      document.addEventListener('focus', function(e) {
+        if (!e.target.classList.contains('item-name')) return;
+        const input = e.target;
+        const keyword = input.value.trim();
+        const rowId = input.getAttribute('data-row-id');
+        if (!rowId || keyword === '') return;
+        showProductDropdown(keyword, rowId, input);
+      }, true);
+
+      document.addEventListener('blur', function(e) {
+        if (!e.target.classList.contains('item-name')) return;
+        const input = e.target;
+        const keyword = input.value.trim();
+        const rowId = input.getAttribute('data-row-id');
+        if (!rowId || !keyword) return;
+
+        setTimeout(function() {
+          const matched = productList.find(function(p) {
+            const name = (p.name || '').trim();
+            return name === keyword || name.indexOf(keyword) !== -1 || keyword.indexOf(name) !== -1;
+          });
+          if (!matched) {
+            const confirmed = confirm('系统没有发现该商品 "' + keyword + '"，是否新增此商品？');
+            if (confirmed) {
+              openProductQuickAddModal(keyword);
+            }
+          }
+        }, 100);
+      }, true);
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('item-name')) {
+          document.querySelectorAll('.product-dropdown').forEach(function(d) {
+            d.classList.remove('show');
+          });
+        }
+      });
+    }
+
+    function showProductDropdown(keyword, rowId, input) {
+      const dropdown = document.getElementById('pd-' + rowId);
+      if (!dropdown) return;
+
+      const matchedProducts = productList.filter(function(p) {
+        const name = (p.name || '').toLowerCase();
+        const model = (p.model || '').toLowerCase();
+        const kw = keyword.toLowerCase();
+        return name.indexOf(kw) !== -1 || model.indexOf(kw) !== -1;
+      });
+
+      if (matchedProducts.length === 0) {
+        dropdown.innerHTML = `
+          <div class="product-dropdown-empty">
+            <div>未找到匹配的商品</div>
+            <div class="hint">
+              <span>没有找到"</span><strong>${escapeHtml(keyword)}</strong><span>"?</span>
+              <span class="btn-link" onclick="openProductQuickAddModal('${escapeHtml(keyword).replace(/'/g, "\\'")}')">立即新增</span>
+            </div>
+          </div>
+        `;
+      } else {
+        dropdown.innerHTML = matchedProducts.slice(0, 8).map(function(p) {
+          return `
+            <div class="product-dropdown-item" data-row-id="${rowId}" data-product='${JSON.stringify(p).replace(/'/g, "\\'")}' onclick="selectProduct(this)">
+              <div>${escapeHtml(p.name || '')}</div>
+              ${p.model ? '<div class="product-detail">型号: ' + escapeHtml(p.model) + '</div>' : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      dropdown.classList.add('show');
+    }
+
+    function selectProduct(el) {
+      const rowId = el.getAttribute('data-row-id');
+      const product = JSON.parse(el.getAttribute('data-product').replace(/\\'/g, "'"));
+      const dropdown = document.getElementById('pd-' + rowId);
+      if (dropdown) dropdown.classList.remove('show');
+
+      const row = document.querySelector('tr[id="' + rowId + '"]');
+      if (!row) return;
+
+      const nameInput = row.querySelector('.item-name');
+      if (nameInput) {
+        nameInput.value = product.name || '';
+        nameInput.setAttribute('data-selected-id', product.id || '');
+      }
+      const modelInput = row.querySelector('.item-model');
+      if (modelInput) modelInput.value = product.model || '';
+      const lengthInput = row.querySelector('.item-length');
+      if (lengthInput) lengthInput.value = product.length || '';
+      const wattageInput = row.querySelector('.item-wattage');
+      if (wattageInput) wattageInput.value = product.wattage || '';
+      if (product.unit) {
+        const unitSelect = row.querySelector('.item-unit');
+        if (unitSelect) unitSelect.value = product.unit;
+      }
+      if (product.price) {
+        const priceInput = row.querySelector('.item-price');
+        if (priceInput) priceInput.value = product.price;
+        calcItemAmount(priceInput);
+      }
+    }
+
+    function hideProductDropdown(rowId) {
+      const dropdown = document.getElementById('pd-' + rowId);
+      if (dropdown) dropdown.classList.remove('show');
+    }
+
+    function openProductQuickAddModal(prefillName) {
+      document.getElementById('product-quick-add-modal').classList.add('show');
+      document.getElementById('product-quick-form').reset();
+      if (prefillName) {
+        document.getElementById('pq-name').value = prefillName;
+      }
+    }
+
+    function closeProductQuickAddModal() {
+      document.getElementById('product-quick-add-modal').classList.remove('show');
+    }
+
+    async function quickSaveProduct() {
+      const name = document.getElementById('pq-name').value.trim();
+      if (!name) {
+        alert('请输入商品名称');
+        return;
+      }
+
+      const userId = localStorage.getItem('userId') || '';
+
+      const productData = {
+        name: name,
+        model: document.getElementById('pq-model').value.trim(),
+        length: document.getElementById('pq-length').value.trim(),
+        wattage: document.getElementById('pq-wattage').value.trim(),
+        unit: document.getElementById('pq-unit').value,
+        price: parseFloat(document.getElementById('pq-price').value) || 0,
+        remark: document.getElementById('pq-remark').value.trim(),
+        userId: userId
+      };
+
+      try {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          const newProduct = {
+            id: result.data.id || result.data.insertId,
+            ...productData
+          };
+          productList.unshift(newProduct);
+
+          closeProductQuickAddModal();
+
+          // 自动填入当前行
+          const focusedInput = document.querySelector('.item-name:focus');
+          if (focusedInput) {
+            const rowId = focusedInput.getAttribute('data-row-id');
+            const row = document.querySelector('tr[id="' + rowId + '"]');
+            if (row) {
+              focusedInput.value = newProduct.name || '';
+              focusedInput.setAttribute('data-selected-id', newProduct.id || '');
+              const modelInput = row.querySelector('.item-model');
+              if (modelInput) modelInput.value = newProduct.model || '';
+            }
+          }
+
+          alert('商品添加成功！');
+        } else {
+          alert(result.message || '添加失败');
+        }
+      } catch (e) {
+        alert('添加失败: ' + e.message);
       }
     }
 
@@ -2218,6 +2588,9 @@
       await loadSupplierList();
       // 初始化供应商搜索
       initSupplierSearch();
+      // 加载商品列表并初始化商品搜索
+      await loadProductList();
+      initProductSearchListeners();
       // 加载进货单
       loadPurchaseOrders();
     });

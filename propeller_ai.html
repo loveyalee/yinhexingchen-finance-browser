@@ -68,10 +68,22 @@
     .header-status {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       font-size: 13px;
       color: #94a3b8;
     }
+
+    .home-btn {
+      padding: 6px 14px;
+      background: linear-gradient(90deg, #c8921a, #a87418);
+      color: #fff !important;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: opacity 0.3s;
+    }
+    .home-btn:hover { opacity: 0.85; }
 
     .status-dot {
       width: 8px; height: 8px;
@@ -353,7 +365,7 @@
     <div class="sidebar">
       <div class="logo">银河星辰</div>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="index.html">🏠 返回主页</a></li>
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
         <li class="nav-item"><a href="propeller_ai.html" class="active">螺旋桨智能体</a></li>
         <li class="nav-item has-submenu">
           <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
@@ -400,6 +412,7 @@
           <span>螺旋桨智能体</span>
         </div>
         <div class="header-status">
+          <a href="index.html" class="home-btn">🏠 返回主页</a>
           <div class="status-dot"></div>
           <span>24小时运行中</span>
         </div>

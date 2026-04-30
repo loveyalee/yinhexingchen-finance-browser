@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ws://localhost:* wss://localhost:*; media-src 'self'; object-src 'none';">
+  <title>螺旋桨智能体 - 银河星辰财务办公智能体</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a1628 0%, #0d2137 40%, #0f2a45 100%);
+      background-attachment: fixed;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    .container { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #0d1f35 0%, #12304d 60%, #0e2540 100%);
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+      min-height: 100vh;
+      flex-shrink: 0;
+    }
+
+    .sidebar .logo { font-size: 24px; font-weight: bold; margin-bottom: 30px; text-align: center; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 10px; }
+    .nav-item a { display: block; padding: 12px; color: white; text-decoration: none; border-radius: 4px; transition: background-color 0.3s; }
+    .nav-item a:hover { background-color: rgba(255,255,255,0.1); }
+    .nav-item a.active { background: linear-gradient(90deg, #c8921a, #a87418); color: #fff; font-weight: 600; }
+
+    .nav-item.has-submenu { position: relative; }
+    .nav-item.has-submenu > a::after { content: '▼'; float: right; font-size: 12px; margin-left: 5px; }
+    .submenu { position: absolute; left: 0; top: 100%; width: 100%; background: linear-gradient(180deg, #0d1f35 0%, #12304d 100%); border-radius: 0 0 4px 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: none; z-index: 1000; list-style: none; }
+    .nav-item.has-submenu:hover .submenu { display: block; }
+    .submenu-item { margin: 0; }
+    .submenu-item a { display: block; padding: 10px 15px; color: white; text-decoration: none; transition: background-color 0.3s; }
+    .submenu-item a:hover { background-color: rgba(255,255,255,0.1); }
+
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .header {
+      height: 60px;
+      background: rgba(13, 31, 53, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 146, 26, 0.2);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #c8921a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      padding: 48px 20px 32px;
+      position: relative;
+    }
+
+    .propeller-icon {
+      font-size: 72px;
+      margin-bottom: 20px;
+      animation: spin 8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c8921a, #fbbf24, #c8921a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: #94a3b8;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(200, 146, 26, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      background: rgba(200, 146, 26, 0.08);
+      border-color: rgba(200, 146, 26, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon { font-size: 28px; margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #fbbf24; margin-bottom: 4px; }
+    .stat-label { font-size: 13px; color: #94a3b8; }
+
+    /* Pipeline Section */
+    .pipeline-section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #c8921a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding: 8px 0;
+    }
+
+    .pipeline-step {
+      flex: 1;
+      min-width: 120px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(200, 146, 26, 0.12);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .pipeline-step:hover {
+      background: rgba(200, 146, 26, 0.06);
+      border-color: rgba(200, 146, 26, 0.3);
+    }
+
+    .pipeline-step.active { border-color: #22c55e; }
+    .pipeline-step.active::after {
+      content: '运行中';
+      position: absolute;
+      top: -8px; right: -8px;
+      background: #22c55e;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    .pipeline-icon { font-size: 26px; margin-bottom: 8px; }
+    .pipeline-name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+    .pipeline-count { font-size: 11px; color: #94a3b8; }
+    .pipeline-arrow { font-size: 20px; color: #475569; padding: 0 8px; flex-shrink: 0; }
+
+    /* Activity Feed */
+    .activity-section { margin-bottom: 28px; }
+    .activity-list {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(200, 146, 26, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.2s;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { background: rgba(255,255,255,0.03); }
+
+    .activity-time {
+      font-size: 11px;
+      color: #64748b;
+      min-width: 55px;
+      text-align: right;
+    }
+
+    .activity-icon { font-size: 18px; }
+    .activity-text { flex: 1; font-size: 13px; color: #cbd5e1; }
+    .activity-text strong { color: #e2e8f0; }
+    .activity-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .badge-success { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-error { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(200, 146, 26, 0.12);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      background: rgba(200, 146, 26, 0.06);
+      border-color: rgba(200, 146, 26, 0.3);
+    }
+
+    .feature-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .feature-icon { font-size: 24px; }
+    .feature-title { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+
+    .feature-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .feature-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-label { font-size: 12px; color: #64748b; }
+
+    .toggle-switch {
+      width: 40px; height: 22px;
+      background: #334155;
+      border-radius: 11px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.on { background: #22c55e; }
+    .toggle-switch::after {
+      content: '';
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: left 0.3s;
+    }
+    .toggle-switch.on::after { left: 20px; }
+
+    /* Timer */
+    .runtime-info {
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .runtime-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+    .runtime-value { font-size: 36px; font-weight: 700; color: #22c55e; font-family: 'Courier New', monospace; letter-spacing: 3px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(200,146,26,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(200,146,26,0.5); }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; padding: 15px 8px; }
+      .sidebar .logo, .nav-item a, .nav-item.has-submenu > a::after { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .feature-grid { grid-template-columns: 1fr; }
+      .pipeline-flow { flex-wrap: wrap; }
+      .pipeline-arrow { display: none; }
+      .pipeline-step { flex: 0 0 calc(50% - 8px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+      <div class="logo">银河星辰</div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html">仪表盘</a></li>
+        <li class="nav-item"><a href="propeller_ai.html" class="active">螺旋桨智能体</a></li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">财务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="finance_software.html">财务记账</a></li>
+            <li class="submenu-item"><a href="budget_management.html">预算管理</a></li>
+            <li class="submenu-item"><a href="expense_reimbursement.html">费用报销</a></li>
+            <li class="submenu-item"><a href="audit_zone.html">审计专区</a></li>
+            <li class="submenu-item"><a href="finance_bp.html">财务BP</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">税务管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="tax_reporting.html">一键报税</a></li>
+            <li class="submenu-item"><a href="#">发票管理</a></li>
+            <li class="submenu-item"><a href="#">税务筹划</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">供应链管理</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="product_management.html">商品管理</a></li>
+            <li class="submenu-item"><a href="customer_management.html">客户管理</a></li>
+            <li class="submenu-item"><a href="purchase_order.html">进货单</a></li>
+            <li class="submenu-item"><a href="delivery_note_management.html">送货单</a></li>
+          </ul>
+        </li>
+        <li class="nav-item has-submenu">
+          <a href="#" onclick="toggleSubmenu(this); return false;">AI 助手</a>
+          <ul class="submenu">
+            <li class="submenu-item"><a href="chatbot.html">智能问答</a></li>
+            <li class="submenu-item"><a href="#">数据分析</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-wrapper">
+      <div class="header">
+        <div class="header-title">
+          <span>⚙️</span>
+          <span>螺旋桨智能体</span>
+        </div>
+        <div class="header-status">
+          <div class="status-dot"></div>
+          <span>24小时运行中</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Hero -->
+        <div class="hero-section">
+          <div class="propeller-icon">🌀</div>
+          <h1 class="hero-title">螺旋桨智能体</h1>
+          <p class="hero-subtitle">
+            24小时全自动财务记账系统，实时采集发票、审批单、进货单、销售单，<br>
+            智能识别、自动分类、即时入账，让财务真正解放双手
+          </p>
+        </div>
+
+        <!-- 运行时长 -->
+        <div class="runtime-info">
+          <div class="runtime-label">本轮运行时长</div>
+          <div class="runtime-value" id="runtime-clock">00:00:00</div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value" id="stat-invoice">0</div>
+            <div class="stat-label">发票采集</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="stat-approval">0</div>
+            <div class="stat-label">审批处理</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-value" id="stat-purchase">0</div>
+            <div class="stat-label">进货单</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" id="stat-sale">0</div>
+            <div class="stat-label">销售单</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="stat-posted">0</div>
+            <div class="stat-label">已记账</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="stat-today">0</div>
+            <div class="stat-label">今日处理</div>
+          </div>
+        </div>
+
+        <!-- 自动化流水线 -->
+        <div class="pipeline-section">
+          <div class="section-title">🔄 自动化流水线</div>
+          <div class="pipeline-flow">
+            <div class="pipeline-step active">
+              <div class="pipeline-icon">📥</div>
+              <div class="pipeline-name">采集录入</div>
+              <div class="pipeline-count">自动采集各类单据</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon">🔍</div>
+              <div class="pipeline-name">智能识别</div>
+              <div class="pipeline-count">OCR + AI 解析内容</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon">🏷️</div>
+              <div class="pipeline-name">自动分类</div>
+              <div class="pipeline-count">匹配科目与项目</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon">✅</div>
+              <div class="pipeline-name">智能审批</div>
+              <div class="pipeline-count">规则引擎自动审核</div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon">💾</div>
+              <div class="pipeline-name">自动记账</div>
+              <div class="pipeline-count">生成凭证入账</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 功能开关 -->
+        <div class="section-title">⚙️ 自动化功能</div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">📄</div>
+              <div class="feature-title">发票自动采集</div>
+            </div>
+            <div class="feature-desc">对接电子发票系统、邮箱、微信/支付宝卡包，自动识别增值税发票内容并入账</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">📋</div>
+              <div class="feature-title">审批单自动处理</div>
+            </div>
+            <div class="feature-desc">自动接收OA/审批系统推送，根据费用类型、金额自动匹配预算并完成报销记账</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">🛒</div>
+              <div class="feature-title">进货单自动同步</div>
+            </div>
+            <div class="feature-desc">对接供应商系统/ERP，自动抓取进货单据，实时更新库存与应付账款</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">📦</div>
+              <div class="feature-title">销售单自动入账</div>
+            </div>
+            <div class="feature-desc">对接CRM/收银系统，自动识别销售数据，实时生成收入凭证与应收确认</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">🤖</div>
+              <div class="feature-title">AI 智能分类</div>
+            </div>
+            <div class="feature-desc">基于大语言模型，自动识别单据类型、交易对手、会计科目，降低人工干预</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-header">
+              <div class="feature-icon">🔔</div>
+              <div class="feature-title">异常实时预警</div>
+            </div>
+            <div class="feature-desc">智能检测金额异常、重复报销、发票不合规等问题，第一时间推送告警通知</div>
+            <div class="feature-toggle">
+              <span class="toggle-label">已启用</span>
+              <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 实时活动 -->
+        <div class="activity-section">
+          <div class="section-title">📡 实时活动日志</div>
+          <div class="activity-list" id="activity-list">
+            <div class="activity-item">
+              <div class="activity-time">--:--:--</div>
+              <div class="activity-icon">🌀</div>
+              <div class="activity-text">系统启动中...</div>
+              <div class="activity-badge badge-success">就绪</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 子菜单切换
+    function toggleSubmenu(link) {
+      link.parentElement.querySelector('.submenu').classList.toggle('show');
+    }
+
+    // 时钟
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('runtime-clock').textContent = h + ':' + m + ':' + s;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 统计数据（演示数据）
+    var stats = {
+      invoice: 0,
+      approval: 0,
+      purchase: 0,
+      sale: 0,
+      posted: 0,
+      today: 0
+    };
+
+    // 活动日志
+    var activities = [];
+    var activityTemplates = [
+      { icon: '📄', text: '自动采集发票 <strong>{doc}</strong>', badge: 'badge-success' },
+      { icon: '📋', text: '审批单 <strong>{doc}</strong> 已通过智能审核', badge: 'badge-success' },
+      { icon: '🛒', text: '进货单 <strong>{doc}</strong> 已自动记账', badge: 'badge-success' },
+      { icon: '📦', text: '销售单 <strong>{doc}</strong> 已入账', badge: 'badge-success' },
+      { icon: '🤖', text: 'AI 识别 <strong>{doc}</strong> 为{type}类单据', badge: 'badge-pending' },
+      { icon: '🔔', text: '检测到发票 <strong>{doc}</strong> 金额异常，已标记', badge: 'badge-error' },
+      { icon: '✅', text: '凭证 <strong>{doc}</strong> 已自动生成并过账', badge: 'badge-success' },
+      { icon: '🔄', text: '同步供应商 <strong>{doc}</strong> 库存数据', badge: 'badge-pending' },
+      { icon: '⚡', text: '自动分类 <strong>{doc}</strong> → 科目 {account}', badge: 'badge-success' },
+      { icon: '🌀', text: '定时巡检完成，系统运行正常', badge: 'badge-success' },
+    ];
+
+    var docNames = ['销售发票#256', '差旅报销单#128', '采购入库单#089', '费用审批#034', '电子发票#991', '招待费申请#067', '运输单据#441', '办公用品#202'];
+    var types = ['费用', '收入', '资产', '往来', '成本'];
+    var accounts = ['管理费用', '销售费用', '主营业务收入', '应付账款', '银行存款'];
+
+    function addActivity() {
+      var tpl = activityTemplates[Math.floor(Math.random() * activityTemplates.length)];
+      var now = new Date();
+      var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+
+      var text = tpl.text
+        .replace('{doc}', docNames[Math.floor(Math.random() * docNames.length)])
+        .replace('{type}', types[Math.floor(Math.random() * types.length)])
+        .replace('{account}', accounts[Math.floor(Math.random() * accounts.length)]);
+
+      var html = '<div class="activity-item">' +
+        '<div class="activity-time">' + time + '</div>' +
+        '<div class="activity-icon">' + tpl.icon + '</div>' +
+        '<div class="activity-text">' + text + '</div>' +
+        '<div class="activity-badge ' + tpl.badge + '">' +
+        (tpl.badge === 'badge-success' ? '完成' : tpl.badge === 'badge-pending' ? '处理中' : '告警') +
+        '</div></div>';
+
+      var list = document.getElementById('activity-list');
+      list.insertAdjacentHTML('afterBegin', html);
+
+      // 保持最多20条
+      while (list.children.length > 20) {
+        list.removeChild(list.lastChild);
+      }
+
+      // 更新统计
+      var r = Math.random();
+      if (r < 0.3) { stats.invoice++; stats.today++; }
+      else if (r < 0.5) { stats.approval++; stats.today++; }
+      else if (r < 0.65) { stats.purchase++; stats.today++; }
+      else if (r < 0.8) { stats.sale++; stats.today++; }
+      else { stats.today++; }
+      stats.posted = Math.floor(stats.today * 0.95);
+
+      document.getElementById('stat-invoice').textContent = stats.invoice;
+      document.getElementById('stat-approval').textContent = stats.approval;
+      document.getElementById('stat-purchase').textContent = stats.purchase;
+      document.getElementById('stat-sale').textContent = stats.sale;
+      document.getElementById('stat-posted').textContent = stats.posted;
+      document.getElementById('stat-today').textContent = stats.today;
+    }
+
+    // 每隔5-15秒随机添加一条活动
+    function scheduleNext() {
+      var delay = 5000 + Math.random() * 10000;
+      setTimeout(function() {
+        addActivity();
+        scheduleNext();
+      }, delay);
+    }
+    scheduleNext();
+    addActivity(); // 立即添加一条
+  </script>
+</body>
+</html>
